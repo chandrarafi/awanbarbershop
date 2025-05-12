@@ -68,19 +68,6 @@ class CreateUsersTable extends Migration
         ]);
         $this->forge->addKey('id', true);
         $this->forge->createTable('users');
-
-        // Tambahkan admin default
-        $data = [
-            'username'   => 'admin',
-            'email'      => 'admin@example.com',
-            'password'   => password_hash('admin123', PASSWORD_DEFAULT),
-            'name'       => 'Administrator',
-            'role'       => 'admin',
-            'status'     => 'active',
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
-        ];
-        $this->db->table('users')->insert($data);
     }
 
     public function down()

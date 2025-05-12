@@ -4,108 +4,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Admin Panel</title>
+    <title>Login - Awan Barbershop Admin</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary-color: #4e73df;
-            --secondary-color: #224abe;
-            --accent-color: #f8f9fc;
+            --primary-color: #2C3639;
+            --secondary-color: #3F4E4F;
+            --accent-color: #A27B5C;
+            --light-color: #DCD7C9;
         }
 
         body {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex;
             align-items: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif;
         }
 
         .login-container {
-            max-width: 420px;
+            max-width: 450px;
             margin: 0 auto;
             padding: 20px;
         }
 
         .login-card {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             overflow: hidden;
         }
 
         .login-header {
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            padding: 25px 20px;
+            background: var(--primary-color);
+            padding: 30px 20px;
             text-align: center;
-            border-radius: 15px 15px 0 0;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--accent-color);
         }
 
         .login-header h4 {
             color: white;
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: 600;
+        }
+
+        .login-header p {
+            color: var(--light-color);
+            margin: 10px 0 0;
+            font-size: 1rem;
         }
 
         .login-body {
-            padding: 30px;
+            padding: 40px;
         }
 
         .form-control {
-            border-radius: 8px;
-            padding: 12px;
-            border: 1px solid #e1e1e1;
-            font-size: 0.95rem;
-        }
-
-        .form-control:focus {
-            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
-            border-color: var(--primary-color);
-        }
-
-        .input-group-text {
-            border-radius: 8px 0 0 8px;
-            border: 1px solid #e1e1e1;
-            background-color: #f8f9fa;
-        }
-
-        .btn-login {
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            border-radius: 12px;
+            padding: 12px 15px;
+            border: 2px solid #e1e1e1;
+            font-size: 1rem;
             transition: all 0.3s ease;
         }
 
+        .form-control:focus {
+            box-shadow: none;
+            border-color: var(--accent-color);
+        }
+
+        .input-group-text {
+            border-radius: 12px 0 0 12px;
+            border: 2px solid #e1e1e1;
+            border-right: none;
+            background-color: white;
+        }
+
+        .btn-login {
+            background: var(--accent-color);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
         .btn-login:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
-        }
-
-        .form-check-input:checked {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        .alert {
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .brand-logo {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 10px;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 15px;
+            border-radius: 50%;
+            padding: 10px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .loading-overlay {
@@ -114,29 +137,60 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             display: none;
             justify-content: center;
             align-items: center;
-            border-radius: 15px;
+            border-radius: 20px;
+            z-index: 1000;
         }
 
         .form-label {
             font-weight: 500;
-            color: #495057;
+            color: var(--primary-color);
+            margin-bottom: 8px;
         }
 
         .remember-me {
-            color: #6c757d;
+            color: var(--secondary-color);
         }
 
-        .input-group {
-            margin-bottom: 5px;
+        .form-check-input:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
         }
 
-        .invalid-feedback {
-            font-size: 0.85rem;
-            margin-left: 5px;
+        .alert {
+            border-radius: 12px;
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        .btn-outline-secondary {
+            border-color: #e1e1e1;
+            color: var(--secondary-color);
+            border-radius: 0 12px 12px 0;
+            border-left: none;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        @media (max-width: 576px) {
+            .login-container {
+                padding: 15px;
+            }
+
+            .login-body {
+                padding: 20px;
+            }
+
+            .login-header h4 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -145,21 +199,19 @@
     <div class="container">
         <div class="login-container">
             <div class="login-card position-relative">
-                <!-- Loading Overlay -->
                 <div class="loading-overlay" id="loadingOverlay">
-                    <div class="spinner-border text-primary" role="status">
+                    <div class="spinner-border text-accent" style="color: var(--accent-color)" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
 
                 <div class="login-header">
-                    <!-- Anda bisa menambahkan logo perusahaan di sini -->
-                    <img src="<?= base_url('assets/images/logo.png') ?>" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
-                    <h4><i class="bi bi-shield-lock me-2"></i>Login Admin</h4>
+                    <img src="<?= base_url('assets/images/logo.png') ?>" alt="Awan Barbershop" class="brand-logo" onerror="this.src='https://ui-avatars.com/api/?name=Awan+Barbershop&background=A27B5C&color=fff'">
+                    <h4>Awan Barbershop</h4>
+                    <p>Admin Panel</p>
                 </div>
 
                 <div class="login-body">
-                    <!-- Alert untuk pesan error/success -->
                     <?php if (session()->getFlashdata('message')) : ?>
                         <div class="alert alert-info alert-dismissible fade show" role="alert">
                             <?= session()->getFlashdata('message') ?>
@@ -167,7 +219,6 @@
                         </div>
                     <?php endif; ?>
 
-                    <!-- Alert untuk error -->
                     <div id="loginError" class="alert alert-danger alert-dismissible fade show" style="display: none;" role="alert">
                         <i class="bi bi-exclamation-triangle me-2"></i>
                         <span id="errorMessage"></span>
@@ -205,8 +256,8 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-login w-100" id="btnLogin">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                        <button type="submit" class="btn btn-login w-100" id="btnLogin">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Masuk ke Dashboard
                         </button>
                     </form>
                 </div>
