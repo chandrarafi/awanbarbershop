@@ -11,6 +11,7 @@
 </head>
 
 <body>
+    <?= $this->renderSection('modal') ?>
 
     <?= $this->include('admin/layouts/sidebar') ?>
     <!-- Main Content -->
@@ -22,6 +23,7 @@
         <!-- Page Content -->
         <div class="container-fluid animate__animated animate__fadeIn">
             <?= $this->renderSection('content') ?>
+
         </div>
     </div>
     <?= $this->include('admin/layouts/script') ?>

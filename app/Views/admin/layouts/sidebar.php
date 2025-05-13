@@ -22,6 +22,12 @@
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link <?= $title == 'Manajemen Karyawan' ? 'active' : '' ?>" href="<?= site_url('admin/karyawan') ?>">
+                <i class="bi bi-person-badge"></i>
+                <span>Karyawan</span>
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link <?= $title == 'Services' ? 'active' : '' ?>" href="<?= site_url('admin/services') ?>">
                 <i class="bi bi-scissors"></i>
                 <span>Services</span>
