@@ -64,6 +64,7 @@ class KaryawanModel extends Model
                     'required' => 'Nomor HP harus diisi'
                 ]
             ],
+
         ];
     }
 
