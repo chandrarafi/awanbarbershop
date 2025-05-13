@@ -27,4 +27,15 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->post('deleteUser/(:num)', 'Admin::deleteUser/$1');
         $routes->get('getRoles', 'Admin::getRoles');
     });
+
+    // Karyawan Routes
+    $routes->group('karyawan', ['filter' => 'role:admin,manager'], function ($routes) {
+        $routes->get('/', 'Karyawan::index');
+        $routes->get('getKaryawan', 'Karyawan::getKaryawan');
+        $routes->get('getNewId', 'Karyawan::getNewId');
+        $routes->get('getById/(:segment)', 'Karyawan::getById/$1');
+        $routes->post('store', 'Karyawan::store');
+        $routes->post('update/(:segment)', 'Karyawan::update/$1');
+        $routes->delete('delete/(:segment)', 'Karyawan::delete/$1');
+    });
 });
