@@ -22,6 +22,7 @@
                     <table class="table table-hover" id="paketTable">
                         <thead>
                             <tr>
+                                <th>No</th>
                                 <th>ID Paket</th>
                                 <th>Nama Paket</th>
                                 <th>Deskripsi</th>
@@ -167,54 +168,109 @@
 <?= $this->section('scripts') ?>
 <script>
     $(function() {
-        var table = $('#paketTable').DataTable({
+        let paketTable = $('#paketTable').DataTable({
             processing: true,
             serverSide: true,
-            ajax: "<?= base_url('admin/paket/getPaket') ?>",
+            ajax: {
+                url: '<?= site_url('admin/paket/getPaket') ?>',
+                type: 'GET',
+                dataSrc: function(json) {
+                    if (json.recordsFiltered === 0 && json.search) {
+                        $('.dataTables_empty').html('Tidak ditemukan data yang sesuai dengan pencarian: "' + json.search + '"');
+                    }
+                    return json.data;
+                }
+            },
             columns: [{
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
                     data: 'idpaket'
                 },
                 {
                     data: 'namapaket'
                 },
                 {
-                    data: 'deskripsi'
+                    data: 'deskripsi',
+                    render: function(data, type, row) {
+                        if (type === 'display' && data.length > 50) {
+                            return data.substr(0, 47) + '...';
+                        }
+                        return data;
+                    }
                 },
                 {
                     data: 'harga',
-                    render: function(data) {
-                        return 'Rp ' + parseInt(data).toLocaleString();
+                    render: function(data, type, row) {
+                        if (type === 'display') {
+                            return row.harga_formatted;
+                        }
+                        return data;
                     }
                 },
                 {
                     data: null,
+                    orderable: false,
+                    searchable: false,
                     render: function(data, type, row) {
                         return '<div class="d-flex gap-1">' +
-                            '<button class="btn btn-sm btn-info btn-action edit-btn" data-id="' + row.idpaket + '"><i class="bi bi-pencil"></i></button>' +
-                            '<button class="btn btn-sm btn-danger btn-action delete-btn" data-id="' + row.idpaket + '"><i class="bi bi-trash"></i></button>' +
+                            '<button class="btn btn-sm btn-info btn-edit" data-id="' + row.idpaket + '"><i class="bi bi-pencil"></i></button>' +
+                            '<button class="btn btn-sm btn-danger btn-delete" data-id="' + row.idpaket + '"><i class="bi bi-trash"></i></button>' +
                             '</div>';
                     }
                 }
             ],
-            responsive: true,
-            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                "<'row'<'col-sm-12'tr>>" +
-                "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            order: [
+                [1, 'asc']
+            ],
+            pageLength: 10,
+            lengthMenu: [
+                [10, 25, 50, 100],
+                [10, 25, 50, 100]
+            ],
             language: {
-                search: "Cari:",
-                lengthMenu: "Tampilkan _MENU_ data per halaman",
-                zeroRecords: "Tidak ada data yang ditemukan",
+                processing: '<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>',
+                emptyTable: "Tidak ada data paket",
                 info: "Menampilkan _START_ hingga _END_ dari _TOTAL_ data",
-                infoEmpty: "Tidak ada data yang tersedia",
-                infoFiltered: "(difilter dari _MAX_ total data)",
+                infoEmpty: "Tidak ada data yang sesuai",
+                infoFiltered: "(disaring dari _MAX_ total data)",
+                search: "Cari:",
+                searchPlaceholder: "Ketik untuk mencari...",
+                lengthMenu: "Tampilkan _MENU_ data",
+                zeroRecords: "Tidak ditemukan data yang sesuai",
                 paginate: {
                     first: "Pertama",
                     last: "Terakhir",
                     next: "Selanjutnya",
                     previous: "Sebelumnya"
                 }
-            }
+            },
+            responsive: true,
+            searchDelay: 100,
+            deferRender: true,
+            scroller: true,
+            scrollY: 400,
+            scrollCollapse: true
         });
+
+        let searchTimeout;
+        $('.dataTables_filter input')
+            .off()
+            .on('input', function() {
+                clearTimeout(searchTimeout);
+                let value = this.value;
+
+                searchTimeout = setTimeout(() => {
+                    paketTable.search(value).draw();
+                }, 100);
+            });
+
+        $('.dataTables_processing').addClass('position-absolute start-50 translate-middle-x mt-2');
 
         // Reset form when modal is closed
         $('#modalPaket').on('hidden.bs.modal', function() {
@@ -376,7 +432,7 @@
                             timer: 1500,
                             showConfirmButton: false
                         });
-                        table.ajax.reload();
+                        paketTable.ajax.reload();
                     } else {
                         showErrors(response.errors);
                     }
@@ -430,7 +486,7 @@
                             timer: 1500,
                             showConfirmButton: false
                         });
-                        table.ajax.reload();
+                        paketTable.ajax.reload();
                     } else {
                         Swal.fire({
                             title: 'Error',

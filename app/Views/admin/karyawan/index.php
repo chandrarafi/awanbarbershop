@@ -22,6 +22,7 @@
                     <table class="table table-hover" id="karyawanTable">
                         <thead>
                             <tr>
+                                <th>No</th>
                                 <th>ID Karyawan</th>
                                 <th>Nama</th>
                                 <th>Alamat</th>
@@ -173,6 +174,12 @@
             serverSide: true,
             ajax: "<?= base_url('admin/karyawan/getKaryawan') ?>",
             columns: [{
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
                     data: 'idkaryawan'
                 },
                 {
