@@ -38,4 +38,33 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->post('update/(:segment)', 'Karyawan::update/$1');
         $routes->delete('delete/(:segment)', 'Karyawan::delete/$1');
     });
+
+    // Paket Routes
+    $routes->group('paket', ['filter' => 'role:admin,manager'], function ($routes) {
+        $routes->get('/', 'Paket::index');
+        $routes->get('getPaket', 'Paket::getPaket');
+        $routes->get('getNewId', 'Paket::getNewId');
+        $routes->get('getById/(:segment)', 'Paket::getById/$1');
+        $routes->post('store', 'Paket::store');
+        $routes->post('update/(:segment)', 'Paket::update/$1');
+        $routes->delete('delete/(:segment)', 'Paket::delete/$1');
+    });
+
+    // Pelanggan Routes
+    $routes->group('pelanggan', function ($routes) {
+        $routes->get('/', 'Pelanggan::index');
+        $routes->get('create', 'Pelanggan::create');
+        $routes->get('edit/(:num)', 'Pelanggan::edit/$1');
+        $routes->get('getNewId', 'Pelanggan::getNewId');
+        $routes->get('getPelanggan', 'Pelanggan::getPelanggan');
+        $routes->post('store', 'Pelanggan::store');
+        $routes->post('update/(:num)', 'Pelanggan::update/$1');
+        $routes->delete('delete/(:num)', 'Pelanggan::delete/$1');
+    });
+});
+
+// Pelanggan Routes (untuk akses pelanggan)
+$routes->group('pelanggan', ['filter' => 'auth'], function ($routes) {
+    $routes->get('profile', 'Pelanggan::profile', ['filter' => 'role:pelanggan']);
+    $routes->post('update-profile', 'Pelanggan::updateProfile', ['filter' => 'role:pelanggan']);
 });

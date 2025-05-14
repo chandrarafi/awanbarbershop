@@ -28,6 +28,18 @@
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link <?= $title == 'Manajemen Paket' ? 'active' : '' ?>" href="<?= site_url('admin/paket') ?>">
+                <i class="bi bi-scissors"></i>
+                <span>Paket</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?= ($title == 'Manajemen Pelanggan' || $title == 'Tambah Pelanggan' || $title == 'Edit Pelanggan') ? 'active' : '' ?>" href="<?= site_url('admin/pelanggan') ?>">
+                <i class="bi bi-person-badge"></i>
+                <span>Pelanggan</span>
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link <?= $title == 'Services' ? 'active' : '' ?>" href="<?= site_url('admin/services') ?>">
                 <i class="bi bi-scissors"></i>
                 <span>Services</span>
