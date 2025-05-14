@@ -13,7 +13,7 @@ class UserModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['username', 'email', 'password', 'role', 'name', 'status', 'last_login', 'remember_token'];
+    protected $allowedFields    = ['username', 'email', 'password', 'role', 'name', 'status'];
 
     // Dates
     protected $useTimestamps = true;
@@ -68,7 +68,7 @@ class UserModel extends Model
                 ]
             ],
             'role' => [
-                'rules' => 'required|in_list[admin,manager,user]',
+                'rules' => 'required|in_list[admin,manager,user,pelanggan]',
                 'errors' => [
                     'required' => 'Role harus dipilih',
                     'in_list' => 'Role tidak valid'
@@ -89,7 +89,6 @@ class UserModel extends Model
                     'in_list' => 'Status tidak valid'
                 ]
             ],
-
         ];
     }
 
