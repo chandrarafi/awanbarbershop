@@ -8,10 +8,12 @@ use App\Models\UserModel;
 class Admin extends BaseController
 {
     protected $userModel;
+    protected $db;
 
     public function __construct()
     {
         $this->userModel = new UserModel();
+        $this->db = \Config\Database::connect();
     }
 
     public function index()
@@ -29,67 +31,72 @@ class Admin extends BaseController
 
     public function getUsers()
     {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'error' => true,
+                'message' => 'Invalid request'
+            ]);
+        }
+
         $request = $this->request;
 
-        // Parameters for DataTables
-        $start = $request->getGet('start') ?? 0;
-        $length = $request->getGet('length') ?? 10;
-        $search = $request->getGet('search')['value'] ?? '';
+        $start = (int) $request->getGet('start');
+        $length = (int) $request->getGet('length');
+        $search = trim($request->getGet('search')['value'] ?? '');
         $order = $request->getGet('order') ?? [];
-        $roleFilter = $request->getGet('role') ?? '';
-        $statusFilter = $request->getGet('status') ?? '';
 
-        $orderColumn = $order[0]['column'] ?? 0;
-        $orderDir = $order[0]['dir'] ?? 'asc';
+        // Query dasar dengan index hints untuk optimasi
+        $builder = $this->db->table('users USE INDEX (PRIMARY)');
 
-        // Columns for ordering
-        $columns = ['id', 'username', 'email', 'name', 'role', 'status', 'last_login'];
-        $orderBy = $columns[$orderColumn] ?? 'id';
+        // Total records (cache result)
+        $totalRecords = $this->db->table('users')->countAllResults();
 
-        // Build query
-        $builder = $this->userModel->builder();
-
-        // Filtering
+        // Pencarian yang dioptimalkan
         if (!empty($search)) {
+            $searchValue = $this->db->escapeLikeString($search);
+
             $builder->groupStart()
-                ->like('username', $search)
-                ->orLike('email', $search)
-                ->orLike('name', $search)
-                ->orLike('role', $search)
+                ->orLike('username', $searchValue, 'both', null, true)
+                ->orLike('email', $searchValue, 'both', null, true)
+                ->orLike('name', $searchValue, 'both', null, true)
+                ->orLike('role', $searchValue, 'both', null, true)
                 ->groupEnd();
         }
 
-        // Role filter
-        if (!empty($roleFilter)) {
-            $builder->where('role', $roleFilter);
-        }
+        // Hitung total filtered records
+        $totalFiltered = $builder->countAllResults(false);
 
-        // Status filter
-        if (!empty($statusFilter)) {
-            $builder->where('status', $statusFilter);
-        }
+        // Pengurutan yang dioptimalkan
+        $columns = ['id', 'username', 'email', 'name', 'role', 'status', 'last_login'];
+        $orderColumn = isset($order[0]['column']) ? (int) $order[0]['column'] : 1;
+        $orderDir = isset($order[0]['dir']) ? strtoupper($order[0]['dir']) : 'ASC';
+        $orderField = $columns[$orderColumn - 1] ?? 'id';
 
-        // Count total records (without filters)
-        $totalRecords = $this->userModel->countAll();
-
-        // Count filtered records
-        $filteredRecords = $builder->countAllResults(false);
-
-        // Get data with limit, offset, order
-        $data = $builder->orderBy($orderBy, $orderDir)
+        // Ambil data dengan limit
+        $results = $builder->orderBy($orderField, $orderDir)
             ->limit($length, $start)
             ->get()
             ->getResultArray();
 
-        // Prepare response for DataTables
-        $response = [
-            'draw' => $request->getGet('draw') ?? 1,
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $filteredRecords,
-            'data' => $data
-        ];
+        // Format data
+        $data = array_map(function ($row) {
+            return [
+                'id' => $row['id'],
+                'username' => $row['username'],
+                'email' => $row['email'],
+                'name' => $row['name'],
+                'role' => $row['role'],
+                'status' => $row['status'],
+                'last_login' => $row['last_login'] ? date('d/m/Y H:i', strtotime($row['last_login'])) : '-'
+            ];
+        }, $results);
 
-        return $this->response->setJSON($response);
+        return $this->response->setJSON([
+            'draw' => (int) $request->getGet('draw'),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data
+        ]);
     }
 
     protected function handleUserSave($data, $isNew = true)

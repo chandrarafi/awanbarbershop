@@ -37,6 +37,7 @@
                     <table class="table table-hover" id="pelangganTable">
                         <thead>
                             <tr>
+                                <th>No</th>
                                 <th>ID Pelanggan</th>
                                 <th>Nama Lengkap</th>
                                 <th>Username</th>
@@ -67,6 +68,12 @@
             serverSide: true,
             ajax: "<?= base_url('admin/pelanggan/getPelanggan') ?>",
             columns: [{
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
                     data: 'idpelanggan'
                 },
                 {

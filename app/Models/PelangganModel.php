@@ -28,36 +28,48 @@ class PelangganModel extends Model
     protected $updatedField  = 'updated_at';
 
     protected $validationRules = [
-        'idpelanggan' => 'required|is_unique[pelanggan.idpelanggan,id,{id}]',
-        'nama_lengkap' => 'required|min_length[3]',
-        'jeniskelamin' => 'permit_empty|in_list[Laki-laki,Perempuan]',
-        'no_hp' => 'permit_empty|numeric|min_length[10]|max_length[15]',
-        'tanggal_lahir' => 'permit_empty|valid_date',
-        'alamat' => 'permit_empty|min_length[5]'
-    ];
-
-    protected $validationMessages = [
         'idpelanggan' => [
-            'required' => 'ID Pelanggan harus diisi',
-            'is_unique' => 'ID Pelanggan sudah digunakan'
+            'rules' => 'required|is_unique[pelanggan.idpelanggan,id,{id}]',
+            'errors' => [
+                'required' => 'ID Pelanggan harus diisi',
+                'is_unique' => 'ID Pelanggan sudah digunakan'
+            ]
         ],
         'nama_lengkap' => [
-            'required' => 'Nama lengkap harus diisi',
-            'min_length' => 'Nama lengkap minimal 3 karakter'
+            'rules' => 'required|min_length[3]',
+            'errors' => [
+                'required' => 'Nama lengkap harus diisi',
+                'min_length' => 'Nama lengkap minimal 3 karakter'
+            ]
         ],
         'jeniskelamin' => [
-            'in_list' => 'Jenis kelamin tidak valid'
+            'rules' => 'required|in_list[Laki-laki,Perempuan]',
+            'errors' => [
+                'in_list' => 'Jenis kelamin tidak valid',
+                'required' => 'Jenis kelamin harus diisi'
+            ]
         ],
         'no_hp' => [
-            'numeric' => 'No HP harus berupa angka',
-            'min_length' => 'No HP minimal 10 digit',
-            'max_length' => 'No HP maksimal 15 digit'
+            'rules' => 'required|numeric|min_length[10]|max_length[15]',
+            'errors' => [
+                'numeric' => 'No HP harus berupa angka',
+                'min_length' => 'No HP minimal 10 digit',
+                'max_length' => 'No HP maksimal 15 digit',
+                'required' => 'No HP harus diisi'
+            ]
         ],
         'tanggal_lahir' => [
-            'valid_date' => 'Format tanggal lahir tidak valid'
+            'rules' => 'permit_empty|valid_date',
+            'errors' => [
+                'valid_date' => 'Format tanggal lahir tidak valid'
+            ]
         ],
         'alamat' => [
-            'min_length' => 'Alamat minimal 5 karakter'
+            'rules' => 'required|min_length[5]',
+            'errors' => [
+                'min_length' => 'Alamat minimal 5 karakter',
+                'required' => 'Alamat harus diisi'
+            ]
         ]
     ];
 
@@ -72,7 +84,7 @@ class PelangganModel extends Model
     {
         $builder = $this->db->table('pelanggan');
         $builder->select('pelanggan.*, users.username, users.email');
-        $builder->join('users', 'users.id = pelanggan.user_id');
+        $builder->join('users', 'users.id = pelanggan.user_id', 'left');
 
         if ($id !== null) {
             $builder->where('pelanggan.id', $id);

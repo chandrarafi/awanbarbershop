@@ -17,36 +17,13 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <!-- Filter Controls -->
-                <div class="row mb-4 align-items-end">
-                    <div class="col-md-4 col-sm-6 mb-3 mb-md-0">
-                        <label for="roleFilter" class="form-label fw-bold">Filter berdasarkan Role</label>
-                        <select class="form-select" id="roleFilter">
-                            <option value="">Semua Role</option>
-                            <!-- Role options will be loaded dynamically -->
-                        </select>
-                    </div>
-                    <div class="col-md-4 col-sm-6 mb-3 mb-md-0">
-                        <label for="statusFilter" class="form-label fw-bold">Filter berdasarkan Status</label>
-                        <select class="form-select" id="statusFilter">
-                            <option value="">Semua Status</option>
-                            <option value="active">Aktif</option>
-                            <option value="inactive">Tidak Aktif</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                        <button class="btn btn-outline-secondary" id="resetFilter">
-                            <i class="bi bi-arrow-clockwise"></i> Reset Filter
-                        </button>
-                    </div>
-                </div>
 
                 <!-- Users Table -->
                 <div class="table-responsive">
                     <table class="table table-hover" id="usersTable">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>No</th>
                                 <th>Username</th>
                                 <th>Nama</th>
                                 <th>Email</th>
@@ -228,7 +205,10 @@
                 }
             },
             columns: [{
-                    data: 'id'
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
                 },
                 {
                     data: 'username'

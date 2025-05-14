@@ -25,46 +25,78 @@ class Paket extends ResourceController
 
     public function getPaket()
     {
-        $request = $this->request;
-
-        $start = $request->getGet('start') ?? 0;
-        $length = $request->getGet('length') ?? 10;
-        $search = $request->getGet('search')['value'] ?? '';
-        $order = $request->getGet('order') ?? [];
-
-        $orderColumn = $order[0]['column'] ?? 0;
-        $orderDir = $order[0]['dir'] ?? 'asc';
-
-        $columns = ['idpaket', 'namapaket', 'deskripsi', 'harga'];
-        $orderBy = $columns[$orderColumn] ?? 'idpaket';
-
-        $builder = $this->paketModel->builder();
-
-        if (!empty($search)) {
-            $builder->groupStart()
-                ->like('idpaket', $search)
-                ->orLike('namapaket', $search)
-                ->orLike('deskripsi', $search)
-                ->orLike('harga', $search)
-                ->groupEnd();
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'error' => true,
+                'message' => 'Invalid request'
+            ]);
         }
 
-        $totalRecords = $this->paketModel->countAll();
-        $filteredRecords = $builder->countAllResults(false);
+        $request = $this->request;
 
-        $data = $builder->orderBy($orderBy, $orderDir)
+        $start = (int) $request->getGet('start');
+        $length = (int) $request->getGet('length');
+        $search = trim($request->getGet('search')['value'] ?? '');
+        $order = $request->getGet('order') ?? [];
+
+        // Query dasar dengan index hints untuk optimasi
+        $builder = $this->db->table('paket USE INDEX (PRIMARY)');
+
+        // Total records (cache result)
+        $totalRecords = $this->db->table('paket')->countAllResults();
+
+        // Pencarian yang dioptimalkan
+        if (!empty($search)) {
+            $searchValue = $this->db->escapeLikeString($search);
+
+            $builder->groupStart();
+
+            // Gunakan OR LIKE untuk pencarian lebih cepat
+            $builder->orLike('idpaket', $searchValue, 'both', null, true)
+                ->orLike('namapaket', $searchValue, 'both', null, true)
+                ->orLike('deskripsi', $searchValue, 'both', null, true);
+
+            // Jika input adalah angka atau format rupiah
+            if (preg_match('/^[Rp\s.,]*(\d+)/', $search, $matches)) {
+                $numericSearch = $matches[1];
+                $builder->orWhere('harga', $numericSearch);
+            }
+
+            $builder->groupEnd();
+        }
+
+        // Hitung total filtered records
+        $totalFiltered = $builder->countAllResults(false);
+
+        // Pengurutan yang dioptimalkan
+        $columns = ['idpaket', 'namapaket', 'deskripsi', 'harga'];
+        $orderColumn = isset($order[0]['column']) ? (int) $order[0]['column'] : 1;
+        $orderDir = isset($order[0]['dir']) ? strtoupper($order[0]['dir']) : 'ASC';
+        $orderField = $columns[$orderColumn - 1] ?? 'idpaket';
+
+        // Ambil data dengan limit
+        $results = $builder->orderBy($orderField, $orderDir)
             ->limit($length, $start)
             ->get()
             ->getResultArray();
 
-        $response = [
-            'draw' => $request->getGet('draw') ?? 1,
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $filteredRecords,
-            'data' => $data
-        ];
+        // Format data
+        $data = array_map(function ($row) {
+            return [
+                'idpaket' => $row['idpaket'],
+                'namapaket' => $row['namapaket'],
+                'deskripsi' => $row['deskripsi'],
+                'harga' => $row['harga'],
+                'harga_formatted' => 'Rp ' . number_format($row['harga'], 0, ',', '.')
+            ];
+        }, $results);
 
-        return $this->response->setJSON($response);
+        return $this->response->setJSON([
+            'draw' => (int) $request->getGet('draw'),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data
+        ]);
     }
 
     public function getNewId()

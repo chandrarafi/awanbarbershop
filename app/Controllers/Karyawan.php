@@ -7,10 +7,12 @@ use App\Models\KaryawanModel;
 class Karyawan extends BaseController
 {
     protected $karyawanModel;
+    protected $db;
 
     public function __construct()
     {
         $this->karyawanModel = new KaryawanModel();
+        $this->db = \Config\Database::connect();
     }
 
     public function index()
@@ -21,46 +23,59 @@ class Karyawan extends BaseController
 
     public function getKaryawan()
     {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'error' => true,
+                'message' => 'Invalid request'
+            ]);
+        }
+
         $request = $this->request;
 
-        $start = $request->getGet('start') ?? 0;
-        $length = $request->getGet('length') ?? 10;
-        $search = $request->getGet('search')['value'] ?? '';
+        $start = (int) $request->getGet('start');
+        $length = (int) $request->getGet('length');
+        $search = trim($request->getGet('search')['value'] ?? '');
         $order = $request->getGet('order') ?? [];
 
-        $orderColumn = $order[0]['column'] ?? 0;
-        $orderDir = $order[0]['dir'] ?? 'asc';
+        // Query dasar dengan index hints untuk optimasi
+        $builder = $this->db->table('karyawan USE INDEX (PRIMARY)');
 
-        $columns = ['idkaryawan', 'namakaryawan', 'alamat', 'nohp'];
-        $orderBy = $columns[$orderColumn] ?? 'idkaryawan';
+        // Total records (cache result)
+        $totalRecords = $this->db->table('karyawan')->countAllResults();
 
-        $builder = $this->karyawanModel->builder();
-
+        // Pencarian yang dioptimalkan
         if (!empty($search)) {
+            $searchValue = $this->db->escapeLikeString($search);
+
             $builder->groupStart()
-                ->like('idkaryawan', $search)
-                ->orLike('namakaryawan', $search)
-                ->orLike('alamat', $search)
-                ->orLike('nohp', $search)
+                ->orLike('idkaryawan', $searchValue, 'both', null, true)
+                ->orLike('namakaryawan', $searchValue, 'both', null, true)
+                ->orLike('alamat', $searchValue, 'both', null, true)
+                ->orLike('nohp', $searchValue, 'both', null, true)
                 ->groupEnd();
         }
 
-        $totalRecords = $this->karyawanModel->countAll();
-        $filteredRecords = $builder->countAllResults(false);
+        // Hitung total filtered records
+        $totalFiltered = $builder->countAllResults(false);
 
-        $data = $builder->orderBy($orderBy, $orderDir)
+        // Pengurutan yang dioptimalkan
+        $columns = ['idkaryawan', 'namakaryawan', 'alamat', 'nohp'];
+        $orderColumn = isset($order[0]['column']) ? (int) $order[0]['column'] : 1;
+        $orderDir = isset($order[0]['dir']) ? strtoupper($order[0]['dir']) : 'ASC';
+        $orderField = $columns[$orderColumn - 1] ?? 'idkaryawan';
+
+        // Ambil data dengan limit
+        $results = $builder->orderBy($orderField, $orderDir)
             ->limit($length, $start)
             ->get()
             ->getResultArray();
 
-        $response = [
-            'draw' => $request->getGet('draw') ?? 1,
+        return $this->response->setJSON([
+            'draw' => (int) $request->getGet('draw'),
             'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $filteredRecords,
-            'data' => $data
-        ];
-
-        return $this->response->setJSON($response);
+            'recordsFiltered' => $totalFiltered,
+            'data' => $results
+        ]);
     }
 
     public function getNewId()

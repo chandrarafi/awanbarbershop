@@ -15,6 +15,9 @@
             </a>
         </li>
 
+        <div class="sidebar-heading text-uppercase fw-bold text-muted px-4 mt-4 mb-2">
+            <span>Data Master</span>
+        </div>
         <li class="nav-item">
             <a class="nav-link <?= $title == 'User Management' ? 'active' : '' ?>" href="<?= site_url('admin/users') ?>">
                 <i class="bi bi-people"></i>
