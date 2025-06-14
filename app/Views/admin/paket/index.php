@@ -24,6 +24,7 @@
                             <tr>
                                 <th>No</th>
                                 <th>ID Paket</th>
+                                <th>Gambar</th>
                                 <th>Nama Paket</th>
                                 <th>Deskripsi</th>
                                 <th>Harga</th>
@@ -161,6 +162,12 @@
         font-weight: 600;
         padding: 0.35rem 0.65rem;
     }
+
+    .img-thumbnail-not-found {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+    }
 </style>
 
 <?= $this->endSection() ?>
@@ -191,6 +198,12 @@
                 },
                 {
                     data: 'idpaket'
+                },
+                {
+                    data: 'gambar',
+                    render: function(data, type, row) {
+                        return row.gambar ? '<img src="<?= base_url('uploads/paket/') ?>' + row.gambar + '" alt="Gambar Paket" class="img-fluid img-thumbnail" style="max-width: 100px;">' : '<img src="<?= base_url('assets/images/imgnotfound.jpg') ?>" alt="Gambar Tidak Tersedia" class="img-fluid img-thumbnail img-thumbnail-not-found" style="max-width: 100px;">';
+                    }
                 },
                 {
                     data: 'namapaket'
@@ -341,68 +354,13 @@
 
         // Tambah Paket
         $('#btnTambahPaket').on('click', function() {
-            resetForm();
-            $('#modalPaketLabel').text('Tambah Paket');
-            $('#formMode').val('add');
-
-            // Get new ID
-            $.ajax({
-                url: '<?= base_url('admin/paket/getNewId') ?>',
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    $('#idpaket').val(response.idpaket);
-                    $('#modalPaket').modal('show');
-                },
-                error: function() {
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'Gagal mendapatkan ID baru',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            });
+            window.location.href = '<?= base_url('admin/paket/create') ?>';
         });
 
         // Edit Paket
-        $(document).on('click', '.edit-btn', function() {
-            resetForm();
+        $(document).on('click', '.btn-edit', function() {
             var id = $(this).data('id');
-
-            $('#modalPaketLabel').text('Edit Paket');
-            $('#formMode').val('edit');
-
-            $.ajax({
-                url: `<?= base_url('admin/paket/getById') ?>/${id}`,
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.status === 'success') {
-                        var data = response.data;
-                        $('#idpaket').val(data.idpaket);
-                        $('#namapaket').val(data.namapaket);
-                        $('#deskripsi').val(data.deskripsi);
-                        $('#harga').val(data.harga);
-                        $('#modalPaket').modal('show');
-                    } else {
-                        Swal.fire({
-                            title: 'Error',
-                            text: response.message,
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                },
-                error: function() {
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'Gagal mengambil data paket',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            });
+            window.location.href = `<?= base_url('admin/paket/edit') ?>/${id}`;
         });
 
         // Form Submit (Add & Edit)
@@ -458,7 +416,7 @@
         });
 
         // Delete Paket - Show confirmation modal
-        $(document).on('click', '.delete-btn', function() {
+        $(document).on('click', '.btn-delete', function() {
             var id = $(this).data('id');
             $('#deletePaketId').val(id);
             $('#deleteModal').modal('show');

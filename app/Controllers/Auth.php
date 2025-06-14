@@ -3,16 +3,19 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Models\OtpModel;
 
 class Auth extends BaseController
 {
     protected $userModel;
+    protected $otpModel;
 
     public function __construct()
     {
         $this->userModel = new UserModel();
+        $this->otpModel = new OtpModel();
         // Load helper cookie
-        helper('cookie');
+        helper(['cookie', 'email']);
     }
 
     public function index()
@@ -25,28 +28,147 @@ class Auth extends BaseController
         return view('auth/login');
     }
 
+    public function register()
+    {
+        return view('auth/register');
+    }
+
+    public function doRegister()
+    {
+        $rules = [
+            'username' => 'required|alpha_numeric_space|min_length[3]|is_unique[users.username]',
+            'email' => 'required|valid_email|is_unique[users.email]',
+            'password' => 'required|min_length[6]',
+            'name' => 'required|min_length[3]',
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => $this->validator->getErrors()
+            ]);
+        }
+
+        $userData = [
+            'username' => $this->request->getPost('username'),
+            'email' => $this->request->getPost('email'),
+            'password' => $this->request->getPost('password'),
+            'name' => $this->request->getPost('name'),
+            'role' => 'pelanggan',
+            'status' => 'inactive' // Status inactive sampai verifikasi OTP
+        ];
+
+        $this->userModel->insert($userData);
+        $userId = $this->userModel->getInsertID();
+
+        // Generate dan kirim OTP
+        $otp = $this->otpModel->generateOTP($userId);
+        send_otp_email($userData['email'], $otp);
+
+        // Set session untuk verifikasi
+        session()->set('temp_user_id', $userId);
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'message' => 'Registrasi berhasil! Silakan cek email Anda untuk kode OTP.',
+            'redirect' => site_url('auth/verify')
+        ]);
+    }
+
+    public function verify()
+    {
+        if (!session()->get('temp_user_id')) {
+            return redirect()->to('auth/register');
+        }
+        return view('auth/verify');
+    }
+
+    public function doVerify()
+    {
+        $userId = session()->get('temp_user_id');
+        $otp = $this->request->getPost('otp');
+
+        if (!$userId || !$otp) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Data verifikasi tidak valid'
+            ]);
+        }
+
+        if ($this->otpModel->verifyOTP($userId, $otp)) {
+            // Aktifkan user
+            $this->userModel->update($userId, ['status' => 'active']);
+
+            // Hapus session temporary
+            session()->remove('temp_user_id');
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Verifikasi berhasil! Silakan login.',
+                'redirect' => site_url('auth')
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'status' => 'error',
+            'message' => 'Kode OTP tidak valid atau sudah kadaluarsa'
+        ]);
+    }
+
+    public function resendOTP()
+    {
+        $userId = session()->get('temp_user_id');
+        if (!$userId) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Sesi tidak valid'
+            ]);
+        }
+
+        $user = $this->userModel->find($userId);
+        if (!$user) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'User tidak ditemukan'
+            ]);
+        }
+
+        // Generate dan kirim OTP baru
+        $otp = $this->otpModel->generateOTP($userId);
+        send_otp_email($user['email'], $otp);
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'message' => 'Kode OTP baru telah dikirim ke email Anda'
+        ]);
+    }
+
     public function login()
     {
         $username = $this->request->getPost('username');
         $password = $this->request->getPost('password');
         $remember = $this->request->getPost('remember') == 'on';
 
-
         $user = $this->userModel->where('username', $username)
             ->orWhere('email', $username)
             ->first();
 
-
         if ($user) {
-            // Debug log
-
             if ($user['status'] !== 'active') {
+                if ($user['role'] === 'pelanggan') {
+                    // Set session untuk verifikasi ulang
+                    session()->set('temp_user_id', $user['id']);
+                    return $this->response->setJSON([
+                        'status' => 'pending_verification',
+                        'message' => 'Akun Anda belum diverifikasi. Silakan verifikasi email Anda.',
+                        'redirect' => site_url('auth/verify')
+                    ]);
+                }
                 return $this->response->setJSON([
                     'status' => 'error',
                     'message' => 'Akun Anda tidak aktif. Silakan hubungi administrator.'
                 ]);
             }
-
 
             if (password_verify($password, $user['password'])) {
                 // Update last login
@@ -65,18 +187,17 @@ class Auth extends BaseController
                 ];
                 session()->set($sessionData);
 
-                // Set remember me cookie jika dipilih
                 if ($remember) {
                     $this->setRememberMeCookie($user['id']);
                 }
 
+                $redirect = $user['role'] === 'pelanggan' ? site_url() : site_url('admin');
                 return $this->response->setJSON([
                     'status' => 'success',
                     'message' => 'Login berhasil',
-                    'redirect' => site_url('admin')
+                    'redirect' => $redirect
                 ]);
             }
-        } else {
         }
 
         return $this->response->setJSON([

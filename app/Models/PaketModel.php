@@ -12,7 +12,7 @@ class PaketModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['idpaket', 'namapaket', 'deskripsi', 'harga'];
+    protected $allowedFields    = ['idpaket', 'namapaket', 'deskripsi', 'harga', 'image'];
 
     // Dates
     protected $useTimestamps = true;
@@ -59,7 +59,88 @@ class PaketModel extends Model
                     'numeric' => 'Harga harus berupa angka',
                     'greater_than' => 'Harga harus lebih besar dari 0'
                 ]
+            ],
+            'gambar' => [
+                'rules' => 'uploaded[gambar]|is_image[gambar]|mime_in[gambar,image/jpg,image/jpeg,image/png]|max_size[gambar,2048]',
+                'errors' => [
+                    'uploaded' => 'Gambar harus dipilih',
+                    'is_image' => 'File yang dipilih bukan gambar',
+                    'mime_in' => 'Format gambar tidak didukung (gunakan JPG, JPEG, atau PNG)',
+                    'max_size' => 'Ukuran gambar terlalu besar (maksimal 2MB)'
+                ]
             ]
+        ];
+    }
+
+    public function validateImage($file)
+    {
+        if (!$file->isValid()) {
+            return [
+                'status' => false,
+                'error' => 'File tidak valid: ' . $file->getErrorString()
+            ];
+        }
+
+        // Validasi ukuran (2MB)
+        $maxSize = 2 * 1024 * 1024; // 2MB dalam bytes
+        if ($file->getSize() > $maxSize) {
+            $fileSizeMB = number_format($file->getSize() / (1024 * 1024), 2);
+            return [
+                'status' => false,
+                'error' => "Ukuran file ({$fileSizeMB}MB) terlalu besar (maksimal 2MB)"
+            ];
+        }
+
+        // Validasi tipe file
+        $validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!in_array($file->getMimeType(), $validTypes)) {
+            return [
+                'status' => false,
+                'error' => 'Format file tidak didukung (gunakan JPG, JPEG, atau PNG)'
+            ];
+        }
+
+        return [
+            'status' => true,
+            'error' => null
+        ];
+    }
+
+    public function uploadImage($image)
+    {
+        if (!$image->isValid()) {
+            return [
+                'status' => false,
+                'error' => 'File tidak valid'
+            ];
+        }
+
+        if (!in_array($image->getExtension(), ['jpg', 'jpeg', 'png', 'gif'])) {
+            return [
+                'status' => false,
+                'error' => 'Format file harus jpg, jpeg, png, atau gif'
+            ];
+        }
+
+        if ($image->getSizeByUnit('mb') > 2) {
+            return [
+                'status' => false,
+                'error' => 'Ukuran file maksimal 2MB'
+            ];
+        }
+
+        $filename = $image->getRandomName();
+
+        if ($image->move('uploads/paket', $filename)) {
+            return [
+                'status' => true,
+                'filename' => $filename
+            ];
+        }
+
+        return [
+            'status' => false,
+            'error' => 'Gagal mengupload file'
         ];
     }
 
@@ -88,6 +169,20 @@ class PaketModel extends Model
             $this->validationRules['idpaket']['rules'] = 'required|max_length[10]|is_unique[paket.idpaket,idpaket,' . $data['idpaket'] . ']';
         }
 
+        // Hapus validasi gambar untuk proses awal penyimpanan
+        if (empty($data['image'])) {
+            unset($this->validationRules['gambar']);
+        }
+
         return parent::save($data);
+    }
+
+    public function deleteImage($filename)
+    {
+        $path = FCPATH . 'uploads/paket/' . $filename;
+        if (file_exists($path)) {
+            return unlink($path);
+        }
+        return true;
     }
 }

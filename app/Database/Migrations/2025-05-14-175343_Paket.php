@@ -19,19 +19,24 @@ class CreatePaketTable extends Migration
             ],
             'deskripsi' => [
                 'type'           => 'TEXT',
-                'null'          => true,
+                'null'           => true,
             ],
             'harga' => [
                 'type'           => 'DECIMAL',
                 'constraint'     => '10,2',
             ],
+            'image' => [
+                'type'           => 'VARCHAR',
+                'constraint'     => 255,
+                'null'           => true,
+            ],
             'created_at' => [
                 'type'           => 'DATETIME',
-                'null'          => true,
+                'null'           => true,
             ],
             'updated_at' => [
                 'type'           => 'DATETIME',
-                'null'          => true,
+                'null'           => true,
             ],
         ]);
 
