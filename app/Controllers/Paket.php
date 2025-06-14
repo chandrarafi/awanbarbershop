@@ -87,7 +87,8 @@ class Paket extends ResourceController
                 'namapaket' => $row['namapaket'],
                 'deskripsi' => $row['deskripsi'],
                 'harga' => $row['harga'],
-                'harga_formatted' => 'Rp ' . number_format($row['harga'], 0, ',', '.')
+                'harga_formatted' => 'Rp ' . number_format($row['harga'], 0, ',', '.'),
+                'gambar' => $row['image']
             ];
         }, $results);
 
@@ -135,11 +136,51 @@ class Paket extends ResourceController
         ]);
     }
 
+    public function create()
+    {
+        $title = 'Tambah Paket';
+        return view('admin/paket/create', compact('title'));
+    }
+
+    public function edit($id = null)
+    {
+        if (empty($id)) {
+            return redirect()->to('admin/paket')->with('error', 'ID Paket tidak valid');
+        }
+
+        $paket = $this->paketModel->find($id);
+        if (!$paket) {
+            return redirect()->to('admin/paket')->with('error', 'Paket tidak ditemukan');
+        }
+
+        $title = 'Edit Paket';
+        $idpaket = $id;
+        return view('admin/paket/edit', compact('title', 'idpaket'));
+    }
+
     public function store()
     {
         $data = $this->request->getPost();
+        $image = $this->request->getFile('gambar');
 
         if ($this->paketModel->save($data)) {
+            $insertId = $this->paketModel->getInsertID();
+
+            if ($image && $image->isValid()) {
+            $uploadResult = $this->paketModel->uploadImage($image);
+
+            if (!$uploadResult['status']) {
+                    $this->paketModel->delete($insertId);
+
+                return $this->response->setStatusCode(400)->setJSON([
+                    'status' => 'error',
+                    'message' => $uploadResult['error']
+                ]);
+            }
+
+                $this->paketModel->update($insertId, ['image' => $uploadResult['filename']]);
+        }
+
             return $this->response->setJSON([
                 'status' => 'success',
                 'message' => 'Paket berhasil ditambahkan'
@@ -178,6 +219,28 @@ class Paket extends ResourceController
             ]);
         }
 
+        // Handle file upload
+        $image = $this->request->getFile('gambar');
+
+        if ($image && $image->isValid()) {
+            // Upload dan validasi gambar menggunakan model
+            $uploadResult = $this->paketModel->uploadImage($image);
+
+            if (!$uploadResult['status']) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'status' => 'error',
+                    'message' => $uploadResult['error']
+                ]);
+            }
+
+            // Hapus gambar lama
+            if (!empty($existingPaket['image'])) {
+                $this->paketModel->deleteImage($existingPaket['image']);
+            }
+
+            $data['image'] = $uploadResult['filename'];
+        }
+
         if ($this->paketModel->save($data)) {
             return $this->response->setJSON([
                 'status' => 'success',
@@ -194,11 +257,20 @@ class Paket extends ResourceController
 
     public function delete($id = null)
     {
-        if ($this->paketModel->delete($id)) {
-            return $this->response->setJSON([
-                'status' => 'success',
-                'message' => 'Paket berhasil dihapus'
-            ]);
+        $paket = $this->paketModel->find($id);
+
+        if ($paket) {
+            // Hapus gambar jika ada
+            if (!empty($paket['image'])) {
+                $this->paketModel->deleteImage($paket['image']);
+            }
+
+            if ($this->paketModel->delete($id)) {
+                return $this->response->setJSON([
+                    'status' => 'success',
+                    'message' => 'Paket berhasil dihapus'
+                ]);
+            }
         }
 
         return $this->response->setStatusCode(400)->setJSON([

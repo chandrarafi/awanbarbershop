@@ -31,7 +31,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= $title == 'Manajemen Paket' ? 'active' : '' ?>" href="<?= site_url('admin/paket') ?>">
+            <a class="nav-link <?= ($title == 'Manajemen Paket' || $title == 'Tambah Paket' || $title == 'Edit Paket') ? 'active' : '' ?>" href="<?= site_url('admin/paket') ?>">
                 <i class="bi bi-scissors"></i>
                 <span>Paket</span>
             </a>

@@ -33,7 +33,7 @@ class CreatePelangganTable extends Migration
             ],
             'jeniskelamin' => [
                 'type'           => 'ENUM',
-                'constraint'     => ['Laki-laki', 'Perempuan'],
+                'constraint'     => ['Laki-laki', 'Perempuan', '-'],
                 'null'           => true,
             ],
             'alamat' => [

@@ -7,10 +7,23 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 
-// Auth Routes
+// Auth Routes (Admin)
 $routes->get('auth', 'Auth::index');
 $routes->post('auth/login', 'Auth::login');
 $routes->get('auth/logout', 'Auth::logout');
+
+// Customer Auth Routes
+$routes->group('customer', function ($routes) {
+    $routes->get('login', 'CustomerAuth::index');
+    $routes->get('register', 'CustomerAuth::register');
+    $routes->post('doRegister', 'CustomerAuth::doRegister');
+    $routes->get('verify', 'CustomerAuth::verify');
+    $routes->post('doVerify', 'CustomerAuth::doVerify');
+    $routes->post('resendOTP', 'CustomerAuth::resendOTP');
+    $routes->post('login', 'CustomerAuth::login');
+    $routes->get('logout', 'CustomerAuth::logout');
+    $routes->get('complete-profile', 'CustomerAuth::completeProfile', ['filter' => 'auth']);
+});
 
 // Admin Routes
 $routes->group('admin', ['filter' => 'auth'], function ($routes) {
@@ -42,6 +55,8 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
     // Paket Routes
     $routes->group('paket', ['filter' => 'role:admin,manager'], function ($routes) {
         $routes->get('/', 'Paket::index');
+        $routes->get('create', 'Paket::create');
+        $routes->get('edit/(:segment)', 'Paket::edit/$1');
         $routes->get('getPaket', 'Paket::getPaket');
         $routes->get('getNewId', 'Paket::getNewId');
         $routes->get('getById/(:segment)', 'Paket::getById/$1');
@@ -61,10 +76,4 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->post('update/(:num)', 'Pelanggan::update/$1');
         $routes->delete('delete/(:num)', 'Pelanggan::delete/$1');
     });
-});
-
-// Pelanggan Routes (untuk akses pelanggan)
-$routes->group('pelanggan', ['filter' => 'auth'], function ($routes) {
-    $routes->get('profile', 'Pelanggan::profile', ['filter' => 'role:pelanggan']);
-    $routes->post('update-profile', 'Pelanggan::updateProfile', ['filter' => 'role:pelanggan']);
 });
