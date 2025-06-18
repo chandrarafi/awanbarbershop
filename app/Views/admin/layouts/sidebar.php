@@ -42,16 +42,11 @@
                 <span>Pelanggan</span>
             </a>
         </li>
+
         <li class="nav-item">
-            <a class="nav-link <?= $title == 'Services' ? 'active' : '' ?>" href="<?= site_url('admin/services') ?>">
-                <i class="bi bi-scissors"></i>
-                <span>Services</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <?= $title == 'Bookings' ? 'active' : '' ?>" href="<?= site_url('admin/bookings') ?>">
+            <a class="nav-link <?= ($title == 'Kelola Booking' || $title == 'Tambah Booking Baru' || $title == 'Detail Booking') ? 'active' : '' ?>" href="<?= site_url('admin/booking') ?>">
                 <i class="bi bi-calendar-check"></i>
-                <span>Bookings</span>
+                <span>Booking</span>
             </a>
         </li>
         <li class="nav-item">

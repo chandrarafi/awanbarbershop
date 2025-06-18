@@ -318,4 +318,183 @@ class Pelanggan extends BaseController
             ]);
         }
     }
+
+    // Method untuk menampilkan halaman profil pelanggan
+    public function profile()
+    {
+        if (!session()->get('logged_in') || session()->get('role') !== 'pelanggan') {
+            return redirect()->to('customer/login');
+        }
+
+        $userId = session()->get('user_id');
+
+        // Ambil data user terlebih dahulu
+        $user = $this->userModel->find($userId);
+
+        if (!$user) {
+            return redirect()->to('customer/login')->with('error', 'Data user tidak ditemukan');
+        }
+
+        // Cek apakah user sudah memiliki data pelanggan
+        $pelanggan = $this->pelangganModel->where('user_id', $userId)->first();
+
+        // Jika data pelanggan belum ada, tampilkan data dari user saja
+        if (!$pelanggan) {
+            $pelanggan = [
+                'idpelanggan' => $this->pelangganModel->generateId(),
+                'nama_lengkap' => $user['name'],
+                'jeniskelamin' => '',
+                'alamat' => '',
+                'no_hp' => '',
+                'tanggal_lahir' => '',
+                'created_at' => $user['created_at'],
+                'email' => $user['email'],
+                'username' => $user['username']
+            ];
+        } else {
+            // Jika data pelanggan sudah ada, gabungkan dengan data user
+            $pelanggan['email'] = $user['email'];
+            $pelanggan['username'] = $user['username'];
+        }
+
+        return view('pelanggan/profile', ['pelanggan' => $pelanggan]);
+    }
+
+    // Method untuk memperbarui profil pelanggan
+    public function updateProfile()
+    {
+        // Verifikasi CSRF token untuk AJAX request
+        if ($this->request->isAJAX() && !$this->validateCSRFToken()) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Token keamanan tidak valid. Silakan refresh halaman.'
+            ]);
+        }
+
+        // Cek apakah user sudah login
+        if (!session()->get('logged_in') || session()->get('role') !== 'pelanggan') {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Anda harus login terlebih dahulu'
+                ]);
+            }
+            return redirect()->to('customer/login');
+        }
+
+        $userId = session()->get('user_id');
+
+        // Ambil data user terlebih dahulu
+        $user = $this->userModel->find($userId);
+
+        if (!$user) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Data user tidak ditemukan'
+                ]);
+            }
+            return redirect()->to('customer/login')->with('error', 'Data user tidak ditemukan');
+        }
+
+        // Validasi input
+        $rules = [
+            'nama_lengkap' => [
+                'rules' => 'required|min_length[3]',
+                'errors' => [
+                    'required' => 'Nama lengkap harus diisi',
+                    'min_length' => 'Nama lengkap minimal 3 karakter'
+                ]
+            ],
+            'no_hp' => [
+                'rules' => 'permit_empty|numeric|min_length[10]',
+                'errors' => [
+                    'numeric' => 'Nomor HP hanya boleh berisi angka',
+                    'min_length' => 'Nomor HP minimal 10 digit'
+                ]
+            ]
+        ];
+
+        if (!$this->validate($rules)) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'errors' => $this->validator->getErrors()
+                ]);
+            }
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        // Data untuk update
+        $userData = [
+            'name' => $this->request->getPost('nama_lengkap')
+        ];
+
+        $pelangganData = [
+            'nama_lengkap' => $this->request->getPost('nama_lengkap'),
+            'jeniskelamin' => $this->request->getPost('jeniskelamin'),
+            'no_hp' => $this->request->getPost('no_hp'),
+            'tanggal_lahir' => $this->request->getPost('tanggal_lahir') ?: null,
+            'alamat' => $this->request->getPost('alamat'),
+            'user_id' => $userId
+        ];
+
+        $this->db->transBegin();
+
+        try {
+            // Update data user
+            if (!$this->userModel->update($userId, $userData)) {
+                throw new \Exception('Gagal memperbarui data user');
+            }
+
+            // Cek apakah user sudah memiliki data pelanggan
+            $pelanggan = $this->pelangganModel->where('user_id', $userId)->first();
+
+            if (!$pelanggan) {
+                // Jika belum ada data pelanggan, buat baru
+                $pelangganData['idpelanggan'] = $this->pelangganModel->generateId();
+                if (!$this->pelangganModel->insert($pelangganData)) {
+                    throw new \Exception('Gagal menyimpan data pelanggan');
+                }
+            } else {
+                // Jika sudah ada, update data pelanggan
+                if (!$this->pelangganModel->update($pelanggan['id'], $pelangganData)) {
+                    throw new \Exception('Gagal memperbarui data pelanggan');
+                }
+            }
+
+            $this->db->transCommit();
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'success',
+                    'message' => 'Profil berhasil diperbarui'
+                ]);
+            }
+            return redirect()->to('customer/profil')->with('success', 'Profil berhasil diperbarui');
+        } catch (\Exception $e) {
+            $this->db->transRollback();
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Terjadi kesalahan saat memperbarui profil: ' . $e->getMessage()
+                ]);
+            }
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat memperbarui profil: ' . $e->getMessage());
+        }
+    }
+
+    // Helper method untuk validasi CSRF token
+    private function validateCSRFToken()
+    {
+        $csrf = csrf_hash();
+        $csrfName = csrf_token();
+
+        if (empty($_POST[$csrfName]) || $_POST[$csrfName] !== $csrf) {
+            return false;
+        }
+
+        return true;
+    }
 }

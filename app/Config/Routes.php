@@ -23,11 +23,27 @@ $routes->group('customer', function ($routes) {
     $routes->post('login', 'CustomerAuth::login');
     $routes->get('logout', 'CustomerAuth::logout');
     $routes->get('complete-profile', 'CustomerAuth::completeProfile', ['filter' => 'auth']);
+
+    // Tambahkan route untuk profil pelanggan
+    $routes->get('profil', 'Pelanggan::profile', ['filter' => 'auth']);
+    $routes->post('update-profil', 'Pelanggan::updateProfile', ['filter' => 'auth']);
+
+    // Route Booking Pelanggan
+    $routes->group('booking', ['filter' => 'auth'], function ($routes) {
+        $routes->get('/', 'Customer\Booking::index');
+        $routes->get('create', 'Customer\Booking::create');
+        $routes->post('store', 'Customer\Booking::store');
+        $routes->get('detail/(:segment)', 'Customer\Booking::detail/$1');
+        $routes->get('getBookings', 'Customer\Booking::getBookings');
+        $routes->get('getAvailableKaryawan', 'Customer\Booking::getAvailableKaryawan');
+        $routes->get('checkAvailability', 'Customer\Booking::checkAvailability');
+    });
 });
 
 // Admin Routes
 $routes->group('admin', ['filter' => 'auth'], function ($routes) {
     $routes->get('/', 'Admin::index', ['filter' => 'role:admin,manager']);
+    $routes->get('dashboard', 'Admin::index');
 
     // User Management (hanya admin)
     $routes->group('', ['filter' => 'role:admin'], function ($routes) {
@@ -39,6 +55,24 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->post('updateUser/(:num)', 'Admin::updateUser/$1');
         $routes->post('deleteUser/(:num)', 'Admin::deleteUser/$1');
         $routes->get('getRoles', 'Admin::getRoles');
+    });
+
+    // Booking Routes
+    $routes->group('booking', ['filter' => 'role:admin,manager'], function ($routes) {
+        $routes->get('/', 'Admin\BookingNewController::index');
+        $routes->get('create', 'Admin\BookingNewController::create');
+        $routes->get('show/(:segment)', 'Admin\BookingNewController::show/$1');
+        $routes->get('edit/(:segment)', 'Admin\BookingNewController::edit/$1');
+        $routes->post('store', 'Admin\BookingNewController::store');
+        $routes->post('update', 'Admin\BookingNewController::update');
+        $routes->get('getBookings', 'Admin\BookingNewController::getBookings');
+        $routes->get('getAllPelanggan', 'Admin\BookingNewController::getAllPelanggan');
+        $routes->get('getAvailableKaryawan', 'Admin\BookingNewController::getAvailableKaryawan');
+        $routes->get('getTimeSlotAvailability', 'Admin\BookingNewController::getTimeSlotAvailability');
+        $routes->get('check-availability', 'Admin\BookingNewController::checkAvailability');
+        $routes->post('storePelanggan', 'Admin\BookingNewController::storePelanggan');
+        $routes->post('updateStatus', 'Admin\BookingNewController::updateStatus');
+        $routes->post('getPaymentInfo', 'Admin\BookingNewController::getPaymentInfo');
     });
 
     // Karyawan Routes

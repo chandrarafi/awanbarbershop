@@ -8,6 +8,7 @@
 
     <!-- Custom CSS -->
     <?= $this->include('admin/layouts/style') ?>
+    <?= $this->renderSection('styles') ?>
 </head>
 
 <body>
