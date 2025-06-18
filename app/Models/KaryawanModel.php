@@ -13,7 +13,7 @@ class KaryawanModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['idkaryawan', 'namakaryawan', 'alamat', 'nohp'];
+    protected $allowedFields    = ['idkaryawan', 'namakaryawan', 'alamat', 'nohp', 'status'];
 
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
@@ -64,7 +64,13 @@ class KaryawanModel extends Model
                     'required' => 'Nomor HP harus diisi'
                 ]
             ],
-
+            'status' => [
+                'rules' => 'required|in_list[aktif,nonaktif]',
+                'errors' => [
+                    'required' => 'Status harus diisi',
+                    'in_list' => 'Status harus aktif atau nonaktif'
+                ]
+            ],
         ];
     }
 
@@ -95,5 +101,29 @@ class KaryawanModel extends Model
         }
 
         return parent::save($data);
+    }
+
+    /**
+     * Mendapatkan karyawan yang aktif dan tersedia pada waktu tertentu
+     *
+     * @param string $tanggal
+     * @param string $jamstart
+     * @return array
+     */
+    public function getAvailableKaryawan($tanggal, $jamstart)
+    {
+        $db = \Config\Database::connect();
+
+        // Subquery untuk mendapatkan ID karyawan yang sudah memiliki booking di waktu yang sama
+        $subQuery = $db->table('detail_booking')
+            ->select('idkaryawan')
+            ->where('tgl', $tanggal)
+            ->where('jamstart', $jamstart)
+            ->where('status !=', '4'); // 4 = Dibatalkan
+
+        // Query utama untuk mendapatkan karyawan yang aktif dan tidak memiliki booking di waktu tersebut
+        return $this->where('status', 'aktif')
+            ->whereNotIn('idkaryawan', $subQuery)
+            ->findAll();
     }
 }

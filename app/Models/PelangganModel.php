@@ -87,7 +87,7 @@ class PelangganModel extends Model
         $builder->join('users', 'users.id = pelanggan.user_id', 'left');
 
         if ($id !== null) {
-            $builder->where('pelanggan.id', $id);
+            $builder->where('users.id', $id);
             return $builder->get()->getRowArray();
         }
 
