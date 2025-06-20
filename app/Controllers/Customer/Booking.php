@@ -54,9 +54,38 @@ class Booking extends BaseController
 
         $idPelanggan = $pelanggan['idpelanggan'];
 
+        // Ambil data booking langsung dari database
+        $bookings = $this->db->table('booking b')
+            ->select('b.*, k.namakaryawan as namakaryawan, db.nama_paket, db.jamstart, db.jamend')
+            ->join('detail_booking db', 'b.kdbooking = db.kdbooking', 'left')
+            ->join('karyawan k', 'db.idkaryawan = k.idkaryawan', 'left')
+            ->where('b.idpelanggan', $idPelanggan)
+            ->orderBy('b.tanggal_booking', 'DESC')
+            ->orderBy('db.jamstart', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        // Format data untuk tampilan
+        $formattedBookings = [];
+        foreach ($bookings as $booking) {
+            $statusMap = [
+                'pending' => 'Menunggu Konfirmasi',
+                'confirmed' => 'Terkonfirmasi',
+                'completed' => 'Selesai',
+                'cancelled' => 'Dibatalkan',
+                'no-show' => 'Tidak Hadir',
+                'rejected' => 'Ditolak'
+            ];
+
+            $booking['status_text'] = $statusMap[$booking['status']] ?? $booking['status'];
+            $booking['total_formatted'] = 'Rp ' . number_format($booking['total'], 0, ',', '.');
+            $formattedBookings[] = $booking;
+        }
+
         $data = [
             'title' => 'History Booking',
-            'idpelanggan' => $idPelanggan
+            'idpelanggan' => $idPelanggan,
+            'bookings' => $formattedBookings
         ];
 
         return view('customer/booking/index', $data);
@@ -76,12 +105,26 @@ class Booking extends BaseController
 
         // Ambil ID pelanggan dari session user
         $userId = session()->get('user_id');
+
+        // Debug info
+        $debugInfo = [
+            'user_id' => $userId,
+            'session_data' => session()->get(),
+        ];
+
+        // Log debug info
+        log_message('debug', 'GetBookings Debug: ' . json_encode($debugInfo));
+
         $pelanggan = $this->pelangganModel->where('user_id', $userId)->first();
+
+        // Log pelanggan info
+        log_message('debug', 'Pelanggan Data: ' . json_encode($pelanggan));
 
         if (!$pelanggan) {
             return $this->response->setStatusCode(403)->setJSON([
                 'status' => 'error',
-                'message' => 'Data pelanggan tidak ditemukan'
+                'message' => 'Data pelanggan tidak ditemukan',
+                'debug' => $debugInfo
             ]);
         }
 
@@ -94,11 +137,15 @@ class Booking extends BaseController
 
         // Get booking data with joins
         $builder = $this->db->table('booking b')
-            ->select('b.*, k.nama as namakaryawan, p.nama_lengkap, p.no_hp, db.nama_paket, db.jamstart, db.jamend')
+            ->select('b.*, k.namakaryawan as namakaryawan, p.nama_lengkap, p.no_hp, db.nama_paket, db.jamstart, db.jamend')
             ->join('detail_booking db', 'b.kdbooking = db.kdbooking', 'left')
-            ->join('karyawan k', 'k.idkaryawan = db.idkaryawan', 'left')
+            ->join('karyawan k', 'db.idkaryawan = k.idkaryawan', 'left')
             ->join('pelanggan p', 'p.idpelanggan = b.idpelanggan', 'left')
             ->where('b.idpelanggan', $idPelanggan);
+
+        // Debug query
+        $queryString = $this->db->getLastQuery();
+        log_message('debug', 'Booking Query: ' . $queryString);
 
         if (!empty($search)) {
             $builder->groupStart()
@@ -117,6 +164,10 @@ class Booking extends BaseController
 
         $result = $builder->get()->getResultArray();
 
+        // Log result count dan data
+        log_message('debug', 'Result Count: ' . count($result));
+        log_message('debug', 'Result Data: ' . json_encode($result));
+
         // Format data for datatables
         $data = [];
         foreach ($result as $row) {
@@ -125,7 +176,8 @@ class Booking extends BaseController
                 'confirmed' => 'Terkonfirmasi',
                 'completed' => 'Selesai',
                 'cancelled' => 'Dibatalkan',
-                'no-show' => 'Tidak Hadir'
+                'no-show' => 'Tidak Hadir',
+                'rejected' => 'Ditolak'
             ];
 
             $row['status_text'] = $statusMap[$row['status']] ?? $row['status'];
@@ -138,7 +190,12 @@ class Booking extends BaseController
             'draw' => intval($draw),
             'recordsTotal' => $totalRecords,
             'recordsFiltered' => $totalRecords,
-            'data' => $data
+            'data' => $data,
+            'debug' => [
+                'user_id' => $userId,
+                'idpelanggan' => $idPelanggan,
+                'query' => $queryString
+            ]
         ]);
     }
 
@@ -160,6 +217,25 @@ class Booking extends BaseController
             return redirect()->to(site_url('customer/profil'))->with('error', 'Silakan lengkapi profil Anda terlebih dahulu');
         }
 
+        // Periksa kelengkapan data pelanggan
+        $isProfileComplete = true;
+        $missingFields = [];
+
+        if (empty($pelanggan['tanggal_lahir'])) {
+            $isProfileComplete = false;
+            $missingFields[] = 'tanggal lahir';
+        }
+
+        if (empty($pelanggan['no_hp'])) {
+            $isProfileComplete = false;
+            $missingFields[] = 'nomor HP';
+        }
+
+        if (empty($pelanggan['alamat'])) {
+            $isProfileComplete = false;
+            $missingFields[] = 'alamat';
+        }
+
         // Jika ada ID paket yang dipilih
         $paketId = $this->request->getGet('paket');
         $selectedPaket = null;
@@ -175,7 +251,9 @@ class Booking extends BaseController
             'title' => 'Form Booking',
             'pelanggan' => $pelanggan,
             'paketList' => $paketList,
-            'selectedPaket' => $selectedPaket
+            'selectedPaket' => $selectedPaket,
+            'isProfileComplete' => $isProfileComplete,
+            'missingFields' => $missingFields
         ];
 
         return view('customer/booking/create', $data);
@@ -228,8 +306,9 @@ class Booking extends BaseController
                 'idpelanggan' => $idPelanggan,
                 'tanggal_booking' => $data['tanggal_booking'],
                 'status' => 'pending', // default status untuk booking dari pelanggan
-                'jenispembayaran' => 'DP', // default jenis pembayaran
-                'jumlahbayar' => 0, // belum ada pembayaran
+                'jenispembayaran' => isset($data['jenis_pembayaran']) ?
+                    (strtolower($data['jenis_pembayaran']) === 'dp' ? 'DP' : 'Lunas') : 'DP', // default jenis pembayaran
+                'jumlahbayar' => isset($data['min_payment']) ? $data['min_payment'] : (isset($data['jenis_pembayaran']) && $data['jenis_pembayaran'] == 'DP' ? ($data['total'] * 0.5) : 0), // gunakan nilai min_payment atau hitung 50% dari total
                 'total' => $data['total'],
                 'idkaryawan' => $data['idkaryawan'] ?? null,
             ];
@@ -276,6 +355,38 @@ class Booking extends BaseController
                     'status' => 'error',
                     'message' => 'Gagal membuat detail booking',
                     'errors' => $this->detailBookingModel->errors()
+                ]);
+            }
+
+            // Generate invoice untuk pembayaran
+            $invoiceNumber = $this->pembayaranModel->generateInvoiceNumber();
+
+            // Simpan data pembayaran
+            $pembayaranData = [
+                'fakturbooking' => $kdbooking,
+                'total_bayar' => isset($data['jenis_pembayaran']) && $data['jenis_pembayaran'] == 'DP' ?
+                    (isset($data['min_payment']) ? $data['min_payment'] : ($data['total'] * 0.5)) :
+                    $data['total'],
+                'grandtotal' => $data['total'],
+                'metode' => $data['metode_pembayaran'] ?? 'transfer',
+                'status' => 'pending', // default status untuk pembayaran
+                'jenis' => $data['jenis_pembayaran'] ?? 'DP',
+            ];
+
+            // Jika ada bukti pembayaran yang diupload
+            $bukti = $this->request->getFile('bukti_pembayaran');
+            if ($bukti && $bukti->isValid() && !$bukti->hasMoved()) {
+                $newName = $kdbooking . '_' . $bukti->getRandomName();
+                $bukti->move(FCPATH . 'uploads/bukti_pembayaran', $newName);
+                $pembayaranData['bukti'] = $newName;
+            }
+
+            if (!$this->pembayaranModel->save($pembayaranData)) {
+                $this->db->transRollback();
+                return $this->response->setStatusCode(400)->setJSON([
+                    'status' => 'error',
+                    'message' => 'Gagal membuat pembayaran',
+                    'errors' => $this->pembayaranModel->errors()
                 ]);
             }
 
@@ -501,8 +612,8 @@ class Booking extends BaseController
             if ($isAvailable) {
                 $availableKaryawan[] = [
                     'id' => $karyawan['idkaryawan'],
-                    'nama' => $karyawan['nama'],
-                    'foto' => $karyawan['foto'] ?? null
+                    'nama' => $karyawan['namakaryawan'],
+                    // 'foto' => $karyawan['foto'] ?? null
                 ];
             }
         }

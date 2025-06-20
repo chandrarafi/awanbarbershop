@@ -77,6 +77,11 @@
         color: #fff;
     }
 
+    .status-rejected {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
     .detail-table th {
         width: 35%;
         font-weight: 600;
@@ -110,6 +115,10 @@
     @media print {
         .no-print {
             display: none !important;
+        }
+
+        .print-only {
+            display: inline-block !important;
         }
 
         body {
@@ -153,6 +162,56 @@
         color: #6c757d;
         text-align: right;
     }
+
+    /* Style untuk Modal Bukti Pembayaran */
+    #buktiModal .modal-content {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    #buktiModal .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    #buktiModal .modal-body {
+        padding: 20px;
+    }
+
+    #buktiImage {
+        border-radius: 5px;
+        max-width: 100%;
+        transition: transform 0.3s ease, max-height 0.3s ease;
+        cursor: zoom-in;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #buktiImage:hover {
+        transform: scale(1.02);
+    }
+
+    #buktiImage.zoomed {
+        cursor: zoom-out;
+        transform: scale(1);
+    }
+
+    #buktiImage.zoomed:hover {
+        transform: scale(1);
+    }
+
+    .view-bukti {
+        transition: all 0.2s ease;
+    }
+
+    .view-bukti:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .print-only {
+        display: none;
+    }
 </style>
 <?= $this->endSection() ?>
 
@@ -186,6 +245,7 @@
                         </li>
                         <li><a class="dropdown-item status-action" href="#" data-status="cancelled">Batalkan</a></li>
                         <li><a class="dropdown-item status-action" href="#" data-status="no-show">Tidak Hadir</a></li>
+                        <li><a class="dropdown-item status-action" href="#" data-status="rejected">Tolak</a></li>
                     </ul>
                 </div>
             </div>
@@ -233,7 +293,8 @@
                                                     'confirmed' => 'Terkonfirmasi',
                                                     'completed' => 'Selesai',
                                                     'cancelled' => 'Dibatalkan',
-                                                    'no-show' => 'Tidak Hadir'
+                                                    'no-show' => 'Tidak Hadir',
+                                                    'rejected' => 'Ditolak'
                                                 ];
                                                 echo $statusMap[$booking['status']] ?? $booking['status'];
                                                 ?>
@@ -348,6 +409,7 @@
                                                 <th>Status</th>
                                                 <th>Jenis</th>
                                                 <th class="text-end">Jumlah</th>
+                                                <th>Bukti</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -366,6 +428,20 @@
                                                         </span>
                                                     </td>
                                                     <td class="text-end">Rp <?= number_format($bayar['total_bayar'], 0, ',', '.') ?></td>
+                                                    <td>
+                                                        <?php if (!empty($bayar['bukti'])): ?>
+                                                            <button type="button" class="btn btn-sm btn-primary view-bukti no-print"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#buktiModal"
+                                                                data-bukti="<?= base_url('uploads/bukti_pembayaran/' . $bayar['bukti']) ?>"
+                                                                data-id="<?= $bayar['id'] ?>">
+                                                                Lihat Bukti
+                                                            </button>
+                                                            <span class="d-none print-only">Ada</span>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-secondary">Tidak ada</span>
+                                                        <?php endif; ?>
+                                                    </td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -395,6 +471,8 @@
         </div>
     </div>
 </div>
+
+
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
@@ -407,9 +485,22 @@
             const status = $(this).data('status');
             const kdbooking = '<?= $booking['kdbooking'] ?>';
 
+            // Menentukan pesan sesuai status yang dipilih
+            let statusMessage = `Apakah Anda yakin ingin mengubah status booking menjadi ${status}?`;
+            let paymentStatusUpdate = false;
+
+            // Pesan khusus berdasarkan status
+            if (status === 'completed') {
+                statusMessage = `Apakah Anda yakin ingin mengubah status booking menjadi SELESAI? Status pembayaran juga akan diubah menjadi LUNAS.`;
+                paymentStatusUpdate = true;
+            } else if (status === 'cancelled' || status === 'rejected') {
+                statusMessage = `Apakah Anda yakin ingin ${status === 'cancelled' ? 'MEMBATALKAN' : 'MENOLAK'} booking ini? Tindakan ini juga akan mempengaruhi status pembayaran.`;
+                paymentStatusUpdate = true;
+            }
+
             Swal.fire({
                 title: 'Konfirmasi',
-                text: `Apakah Anda yakin ingin mengubah status booking menjadi ${status}?`,
+                text: statusMessage,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -423,7 +514,8 @@
                         type: 'POST',
                         data: {
                             kdbooking: kdbooking,
-                            status: status
+                            status: status,
+                            update_payment: paymentStatusUpdate
                         },
                         dataType: 'json',
                         success: function(response) {
@@ -459,6 +551,59 @@
         // Handle cetak faktur
         $('#btnPrintInvoice').on('click', function() {
             cetakFaktur();
+        });
+
+        // Handle tampilan bukti pembayaran
+        $('.view-bukti').on('click', function() {
+            var buktiUrl = $(this).data('bukti');
+            var id = $(this).data('id');
+
+            $('#buktiImage').attr('src', buktiUrl);
+            $('#buktiModalLabel').text('Bukti Pembayaran #' + id);
+            $('#downloadBukti').attr('href', buktiUrl);
+
+            // Reset zoom state
+            $('#buktiImage').css('max-height', '500px').removeClass('zoomed');
+            $('#zoomBukti').find('span').text('Perbesar');
+            $('#zoomBukti').find('i').removeClass('bi-zoom-out').addClass('bi-zoom-in');
+
+            // Preload gambar
+            var img = new Image();
+            img.onload = function() {
+                // Gambar berhasil dimuat
+                $('#buktiImage').removeClass('d-none');
+            };
+            img.onerror = function() {
+                // Gambar gagal dimuat
+                $('#buktiImage').addClass('d-none');
+                $('.modal-body').append('<div class="alert alert-danger">Gambar tidak dapat dimuat</div>');
+            };
+            img.src = buktiUrl;
+        });
+
+        // Handle zoom gambar
+        $('#zoomBukti').on('click', function() {
+            var $img = $('#buktiImage');
+            var $icon = $(this).find('i');
+            var $text = $(this).find('span');
+
+            if ($img.hasClass('zoomed')) {
+                // Kecilkan gambar
+                $img.css('max-height', '500px').removeClass('zoomed');
+                $icon.removeClass('bi-zoom-out').addClass('bi-zoom-in');
+                $text.text('Perbesar');
+            } else {
+                // Perbesar gambar
+                $img.css('max-height', 'none').addClass('zoomed');
+                $icon.removeClass('bi-zoom-in').addClass('bi-zoom-out');
+                $text.text('Kecilkan');
+            }
+        });
+
+        // Reset modal saat ditutup
+        $('#buktiModal').on('hidden.bs.modal', function() {
+            $('#buktiImage').attr('src', '').css('max-height', '500px').removeClass('zoomed');
+            $('.alert').remove();
         });
     });
 
@@ -502,6 +647,7 @@
             printWindow.document.write('.status-completed { background-color: #198754; color: #fff; }');
             printWindow.document.write('.status-cancelled { background-color: #dc3545; color: #fff; }');
             printWindow.document.write('.status-no-show { background-color: #6c757d; color: #fff; }');
+            printWindow.document.write('.status-rejected { background-color: #dc3545; color: #fff; }');
             printWindow.document.write('.detail-table { margin-bottom: 0; }');
             printWindow.document.write('.detail-table th, .detail-table td { padding: 4px; font-size: 12px; }');
             printWindow.document.write('.detail-table th { width: 35%; font-weight: 600; }');
@@ -522,7 +668,8 @@
             printWindow.document.write('.mb-4 { margin-bottom: 10px !important; }');
             printWindow.document.write('p { margin-bottom: 3px; font-size: 11px; }');
             printWindow.document.write('h6 { font-size: 13px; margin-bottom: 5px; }');
-            printWindow.document.write('@media print { body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } .no-print { display: none !important; } @page { size: A4 portrait; margin: 5mm; } }');
+            printWindow.document.write('.print-only { display: none; }');
+            printWindow.document.write('@media print { body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } .no-print { display: none !important; } .print-only { display: inline-block !important; } @page { size: A4 portrait; margin: 5mm; } }');
             printWindow.document.write('</style>');
             printWindow.document.write('</head>');
             printWindow.document.write('<body>');
@@ -559,4 +706,29 @@
         }
     }
 </script>
+<!-- Modal Bukti Pembayaran -->
+<div class="modal fade" id="buktiModal" tabindex="-1" aria-labelledby="buktiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="buktiModalLabel">Bukti Pembayaran</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="buktiImage" src="" alt="Bukti Pembayaran" class="img-fluid" style="max-height: 500px;">
+                <div class="mt-3">
+                    <a href="#" id="downloadBukti" class="btn btn-sm btn-success" download>
+                        <i class="bi bi-download"></i> Download Gambar
+                    </a>
+                    <button type="button" id="zoomBukti" class="btn btn-sm btn-info">
+                        <i class="bi bi-zoom-in"></i> <span>Perbesar</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>

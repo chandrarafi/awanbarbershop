@@ -148,7 +148,7 @@ class DetailBookingModel extends Model
     public function getDetailsByBookingCode($kdbooking)
     {
         return $this->db->table('detail_booking db')
-            ->select('db.*, k.namakaryawan')
+            ->select('db.*, k.namakaryawan as nama_karyawan')
             ->join('karyawan k', 'k.idkaryawan = db.idkaryawan', 'left')
             ->where('db.kdbooking', $kdbooking)
             ->get()
