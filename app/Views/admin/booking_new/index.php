@@ -129,6 +129,16 @@
         background-color: #5a6268;
     }
 
+    .filter-status.rejected {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .filter-status.rejected:hover,
+    .filter-status.rejected.active {
+        background-color: #bd2130;
+    }
+
     .badge {
         font-size: 11px;
         padding: 5px 10px;
@@ -158,6 +168,11 @@
 
     .badge-no-show {
         background-color: #6c757d;
+        color: #fff;
+    }
+
+    .badge-rejected {
+        background-color: #dc3545;
         color: #fff;
     }
 
@@ -346,6 +361,9 @@
                             <button type="button" class="btn filter-status no-show" data-status="no-show">
                                 <i class="bi bi-person-slash"></i> Tidak Hadir
                             </button>
+                            <button type="button" class="btn filter-status rejected" data-status="rejected">
+                                <i class="bi bi-x-octagon"></i> Ditolak
+                            </button>
                         </div>
                     </div>
 
@@ -384,7 +402,15 @@
 <script>
     $(function() {
         // Initialize tooltips
-        $('[data-toggle="tooltip"]').tooltip();
+        $('[data-bs-toggle="tooltip"]').tooltip();
+
+        // Inisialisasi modal
+        const statusModalEl = document.getElementById('statusModal');
+        let statusModal;
+
+        if (statusModalEl) {
+            statusModal = new bootstrap.Modal(statusModalEl);
+        }
 
         let currentStatus = '';
 
@@ -418,7 +444,8 @@
                 {
                     data: 'tanggal_booking',
                     render: function(data, type, row) {
-                        return '<i class="bi bi-calendar-date mr-1"></i> ' + data;
+                        const jamDetail = row.detail_jam ? ' <span class="badge bg-secondary text-white">' + row.detail_jam + '</span>' : '';
+                        return '<i class="bi bi-calendar-date mr-1"></i> ' + data + jamDetail;
                     }
                 },
                 {
@@ -454,6 +481,10 @@
                                 badgeClass = 'badge-no-show';
                                 icon = 'bi bi-person-slash';
                                 break;
+                            case 'rejected':
+                                badgeClass = 'badge-rejected';
+                                icon = 'bi bi-x-octagon';
+                                break;
                             default:
                                 badgeClass = 'badge-secondary';
                                 icon = 'bi bi-question-circle';
@@ -475,18 +506,18 @@
                     render: function(data, type, row) {
                         return `
                             <div class="action-buttons">
-                                <a href="<?= site_url('admin/booking/show/') ?>${row.kdbooking}" class="btn btn-sm btn-action btn-view" data-toggle="tooltip" title="Lihat Detail">
+                                <a href="<?= site_url('admin/booking/show/') ?>${row.kdbooking}" class="btn btn-sm btn-action btn-view" data-bs-toggle="tooltip" title="Lihat Detail">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a href="<?= site_url('admin/booking/edit/') ?>${row.kdbooking}" class="btn btn-sm btn-action btn-edit" data-toggle="tooltip" title="Edit Booking">
+                                <a href="<?= site_url('admin/booking/edit/') ?>${row.kdbooking}" class="btn btn-sm btn-action btn-edit" data-bs-toggle="tooltip" title="Edit Booking">
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
-                                <button type="button" class="btn btn-sm btn-action btn-status btn-change-status" data-toggle="tooltip" data-kdbooking="${row.kdbooking}" data-status="${row.status}" title="Ubah Status">
+                                <button type="button" class="btn btn-sm btn-action btn-status btn-change-status" data-bs-toggle="tooltip" data-kdbooking="${row.kdbooking}" data-status="${row.status}" title="Ubah Status">
                                     <i class="bi bi-arrow-repeat"></i>
                                 </button>
-                                <a href="<?= site_url('admin/booking/show/') ?>${row.kdbooking}" class="btn btn-sm btn-action btn-print" data-toggle="tooltip" title="Cetak Faktur">
+                                <button type="button" class="btn btn-sm btn-action btn-print print-invoice" data-bs-toggle="tooltip" title="Cetak Faktur" data-kdbooking="${row.kdbooking}">
                                     <i class="bi bi-printer"></i>
-                                </a>
+                                </button>
                             </div>
                         `;
                     }
@@ -516,13 +547,13 @@
 
             $('#kdbooking').val(kdbooking);
             $('#status').val(currentStatus);
-            $('#statusModal').modal('show');
+            statusModal.show();
         });
 
         // Form ubah status
         // Initialize tooltips after table redraws
         bookingTable.on('draw', function() {
-            $('[data-toggle="tooltip"]').tooltip();
+            $('[data-bs-toggle="tooltip"]').tooltip();
         });
 
         // Mengelola status change pada form
@@ -603,7 +634,7 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.status === 'success') {
-                        $('#statusModal').modal('hide');
+                        statusModal.hide();
                         Swal.fire({
                             icon: 'success',
                             title: 'Berhasil!',
@@ -629,19 +660,158 @@
                 }
             });
         });
+
+        // Fungsi untuk mencetak faktur langsung
+        $(document).on('click', '.print-invoice', function() {
+            const kdbooking = $(this).data('kdbooking');
+
+            Swal.fire({
+                title: 'Mencetak Faktur',
+                text: 'Sedang mempersiapkan faktur...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Panggil fungsi cetak faktur
+            cetakFaktur(kdbooking);
+        });
+
+        // Fungsi untuk mencetak faktur ke halaman baru
+        function cetakFaktur(kdbooking) {
+            try {
+                // Buka window cetak baru
+                let printWindow = window.open('', '_blank', 'height=600,width=800');
+
+                if (!printWindow) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Popup blocker mungkin menghalangi jendela cetak. Mohon izinkan popup untuk situs ini.'
+                    });
+                    return;
+                }
+
+                // Ambil konten faktur dari server
+                $.ajax({
+                    url: '<?= site_url('admin/booking/print-invoice') ?>',
+                    type: 'POST',
+                    data: {
+                        kdbooking: kdbooking
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            // Tulis konten faktur ke window cetak
+                            printWindow.document.write('<!DOCTYPE html>');
+                            printWindow.document.write('<html lang="id">');
+                            printWindow.document.write('<head>');
+                            printWindow.document.write('<meta charset="UTF-8">');
+                            printWindow.document.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+                            printWindow.document.write('<title>Faktur Booking - ' + kdbooking + '</title>');
+                            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">');
+                            printWindow.document.write('<style>');
+                            printWindow.document.write('body { font-family: Arial, sans-serif; margin: 0; padding: 10px; font-size: 12px; }');
+                            printWindow.document.write('.container { max-width: 100%; padding: 0; }');
+                            printWindow.document.write('.booking-detail-container { max-width: 100%; margin: 0 auto; }');
+                            printWindow.document.write('.row { margin-right: -5px; margin-left: -5px; }');
+                            printWindow.document.write('.col-md-6, .col-md-8, .col-md-4, .col-12 { padding-right: 5px; padding-left: 5px; }');
+                            printWindow.document.write('.info-card { margin-bottom: 10px; border-radius: 5px; overflow: hidden; box-shadow: 0 0 5px rgba(0,0,0,0.1); }');
+                            printWindow.document.write('.info-card .card-header { background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 8px 10px; }');
+                            printWindow.document.write('.info-card .card-header h5 { margin: 0; color: #495057; font-weight: 600; font-size: 14px; }');
+                            printWindow.document.write('.info-card .card-body { padding: 10px; }');
+                            printWindow.document.write('.booking-id { font-size: 18px; font-weight: 700; color: #007bff; margin-bottom: 3px; }');
+                            printWindow.document.write('.booking-date { font-size: 12px; color: #6c757d; margin-bottom: 10px; }');
+                            printWindow.document.write('.booking-status { display: inline-block; padding: 3px 8px; border-radius: 15px; font-weight: 500; font-size: 11px; text-transform: uppercase; }');
+                            printWindow.document.write('.status-pending { background-color: #ffc107; color: #212529; }');
+                            printWindow.document.write('.status-confirmed { background-color: #0dcaf0; color: #fff; }');
+                            printWindow.document.write('.status-completed { background-color: #198754; color: #fff; }');
+                            printWindow.document.write('.status-cancelled { background-color: #dc3545; color: #fff; }');
+                            printWindow.document.write('.status-no-show { background-color: #6c757d; color: #fff; }');
+                            printWindow.document.write('.status-rejected { background-color: #dc3545; color: #fff; }');
+                            printWindow.document.write('.detail-table { margin-bottom: 0; }');
+                            printWindow.document.write('.detail-table th, .detail-table td { padding: 4px; font-size: 12px; }');
+                            printWindow.document.write('.detail-table th { width: 35%; font-weight: 600; }');
+                            printWindow.document.write('.service-table { margin-bottom: 5px; }');
+                            printWindow.document.write('.service-table th, .service-table td { padding: 5px; vertical-align: middle; font-size: 11px; }');
+                            printWindow.document.write('.service-table th { font-size: 11px; }');
+                            printWindow.document.write('.table>:not(caption)>*>* { padding: 5px; }');
+                            printWindow.document.write('.payment-info { border-top: 1px solid #dee2e6; margin-top: 10px; padding-top: 10px; }');
+                            printWindow.document.write('.payment-info h6 { font-weight: 600; margin-bottom: 8px; font-size: 13px; }');
+                            printWindow.document.write('.total-section { font-size: 14px; font-weight: 700; }');
+                            printWindow.document.write('.invoice-header { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }');
+                            printWindow.document.write('.invoice-header img { max-width: 70px; height: auto; }');
+                            printWindow.document.write('.invoice-header h4 { font-size: 16px; margin-bottom: 2px; }');
+                            printWindow.document.write('.invoice-header p { font-size: 11px; margin-bottom: 2px; }');
+                            printWindow.document.write('.invoice-title { font-size: 18px; font-weight: 700; color: #212529; margin-bottom: 2px; text-align: right; }');
+                            printWindow.document.write('.invoice-number { font-size: 13px; color: #6c757d; text-align: right; }');
+                            printWindow.document.write('.mt-4 { margin-top: 10px !important; }');
+                            printWindow.document.write('.mb-4 { margin-bottom: 10px !important; }');
+                            printWindow.document.write('p { margin-bottom: 3px; font-size: 11px; }');
+                            printWindow.document.write('h6 { font-size: 13px; margin-bottom: 5px; }');
+                            printWindow.document.write('@media print { body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } .no-print { display: none !important; } @page { size: A4 portrait; margin: 5mm; } }');
+                            printWindow.document.write('</style>');
+                            printWindow.document.write('</head>');
+                            printWindow.document.write('<body>');
+                            printWindow.document.write('<div class="container">');
+                            printWindow.document.write(response.invoiceHtml);
+                            printWindow.document.write('</div>');
+                            printWindow.document.write('<script>');
+                            printWindow.document.write('window.onload = function() {');
+                            printWindow.document.write('  setTimeout(function() { ');
+                            printWindow.document.write('    window.print();');
+                            printWindow.document.write('    window.addEventListener("afterprint", function() {');
+                            printWindow.document.write('      window.close();');
+                            printWindow.document.write('    });');
+                            printWindow.document.write('  }, 500);');
+                            printWindow.document.write('};');
+                            printWindow.document.write('<\/script>');
+                            printWindow.document.write('</body>');
+                            printWindow.document.write('</html>');
+
+                            printWindow.document.close();
+                            printWindow.focus();
+
+                            Swal.close();
+                        } else {
+                            printWindow.close();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: response.message || 'Gagal memuat faktur'
+                            });
+                        }
+                    },
+                    error: function() {
+                        printWindow.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Terjadi kesalahan saat memuat faktur'
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Error cetak faktur:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Terjadi kesalahan saat mencetak faktur: ' + error.message
+                });
+            }
+        }
     });
 </script>
 <!-- Modal Status -->
-<div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="statusModalLabel">
-                    <i class="bi bi-arrow-repeat mr-2"></i> Ubah Status Booking
+                    <i class="bi bi-arrow-repeat me-2"></i> Ubah Status Booking
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="statusForm">
                 <div class="modal-body">
@@ -654,6 +824,7 @@
                             <option value="completed">Selesai</option>
                             <option value="cancelled">Dibatalkan</option>
                             <option value="no-show">Tidak Hadir</option>
+                            <option value="rejected">Ditolak</option>
                         </select>
                     </div>
 
@@ -707,7 +878,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-modal-cancel" data-dismiss="modal">
+                    <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">
                         <i class="bi bi-x"></i> Batal
                     </button>
                     <button type="submit" class="btn btn-primary btn-modal-save">

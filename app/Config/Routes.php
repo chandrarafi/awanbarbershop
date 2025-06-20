@@ -73,6 +73,7 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->post('storePelanggan', 'Admin\BookingNewController::storePelanggan');
         $routes->post('updateStatus', 'Admin\BookingNewController::updateStatus');
         $routes->post('getPaymentInfo', 'Admin\BookingNewController::getPaymentInfo');
+        $routes->post('print-invoice', 'Admin\BookingNewController::print_invoice');
     });
 
     // Karyawan Routes

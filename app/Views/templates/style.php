@@ -2,16 +2,19 @@
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
     :root {
-        --primary-color: #2C3E50;
+        --primary-color: #1E293B;
         --secondary-color: #E74C3C;
         --accent-color: #F1C40F;
-        --dark-color: #1a1a1a;
-        --light-color: #ECF0F1;
+        --dark-color: #0F172A;
+        --light-color: #94A3B8;
+        --text-color: #E2E8F0;
+        --card-bg: #334155;
     }
 
     body {
         font-family: 'Poppins', sans-serif;
-        background: var(--light-color);
+        background: var(--primary-color);
+        color: var(--text-color);
     }
 
     .swiper {
@@ -168,9 +171,10 @@
     }
 
     .mobile-menu {
-        background: rgba(44, 62, 80, 0.98);
-        backdrop-filter: blur(10px);
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
     }
 
     .btn-primary {
@@ -234,8 +238,10 @@
     }
 
     .navbar-fixed {
-        background-color: #2C3E50;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: var(--dark-color);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .nav-link.active {
@@ -268,19 +274,129 @@
 
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
-        width: 10px;
+        width: 8px;
     }
 
     ::-webkit-scrollbar-track {
-        background: var(--light-color);
+        background: var(--dark-color);
     }
 
     ::-webkit-scrollbar-thumb {
         background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
-        border-radius: 5px;
+        border-radius: 8px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
         background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+    }
+
+    /* Form and Card Styling with Soft Texture */
+    .form-card {
+        background-color: #F8F9FA;
+        background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23e2e8f0' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section {
+        background-color: #FFFFFF;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f1f5f9' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        border: 1px solid #EDF2F7;
+        border-radius: 0.75rem;
+    }
+
+    input,
+    select,
+    textarea {
+        background-color: #FFFFFF !important;
+        border-color: #E2E8F0 !important;
+        color: #4A5568 !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--accent-color) !important;
+        box-shadow: 0 0 0 2px rgba(241, 196, 15, 0.2) !important;
+    }
+
+    label {
+        color: #4A5568 !important;
+        font-weight: 500 !important;
+    }
+
+    .time-slot {
+        background-color: #FFFFFF;
+        color: #4A5568;
+        border-color: #E2E8F0;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .time-slot:hover:not(.disabled):not(.booked) {
+        background-color: #FEF9E7;
+        border-color: var(--accent-color);
+    }
+
+    .time-slot.active {
+        background-color: var(--accent-color) !important;
+        color: #1A202C !important;
+    }
+
+    /* Additional Booking Form Styles */
+    .karyawan-item {
+        transition: all 0.3s ease;
+    }
+
+    .karyawan-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .karyawan-item.border-green-500 {
+        transform: translateY(-3px);
+    }
+
+    #booking-alert {
+        border-radius: 0.5rem;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Soft box shadow for cards */
+    .shadow-sm {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Custom Radio Buttons */
+    .payment-option-wrapper label,
+    .method-option-wrapper label {
+        transition: all 0.2s ease;
+    }
+
+    .payment-option-wrapper label.border-blue-500,
+    .method-option-wrapper label.border-blue-500 {
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+        background-color: rgba(59, 130, 246, 0.05);
+    }
+
+    .radio-circle {
+        transition: all 0.2s ease;
+    }
+
+    .radio-dot {
+        transition: all 0.2s ease;
     }
 </style>

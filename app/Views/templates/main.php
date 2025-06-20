@@ -13,9 +13,10 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <?= $this->include('templates/style') ?>
     <?= $this->renderSection('custom_css') ?>
+    <?= $this->renderSection('custom_style') ?>
 </head>
 
-<body class="bg-gradient-to-b from-[#2C3E50] to-[#ECF0F1]">
+<body class="bg-gradient-to-b from-[#1E293B] to-[#334155]">
     <?= $this->include('templates/navbar') ?>
 
     <?= $this->renderSection('content') ?>

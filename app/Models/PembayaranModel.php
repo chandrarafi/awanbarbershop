@@ -13,7 +13,7 @@ class PembayaranModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['id', 'fakturbooking', 'total_bayar', 'grandtotal', 'metode', 'status', 'jenis', 'created_at', 'updated_at'];
+    protected $allowedFields    = ['id', 'fakturbooking', 'total_bayar', 'grandtotal', 'metode', 'status', 'jenis', 'bukti', 'created_at', 'updated_at'];
 
     // Dates
     protected $useTimestamps = true;
@@ -66,12 +66,70 @@ class PembayaranModel extends Model
                 ]
             ],
             'status' => [
-                'rules' => 'required',
+                'rules' => 'required|in_list[pending,paid,cancelled,failed]',
                 'errors' => [
-                    'required' => 'Status pembayaran harus diisi'
+                    'required' => 'Status pembayaran harus diisi',
+                    'in_list' => 'Status pembayaran tidak valid (pending, paid, cancelled, failed)'
                 ]
             ]
         ];
+    }
+
+    /**
+     * Override update method untuk mendukung perubahan status dengan lebih baik
+     * 
+     * @param $id
+     * @param $data
+     * @return bool
+     */
+    public function update($id = null, $data = null): bool
+    {
+        // Jika hanya mengupdate status, lepaskan validasi untuk field lainnya
+        if (is_array($data) && count($data) === 1 && isset($data['status'])) {
+            $this->skipValidation(true);
+        }
+
+        return parent::update($id, $data);
+    }
+
+    /**
+     * Method khusus untuk update status pembayaran
+     * 
+     * @param int $id ID pembayaran
+     * @param string $status Status baru (paid, pending, cancelled, failed)
+     * @return bool
+     */
+    public function updateStatus($id, string $status): bool
+    {
+        // Validasi status
+        $validStatus = ['pending', 'paid', 'cancelled', 'failed'];
+        if (!in_array($status, $validStatus)) {
+            return false;
+        }
+
+        $this->skipValidation(true);
+        return $this->update($id, ['status' => $status]);
+    }
+
+    /**
+     * Method untuk update semua status pembayaran berdasarkan kode booking
+     * 
+     * @param string $fakturbooking Kode Booking
+     * @param string $status Status baru
+     * @return bool
+     */
+    public function updateStatusByBookingCode(string $fakturbooking, string $status): bool
+    {
+        // Validasi status
+        $validStatus = ['pending', 'paid', 'cancelled', 'failed'];
+        if (!in_array($status, $validStatus)) {
+            return false;
+        }
+
+        $this->skipValidation(true);
+        return $this->where('fakturbooking', $fakturbooking)
+            ->set(['status' => $status])
+            ->update();
     }
 
     /**

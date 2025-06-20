@@ -70,11 +70,13 @@ class BookingNewController extends BaseController
         $order = $request->getGet('order') ?? [];
         $filterStatus = $request->getGet('status'); // Filter berdasarkan status
 
-        // Query dasar dengan joins untuk data lengkap
+        // Query dasar dengan joins untuk data lengkap dan informasi waktu booking dari detail_booking
         $builder = $this->db->table('booking b')
-            ->select('b.*, p.nama_lengkap, p.no_hp, k.namakaryawan')
+            ->select('b.*, p.nama_lengkap, p.no_hp, k.namakaryawan, db.jamstart, db.jamend')
             ->join('pelanggan p', 'p.idpelanggan = b.idpelanggan', 'left')
-            ->join('karyawan k', 'k.idkaryawan = b.idkaryawan', 'left');
+            ->join('karyawan k', 'k.idkaryawan = b.idkaryawan', 'left')
+            ->join('detail_booking db', 'db.kdbooking = b.kdbooking', 'left')
+            ->orderBy('b.created_at', 'DESC');
 
         // Total records (cache result)
         $totalRecords = $this->db->table('booking')->countAllResults();
@@ -129,6 +131,7 @@ class BookingNewController extends BaseController
                 'jumlahbayar' => $row['jumlahbayar'],
                 'jumlahbayar_formatted' => 'Rp ' . number_format($row['jumlahbayar'], 0, ',', '.'),
                 'namakaryawan' => $row['namakaryawan'] ?? 'Belum ditentukan',
+                'detail_jam' => !empty($row['jamstart']) ? $row['jamstart'] . ' - ' . $row['jamend'] : null,
                 'actions' => ''
             ];
         }, $results);
@@ -148,7 +151,8 @@ class BookingNewController extends BaseController
             'confirmed' => 'Terkonfirmasi',
             'completed' => 'Selesai',
             'cancelled' => 'Dibatalkan',
-            'no-show' => 'Tidak Hadir'
+            'no-show' => 'Tidak Hadir',
+            'rejected' => 'Ditolak'
         ];
 
         return $statusMap[$status] ?? $status;
@@ -181,7 +185,7 @@ class BookingNewController extends BaseController
                 'tanggal_booking' => $data['tanggal_booking'],
                 'status' => 'confirmed',
                 'jenispembayaran' => $data['jenispembayaran'],
-                'jumlahbayar' => $data['jumlahbayar'] ?? 0,
+                'jumlahbayar' => $data['jumlahbayar'] ?? ($data['jenispembayaran'] == 'DP' ? ($data['total'] * 0.5) : 0),
                 'total' => $data['total'],
                 'idkaryawan' => $data['idkaryawan'] ?? null,
             ];
@@ -574,6 +578,7 @@ class BookingNewController extends BaseController
 
         $kdbooking = $this->request->getPost('kdbooking');
         $status = $this->request->getPost('status');
+        $updatePayment = $this->request->getPost('update_payment');
 
         if (empty($kdbooking) || empty($status)) {
             return $this->response->setJSON([
@@ -583,7 +588,7 @@ class BookingNewController extends BaseController
         }
 
         // Validasi status
-        $validStatus = ['pending', 'confirmed', 'completed', 'cancelled', 'no-show'];
+        $validStatus = ['pending', 'confirmed', 'completed', 'cancelled', 'no-show', 'rejected'];
         if (!in_array($status, $validStatus)) {
             return $this->response->setJSON([
                 'status' => 'error',
@@ -594,6 +599,12 @@ class BookingNewController extends BaseController
         $this->db->transBegin();
 
         try {
+            // Ambil data booking terlebih dahulu
+            $booking = $this->bookingModel->find($kdbooking);
+            if (!$booking) {
+                throw new \Exception('Booking tidak ditemukan');
+            }
+
             // Update status booking
             $this->bookingModel->update($kdbooking, ['status' => $status]);
 
@@ -602,15 +613,62 @@ class BookingNewController extends BaseController
                 $this->detailBookingModel->where('kdbooking', $kdbooking)->set(['status' => '4'])->update();
             }
 
-            // Jika status selesai dan ada pelunasan
-            if ($status == 'completed' && $this->request->getPost('pelunasan')) {
-                // Ambil data booking
-                $booking = $this->bookingModel->find($kdbooking);
-                if (!$booking) {
-                    throw new \Exception('Booking tidak ditemukan');
-                }
+            // Jika status ditolak, update juga status detail booking
+            if ($status == 'rejected') {
+                $this->detailBookingModel->where('kdbooking', $kdbooking)->set(['status' => '5'])->update();
+            }
 
-                // Ambil data pembayaran
+            // Update status pembayaran jika diminta atau status booking menjadi completed
+            if ($updatePayment == 'true' || $status == 'completed') {
+                // Cek pembayaran yang sudah ada
+                $existingPayments = $this->pembayaranModel->where('fakturbooking', $kdbooking)->findAll();
+
+                if ($status == 'completed') {
+                    // Jika status selesai, update semua pembayaran menjadi paid menggunakan metode baru
+                    log_message('debug', 'Updating all payments for booking ' . $kdbooking . ' to paid');
+                    $updateAllStatus = $this->pembayaranModel->updateStatusByBookingCode($kdbooking, 'paid');
+                    if (!$updateAllStatus) {
+                        log_message('error', 'Failed to update payments by booking code');
+                        throw new \Exception('Gagal memperbarui status pembayaran');
+                    }
+
+                    // Update booking untuk menandai sudah lunas
+                    $this->bookingModel->update($kdbooking, [
+                        'jenispembayaran' => 'Lunas',
+                        // Jika jumlah bayar kurang dari total, update menjadi total (pelunasan otomatis)
+                        'jumlahbayar' => ($booking['jumlahbayar'] < $booking['total']) ? $booking['total'] : $booking['jumlahbayar']
+                    ]);
+
+                    // Jika belum ada riwayat pembayaran pelunasan, buat pembayaran pelunasan otomatis
+                    if ($booking['jumlahbayar'] < $booking['total']) {
+                        $sisaPembayaran = $booking['total'] - $booking['jumlahbayar'];
+
+                        // Buat riwayat pembayaran pelunasan
+                        $pelunasanData = [
+                            'fakturbooking' => $kdbooking,
+                            'total_bayar' => $sisaPembayaran,
+                            'grandtotal' => $booking['total'],
+                            'metode' => 'cash', // Default ke cash untuk pelunasan otomatis
+                            'status' => 'paid',
+                            'jenis' => 'Pelunasan'
+                        ];
+
+                        $this->pembayaranModel->insert($pelunasanData);
+                    }
+                } else if ($status == 'cancelled' || $status == 'rejected') {
+                    // Jika status dibatalkan/ditolak, update status pembayaran menjadi cancelled menggunakan metode baru
+                    log_message('debug', 'Updating all payments for booking ' . $kdbooking . ' to cancelled');
+                    $updateAllStatus = $this->pembayaranModel->updateStatusByBookingCode($kdbooking, 'cancelled');
+                    if (!$updateAllStatus) {
+                        log_message('error', 'Failed to update payments to cancelled by booking code');
+                        throw new \Exception('Gagal memperbarui status pembayaran ke cancelled');
+                    }
+                }
+            }
+
+            // Jika status selesai dan ada request pelunasan manual (dari form)
+            if ($status == 'completed' && $this->request->getPost('pelunasan')) {
+                // Ambil data pembayaran dari request
                 $jumlahPembayaran = (float) $this->request->getPost('jumlah_pembayaran');
                 $metodePembayaran = $this->request->getPost('metode_pembayaran');
 
@@ -718,7 +776,7 @@ class BookingNewController extends BaseController
                 'tanggal_booking' => $data['tanggal_booking'],
                 'status' => $data['status'],
                 'jenispembayaran' => $data['jenispembayaran'],
-                'jumlahbayar' => $data['jumlahbayar'] ?? 0,
+                'jumlahbayar' => $data['jumlahbayar'] ?? ($data['jenispembayaran'] == 'DP' ? ($data['total'] * 0.5) : 0),
                 'total' => $data['total'],
                 'idkaryawan' => $data['idkaryawan'] ?? null,
             ];
@@ -854,7 +912,7 @@ class BookingNewController extends BaseController
                     'total_bayar' => $data['jumlahbayar'] ?? 0,
                     'grandtotal' => $data['total'],
                     'metode' => $data['metode_pembayaran'] ?? 'Tunai',
-                    'status' => $data['jenispembayaran'] == 'Lunas' ? 'lunas' : 'dp'
+                    'status' => $data['jenispembayaran'] == 'Lunas' ? 'lunas' : 'DP'
                 ];
 
                 if ($existingPayment) {
@@ -893,5 +951,276 @@ class BookingNewController extends BaseController
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Mengambil konten invoice untuk dicetak langsung
+     * 
+     * @return \CodeIgniter\HTTP\Response
+     */
+    public function print_invoice()
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'status' => 'error',
+                'message' => 'Invalid request'
+            ]);
+        }
+
+        $kdbooking = $this->request->getPost('kdbooking');
+        if (empty($kdbooking)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Kode booking harus diisi'
+            ]);
+        }
+
+        try {
+            // Ambil data booking dan semua informasi terkait
+            $booking = $this->bookingModel->getBookingWithPelanggan($kdbooking);
+            if (!$booking) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Booking tidak ditemukan'
+                ]);
+            }
+
+            // Ambil detail booking
+            $details = $this->detailBookingModel->getDetailsByBookingCode($kdbooking);
+
+            // Ambil data pembayaran
+            $pembayaran = $this->pembayaranModel->getPembayaranByBookingCode($kdbooking);
+
+            // Hasilkan konten faktur HTML
+            $invoiceHtml = $this->generateInvoiceHTML($booking, $details, $pembayaran);
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'invoiceHtml' => $invoiceHtml
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Gagal memuat faktur: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Generate HTML untuk faktur/invoice
+     * 
+     * @param array $booking Data booking
+     * @param array $details Data detail booking
+     * @param array $pembayaran Data pembayaran
+     * @return string HTML content
+     */
+    private function generateInvoiceHTML($booking, $details, $pembayaran)
+    {
+        // Siapkan status teks
+        $statusMap = [
+            'pending' => 'Menunggu Konfirmasi',
+            'confirmed' => 'Terkonfirmasi',
+            'completed' => 'Selesai',
+            'cancelled' => 'Dibatalkan',
+            'no-show' => 'Tidak Hadir',
+            'rejected' => 'Ditolak'
+        ];
+
+        ob_start();
+?>
+        <div class="booking-detail-container" id="invoice">
+            <div class="invoice-header">
+                <div>
+                    <img src="<?= base_url('assets/images/logo.png') ?>" alt="Awan Barbershop" onerror="this.src='https://via.placeholder.com/100x50?text=LOGO'">
+                    <h4>AWAN BARBERSHOP</h4>
+                    <p class="mb-0">Jl. Contoh No. 123, Kota</p>
+                    <p class="mb-0">Telp: 081234567890</p>
+                </div>
+                <div>
+                    <div class="invoice-title">FAKTUR BOOKING</div>
+                    <div class="invoice-number">#<?= $booking['kdbooking'] ?></div>
+                    <div class="invoice-date">Tanggal: <?= date('d/m/Y', strtotime($booking['created_at'] ?? date('Y-m-d'))) ?></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Informasi Booking -->
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Informasi Booking</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless detail-table">
+                                <tr>
+                                    <th>ID Booking</th>
+                                    <td><?= $booking['kdbooking'] ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Tanggal Booking</th>
+                                    <td><?= date('d F Y', strtotime($booking['tanggal_booking'])) ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td>
+                                        <span class="booking-status status-<?= $booking['status'] ?>">
+                                            <?= $statusMap[$booking['status']] ?? $booking['status'] ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Jenis Pembayaran</th>
+                                    <td><?= $booking['jenispembayaran'] ?></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informasi Pelanggan -->
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-user"></i> Informasi Pelanggan</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless detail-table">
+                                <tr>
+                                    <th>Nama</th>
+                                    <td><?= $booking['nama_lengkap'] ?? 'Data tidak tersedia' ?></td>
+                                </tr>
+                                <tr>
+                                    <th>No. HP</th>
+                                    <td><?= $booking['no_hp'] ?? 'Data tidak tersedia' ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Email</th>
+                                    <td><?= $booking['email'] ?? 'Data tidak tersedia' ?></td>
+                                </tr>
+                                <tr>
+                                    <th>Alamat</th>
+                                    <td><?= $booking['alamat'] ?? 'Data tidak tersedia' ?></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Layanan -->
+            <div class="info-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list"></i> Detail Layanan</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered service-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Paket</th>
+                                    <th>Deskripsi</th>
+                                    <th>Waktu</th>
+                                    <th>Karyawan</th>
+                                    <th class="text-end">Harga</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $total = 0;
+                                $counter = 1; ?>
+                                <?php foreach ($details as $detail): ?>
+                                    <tr>
+                                        <td><?= $counter++ ?></td>
+                                        <td><?= $detail['nama_paket'] ?></td>
+                                        <td><?= $detail['deskripsi'] ?></td>
+                                        <td><?= $detail['jamstart'] ?> - <?= $detail['jamend'] ?></td>
+                                        <td>
+                                            <?php
+                                            $karyawanModel = new \App\Models\KaryawanModel();
+                                            $karyawan = $karyawanModel->find($detail['idkaryawan']);
+                                            echo $karyawan ? $karyawan['namakaryawan'] : 'Belum ditentukan';
+                                            ?>
+                                        </td>
+                                        <td class="text-end">Rp <?= number_format($detail['harga'], 0, ',', '.') ?></td>
+                                    </tr>
+                                    <?php $total += $detail['harga']; ?>
+                                <?php endforeach; ?>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="5" class="text-end">Total</th>
+                                    <th class="text-end">Rp <?= number_format($booking['total'], 0, ',', '.') ?></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="5" class="text-end">Jumlah Bayar</th>
+                                    <th class="text-end">Rp <?= number_format($booking['jumlahbayar'], 0, ',', '.') ?></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="5" class="text-end">Sisa</th>
+                                    <th class="text-end">Rp <?= number_format($booking['total'] - $booking['jumlahbayar'], 0, ',', '.') ?></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Payment History -->
+                    <?php if (!empty($pembayaran) && is_array($pembayaran)): ?>
+                        <div class="payment-info">
+                            <h6>Riwayat Pembayaran</h6>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Metode</th>
+                                            <th>Status</th>
+                                            <th>Jenis</th>
+                                            <th class="text-end">Jumlah</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($pembayaran as $bayar): ?>
+                                            <tr>
+                                                <td><?= date('d/m/Y H:i', strtotime($bayar['created_at'])) ?></td>
+                                                <td><?= ucfirst($bayar['metode']) ?></td>
+                                                <td>
+                                                    <span class="badge <?= $bayar['status'] == 'paid' ? 'bg-success' : 'bg-warning' ?>">
+                                                        <?= $bayar['status'] == 'paid' ? 'Lunas' : 'Pending' ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge <?= ($bayar['jenis'] ?? '') == 'DP' ? 'bg-warning' : 'bg-info' ?>">
+                                                        <?= ($bayar['jenis'] ?? 'Lunas') ?>
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">Rp <?= number_format($bayar['total_bayar'], 0, ',', '.') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="row mt-4">
+                <div class="col-md-8">
+                    <div class="mb-4">
+                        <h6>Catatan:</h6>
+                        <p>1. Harap datang 10 menit sebelum waktu yang dijadwalkan.</p>
+                        <p>2. Pembatalan harus dilakukan minimal 2 jam sebelum jadwal.</p>
+                        <p>3. Faktur ini sebagai bukti sah pembayaran.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <p>Terima kasih atas kunjungan Anda!</p>
+                    <p class="mb-0">AWAN BARBERSHOP</p>
+                </div>
+            </div>
+        </div>
+<?php
+        return ob_get_clean();
     }
 }
