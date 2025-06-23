@@ -37,6 +37,7 @@ $routes->group('customer', function ($routes) {
         $routes->get('getBookings', 'Customer\Booking::getBookings');
         $routes->get('getAvailableKaryawan', 'Customer\Booking::getAvailableKaryawan');
         $routes->get('checkAvailability', 'Customer\Booking::checkAvailability');
+        $routes->get('create-test-notification', 'Customer\Booking::createTestNotification');
     });
 });
 
@@ -44,6 +45,17 @@ $routes->group('customer', function ($routes) {
 $routes->group('admin', ['filter' => 'auth'], function ($routes) {
     $routes->get('/', 'Admin::index', ['filter' => 'role:admin,manager']);
     $routes->get('dashboard', 'Admin::index');
+
+    // Notifications routes
+    $routes->group('notifications', function ($routes) {
+        $routes->get('unread', 'Admin\NotificationController::getUnreadNotifications');
+        $routes->post('mark-read', 'Admin\NotificationController::markAsRead');
+        $routes->post('mark-all-read', 'Admin\NotificationController::markAllAsRead');
+        $routes->get('view/(:num)', 'Admin\NotificationController::viewDetail/$1');
+        $routes->get('create-test', 'Admin\NotificationController::createTest');
+        $routes->get('view-all', 'Admin\NotificationController::viewAll');
+        $routes->get('all', 'Admin\NotificationController::allNotifications');
+    });
 
     // User Management (hanya admin)
     $routes->group('', ['filter' => 'role:admin'], function ($routes) {
@@ -110,5 +122,16 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->post('store', 'Pelanggan::store');
         $routes->post('update/(:num)', 'Pelanggan::update/$1');
         $routes->delete('delete/(:num)', 'Pelanggan::delete/$1');
+    });
+
+    // Pengeluaran Routes
+    $routes->group('pengeluaran', ['filter' => 'role:admin,manager'], function ($routes) {
+        $routes->get('/', 'Admin\PengeluaranController::index');
+        $routes->get('create', 'Admin\PengeluaranController::create');
+        $routes->post('store', 'Admin\PengeluaranController::store');
+        $routes->get('edit/(:segment)', 'Admin\PengeluaranController::edit/$1');
+        $routes->post('update/(:segment)', 'Admin\PengeluaranController::update/$1');
+        $routes->get('delete/(:segment)', 'Admin\PengeluaranController::delete/$1');
+        $routes->get('getPengeluaran', 'Admin\PengeluaranController::getPengeluaran');
     });
 });

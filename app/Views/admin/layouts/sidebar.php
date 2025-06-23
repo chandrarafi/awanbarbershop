@@ -50,6 +50,12 @@
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link <?= ($title == 'Data Pengeluaran' || $title == 'Tambah Pengeluaran' || $title == 'Edit Pengeluaran') ? 'active' : '' ?>" href="<?= site_url('admin/pengeluaran') ?>">
+                <i class="bi bi-cash-coin"></i>
+                <span>Pengeluaran</span>
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link <?= $title == 'Reports' ? 'active' : '' ?>" href="<?= site_url('admin/reports') ?>">
                 <i class="bi bi-file-earmark-text"></i>
                 <span>Reports</span>

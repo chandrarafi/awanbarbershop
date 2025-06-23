@@ -390,6 +390,14 @@ class Booking extends BaseController
                 ]);
             }
 
+            // Buat notifikasi untuk admin tentang booking baru
+            $notificationModel = new \App\Models\NotificationModel();
+            $notificationModel->createBookingNotification(
+                $kdbooking,
+                $pelanggan['nama_lengkap'],
+                $pelanggan['idpelanggan']
+            );
+
             $this->db->transCommit();
 
             return $this->response->setJSON([
@@ -630,5 +638,26 @@ class Booking extends BaseController
     private function isOverlapping($start1, $end1, $start2, $end2)
     {
         return ((strtotime($start1) < strtotime($end2)) && (strtotime($end1) > strtotime($start2)));
+    }
+
+    /**
+     * Create test notification for debugging
+     */
+    public function createTestNotification()
+    {
+        // Buat notifikasi test
+        $notificationModel = new \App\Models\NotificationModel();
+        $result = $notificationModel->createNotification(
+            'booking_baru',
+            'Test Notifikasi',
+            'Ini adalah notifikasi test untuk debugging',
+            'TEST-123',
+            null
+        );
+
+        return $this->response->setJSON([
+            'status' => $result ? 'success' : 'error',
+            'message' => $result ? 'Notifikasi test berhasil dibuat' : 'Gagal membuat notifikasi test'
+        ]);
     }
 }

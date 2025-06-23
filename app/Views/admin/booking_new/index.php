@@ -8,6 +8,8 @@
         border-radius: 10px;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
         border: none;
+        position: relative;
+        z-index: 1;
     }
 
     .card-header {
@@ -77,6 +79,16 @@
     .filter-status.all:hover,
     .filter-status.all.active {
         background-color: #e9ecef;
+    }
+
+    .filter-status.today {
+        background-color: #20c997;
+        color: #fff;
+    }
+
+    .filter-status.today:hover,
+    .filter-status.today.active {
+        background-color: #16a085;
     }
 
     .filter-status.pending {
@@ -346,6 +358,9 @@
                             <button type="button" class="btn filter-status all active" data-status="">
                                 <i class="bi bi-list"></i> Semua
                             </button>
+                            <button type="button" class="btn filter-status today" data-status="today">
+                                <i class="bi bi-calendar-day"></i> Hari Ini
+                            </button>
                             <button type="button" class="btn filter-status pending" data-status="pending">
                                 <i class="bi bi-clock"></i> Menunggu
                             </button>
@@ -413,6 +428,7 @@
         }
 
         let currentStatus = '';
+        let dateFilter = '';
 
         const bookingTable = $('#bookingTable').DataTable({
             processing: true,
@@ -423,6 +439,7 @@
                 type: 'GET',
                 data: function(d) {
                     d.status = currentStatus;
+                    d.date_filter = dateFilter;
                     return d;
                 }
             },
@@ -536,7 +553,17 @@
             $('.filter-status').removeClass('active');
             $(this).addClass('active');
 
-            currentStatus = $(this).data('status');
+            const statusFilter = $(this).data('status');
+
+            // Reset dateFilter jika filter bukan "today"
+            if (statusFilter === 'today') {
+                dateFilter = 'today';
+                currentStatus = '';
+            } else {
+                dateFilter = '';
+                currentStatus = statusFilter;
+            }
+
             bookingTable.ajax.reload();
         });
 
