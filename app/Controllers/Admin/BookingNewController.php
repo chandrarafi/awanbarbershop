@@ -69,6 +69,7 @@ class BookingNewController extends BaseController
         $search = trim($request->getGet('search')['value'] ?? '');
         $order = $request->getGet('order') ?? [];
         $filterStatus = $request->getGet('status'); // Filter berdasarkan status
+        $dateFilter = $request->getGet('date_filter'); // Filter berdasarkan tanggal
 
         // Query dasar dengan joins untuk data lengkap dan informasi waktu booking dari detail_booking
         $builder = $this->db->table('booking b')
@@ -84,6 +85,12 @@ class BookingNewController extends BaseController
         // Filter berdasarkan status
         if (!empty($filterStatus)) {
             $builder->where('b.status', $filterStatus);
+        }
+
+        // Filter berdasarkan tanggal (hari ini)
+        if ($dateFilter === 'today') {
+            $today = date('Y-m-d');
+            $builder->where('b.tanggal_booking', $today);
         }
 
         // Pencarian yang dioptimalkan

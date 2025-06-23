@@ -4,6 +4,33 @@
     </button>
     <h1><?= $title ?? 'Dashboard' ?></h1>
     <div class="ms-auto d-flex align-items-center">
+        <!-- Notifikasi -->
+        <div class="dropdown me-3">
+            <a href="#" class="position-relative text-decoration-none" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-bell fs-5"></i>
+                <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+                    <span class="notification-count">0</span>
+                    <span class="visually-hidden">unread notifications</span>
+                </span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end shadow notification-dropdown p-0" aria-labelledby="notificationDropdown" data-bs-popper="static">
+                <div class="p-2 bg-light border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Notifikasi</h6>
+                    <button id="markAllReadBtn" class="btn btn-sm btn-link text-decoration-none">Tandai semua dibaca</button>
+                </div>
+                <div id="notificationList" class="p-0">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-2 bg-light border-top text-center">
+                    <a href="#" class="btn btn-sm btn-link text-decoration-none" id="viewAllNotifications">Lihat semua notifikasi</a>
+                </div>
+            </div>
+        </div>
+
         <div class="dropdown">
             <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="https://ui-avatars.com/api/?name=Admin&background=A27B5C&color=fff" alt="Admin" class="rounded-circle me-2" width="32" height="32">
