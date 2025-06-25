@@ -51,7 +51,7 @@
                 </svg>
             </div>
             <h2 class="text-3xl font-bold mb-3 text-gray-800">Booking Berhasil!</h2>
-            <p class="text-gray-600 mb-6 text-lg">Booking Anda berhasil dibuat. Anda akan dialihkan ke halaman detail dalam beberapa saat.</p>
+            <p class="text-gray-600 mb-6 text-lg">Booking Anda berhasil dibuat. Anda akan dialihkan ke halaman pembayaran dalam beberapa saat.</p>
             <div class="w-full bg-gray-200 rounded-full h-3 mb-4">
                 <div id="countdown-bar" class="bg-green-500 h-3 rounded-full"></div>
             </div>
@@ -87,6 +87,21 @@
                 </div>
             </div>
         <?php endif; ?>
+
+        <!-- Informasi Batas Waktu Pembayaran -->
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-lg border border-amber-200 shadow-sm mb-6">
+            <div class="flex items-center">
+                <div class="bg-amber-100 rounded-full p-2 mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-800">Perhatian: Batas Waktu Pembayaran</h3>
+                    <p class="text-sm text-gray-600 mt-1">Setelah booking berhasil dibuat, Anda memiliki waktu <span class="font-semibold">30 menit</span> untuk menyelesaikan pembayaran. Jika melewati batas waktu, booking akan otomatis dibatalkan.</p>
+                </div>
+            </div>
+        </div>
 
         <div class="form-card rounded-xl shadow-xl p-6 md:p-8 animated-border" data-aos="zoom-in" data-aos-delay="200">
             <div id="booking-alert" class="hidden mb-6 p-4 rounded-lg shadow-sm border"></div>
@@ -339,13 +354,13 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </div>
-                                    <p class="ml-3 text-sm text-gray-700">Setelah menekan tombol booking, Anda akan diminta untuk melakukan pembayaran. Mohon datang tepat waktu sesuai jadwal booking yang telah dipilih.</p>
+                                    <p class="ml-3 text-sm text-gray-700">Setelah menekan tombol booking, Anda akan diarahkan ke halaman pembayaran. Mohon datang tepat waktu sesuai jadwal booking yang telah dipilih.</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Opsi Pembayaran -->
-                        <div class="mt-6 bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                        <div class="mt-6 bg-white p-5 rounded-lg border border-gray-200 shadow-sm hidden">
                             <h3 class="text-lg font-semibold text-gray-800 mb-1 flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -943,50 +958,7 @@
             updateSummary();
         });
 
-        // Toggle metode pembayaran info
-        $('.method-radio').on('change', function() {
-            const selectedMethod = $('input[name="metode_pembayaran"]:checked').val();
-
-            if (selectedMethod === 'transfer') {
-                $('#paymentInfo h4').text('Informasi Pembayaran Transfer');
-                $('#transferInfo').show();
-                $('#qrisInfo').hide();
-                $('#paymentInfo').removeClass('hidden').hide().slideDown(300);
-                $('#bukti_pembayaran').parent().show();
-            } else if (selectedMethod === 'qris') {
-                $('#paymentInfo h4').text('Scan QRIS untuk Pembayaran');
-                $('#transferInfo').hide();
-                $('#qrisInfo').removeClass('hidden').show();
-                $('#paymentInfo').removeClass('hidden').hide().slideDown(300);
-                $('#bukti_pembayaran').parent().show();
-            }
-        });
-
-        // Jenis Pembayaran Change
-        $('.payment-radio').on('change', function() {
-            updateMinPayment();
-
-            // Tampilkan metode pembayaran setelah jenis pembayaran dipilih
-            $('#metode-pembayaran-container').removeClass('hidden').hide().slideDown(300);
-
-            // Tampilkan informasi minimal pembayaran
-            $('#minPaymentInfo').removeClass('hidden').hide().fadeIn(300);
-
-            // Update total_bayar berdasarkan jenis pembayaran
-            const jenis = $(this).val();
-            const total = parseFloat($('#total').val() || 0);
-
-            if (jenis === 'DP') {
-                // Set jumlah bayar ke 50% dari total
-                const minPayment = total * 0.5;
-                $('#min_payment').val(minPayment);
-            } else if (jenis === 'Lunas') {
-                // Set jumlah bayar ke total penuh
-                $('#min_payment').val(total);
-            } else {
-                $('#min_payment').val(0);
-            }
-        });
+        // Fungsi pembayaran dipindahkan ke halaman payment.php
 
         // Form submit
         $('#bookingForm').on('submit', function(e) {
@@ -1004,170 +976,7 @@
                 }
             });
 
-            // Validasi jenis pembayaran
-            if (!$('.payment-radio:checked').length) {
-                isValid = false;
-
-                let messageHTML = `
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <h3 class="text-sm font-medium text-red-800">Harap pilih jenis pembayaran</h3>
-                        </div>
-                    </div>
-                `;
-
-                $('#booking-alert')
-                    .removeClass('hidden bg-green-100 text-green-800 border-green-200')
-                    .addClass('bg-red-100 text-red-800 border-red-200')
-                    .html(messageHTML)
-                    .fadeIn();
-
-                return;
-            }
-
-            // Validasi nilai jenis pembayaran untuk memastikan sesuai dengan yang diharapkan model (DP atau Lunas)
-            const jenisPembayaran = $('input[name="jenis_pembayaran"]:checked').val();
-            if (jenisPembayaran !== 'DP' && jenisPembayaran !== 'Lunas') {
-                isValid = false;
-
-                let messageHTML = `
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <h3 class="text-sm font-medium text-red-800">Jenis pembayaran harus DP atau Lunas</h3>
-                        </div>
-                    </div>
-                `;
-
-                $('#booking-alert')
-                    .removeClass('hidden bg-green-100 text-green-800 border-green-200')
-                    .addClass('bg-red-100 text-red-800 border-red-200')
-                    .html(messageHTML)
-                    .fadeIn();
-
-                return;
-            }
-
-            // Validasi metode pembayaran jika container sudah ditampilkan
-            if (!$('#metode-pembayaran-container').hasClass('hidden') && !$('.method-radio:checked').length) {
-                isValid = false;
-
-                let messageHTML = `
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <h3 class="text-sm font-medium text-red-800">Harap pilih metode pembayaran</h3>
-                        </div>
-                    </div>
-                `;
-
-                $('#booking-alert')
-                    .removeClass('hidden bg-green-100 text-green-800 border-green-200')
-                    .addClass('bg-red-100 text-red-800 border-red-200')
-                    .html(messageHTML)
-                    .fadeIn();
-
-                return;
-            }
-
-            // Validasi bukti pembayaran untuk metode transfer dan qris
-            const selectedMethod = $('.method-radio:checked').val();
-            if ((selectedMethod === 'transfer' || selectedMethod === 'qris') &&
-                $('#bukti_pembayaran')[0].files.length === 0) {
-                isValid = false;
-
-                let messageHTML = `
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <h3 class="text-sm font-medium text-red-800">Harap upload bukti pembayaran</h3>
-                        </div>
-                    </div>
-                `;
-
-                $('#booking-alert')
-                    .removeClass('hidden bg-green-100 text-green-800 border-green-200')
-                    .addClass('bg-red-100 text-red-800 border-red-200')
-                    .html(messageHTML)
-                    .fadeIn();
-
-                // Scroll ke bagian atas form
-                $('html, body').animate({
-                    scrollTop: $('#bookingForm').offset().top - 100
-                }, 500);
-
-                return;
-            }
-
-            // Validasi file size (max 2MB)
-            if ((selectedMethod === 'transfer' || selectedMethod === 'qris') &&
-                $('#bukti_pembayaran')[0].files.length > 0) {
-                const fileSize = $('#bukti_pembayaran')[0].files[0].size;
-                const maxSize = 2 * 1024 * 1024; // 2MB
-
-                if (fileSize > maxSize) {
-                    isValid = false;
-
-                    let messageHTML = `
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="text-sm font-medium text-red-800">Ukuran file terlalu besar (maksimal 2MB)</h3>
-                            </div>
-                        </div>
-                    `;
-
-                    $('#booking-alert')
-                        .removeClass('hidden bg-green-100 text-green-800 border-green-200')
-                        .addClass('bg-red-100 text-red-800 border-red-200')
-                        .html(messageHTML)
-                        .fadeIn();
-
-                    // Scroll ke bagian atas form
-                    $('html, body').animate({
-                        scrollTop: $('#bookingForm').offset().top - 100
-                    }, 500);
-
-                    return;
-                }
-
-                // Validasi tipe file
-                const file = $('#bukti_pembayaran')[0].files[0];
-                const acceptedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
-                if (!acceptedImageTypes.includes(file.type)) {
-                    isValid = false;
-
-                    showAlert('File harus berupa gambar (JPG, PNG, atau GIF)', 'error');
-
-                    // Scroll ke bagian atas form
-                    $('html, body').animate({
-                        scrollTop: $('#bookingForm').offset().top - 100
-                    }, 500);
-
-                    return;
-                }
-            }
+            // Validasi pembayaran dipindahkan ke halaman payment.php
 
             if (!isValid) {
                 // Scroll ke bagian atas form
@@ -1226,46 +1035,7 @@
                         $('#booking-alert').hide();
 
                         // Tampilkan modal sukses yang sudah ada di HTML
-                        $('#booking-success-modal').removeClass('hidden').addClass('animate__fadeIn');
-
-                        // Animasi countdown
-                        $('#countdown-bar').addClass('animate-countdown-bar');
-
-                        // Hitung mundur timer
-                        let countdownTime = 3;
-                        $('#countdown-timer').text(countdownTime);
-                        const countdownInterval = setInterval(function() {
-                            countdownTime--;
-                            $('#countdown-timer').text(countdownTime);
-                            if (countdownTime <= 0) {
-                                clearInterval(countdownInterval);
-                            }
-                        }, 1000);
-
-                        // Tambahkan style untuk animasi
-                        $('head').append(`
-                            <style>
-                                @keyframes countdown {
-                                    from { width: 100%; }
-                                    to { width: 0%; }
-                                }
-                                .animate-countdown-bar {
-                                    animation: countdown 3s linear forwards;
-                                }
-                                @keyframes fadeIn {
-                                    from { opacity: 0; }
-                                    to { opacity: 1; }
-                                }
-                                .animate__fadeIn {
-                                    animation: fadeIn 0.3s;
-                                }
-                            </style>
-                        `);
-
-                        // Redirect ke halaman detail booking
-                        setTimeout(function() {
-                            window.location.href = '<?= site_url('customer/booking/detail/') ?>' + response.kdbooking;
-                        }, 3000);
+                        showSuccessModal(response.kdbooking);
                     } else {
                         let errorHTML = `
                             <div class="flex">
@@ -1401,6 +1171,49 @@
             setTimeout(function() {
                 $('#booking-alert').fadeOut();
             }, 5000);
+        }
+
+        // Fungsi untuk menampilkan modal sukses booking
+        function showSuccessModal(bookingCode) {
+            const modal = document.getElementById('booking-success-modal');
+
+            // Tampilkan modal
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-active');
+
+            // Tambahkan efek scale in ke modal content
+            setTimeout(() => {
+                const modalContent = modal.querySelector('.relative');
+                modalContent.classList.add('scale-in');
+            }, 100);
+
+            // Tambahkan efek pulse ke icon sukses
+            setTimeout(() => {
+                const successIcon = modal.querySelector('.w-24');
+                successIcon.classList.add('pulse-animation');
+            }, 500);
+
+            // Animasi countdown
+            const countdownBar = document.getElementById('countdown-bar');
+            countdownBar.classList.add('animate-countdown-bar');
+
+            // Hitung mundur timer
+            let countdownTime = 3;
+            const countdownTimer = document.getElementById('countdown-timer');
+            countdownTimer.textContent = countdownTime;
+
+            const countdownInterval = setInterval(function() {
+                countdownTime--;
+                countdownTimer.textContent = countdownTime;
+                if (countdownTime <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+
+            // Redirect ke halaman pembayaran
+            setTimeout(function() {
+                window.location.href = '<?= site_url('customer/booking/payment/') ?>' + bookingCode;
+            }, 3000);
         }
     });
 </script>
@@ -1567,6 +1380,67 @@
     #removeBukti:hover {
         opacity: 1;
         transform: scale(1.1);
+    }
+
+    /* Modal Sukses Booking */
+    #booking-success-modal {
+        transition: all 0.3s ease;
+    }
+
+    #booking-success-modal.modal-active {
+        display: flex;
+    }
+
+    .modal-overlay {
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+        transition: opacity 0.3s ease;
+    }
+
+    @keyframes countdown {
+        from {
+            width: 100%;
+        }
+
+        to {
+            width: 0%;
+        }
+    }
+
+    .animate-countdown-bar {
+        animation: countdown 3s linear forwards;
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .scale-in {
+        animation: scaleIn 0.3s ease forwards;
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .pulse-animation {
+        animation: pulse 2s infinite;
     }
 </style>
 <?= $this->endSection() ?>
