@@ -33,7 +33,7 @@ Events::on('pre_system', static function (): void {
             ob_end_flush();
         }
 
-        ob_start(static fn ($buffer) => $buffer);
+        ob_start(static fn($buffer) => $buffer);
     }
 
     /*
@@ -50,6 +50,76 @@ Events::on('pre_system', static function (): void {
             service('routes')->get('__hot-reload', static function (): void {
                 (new HotReloader())->run();
             });
+        }
+    }
+});
+
+Events::on('post_controller_constructor', function () {
+    // Jalankan cleanup booking secara otomatis di background
+    // Hanya dijalankan pada 5% request untuk mengurangi beban server
+    if (mt_rand(1, 100) <= 5) {
+        helper('filesystem');
+
+        // Cek kapan terakhir kali cleanup dijalankan (max 1x per menit)
+        $lockFile = WRITEPATH . 'booking_cleanup.lock';
+        $canRun = true;
+
+        if (file_exists($lockFile)) {
+            $lastRun = filemtime($lockFile);
+            if (time() - $lastRun < 60) { // 60 detik
+                $canRun = false;
+            }
+        }
+
+        if ($canRun) {
+            // Update lock file
+            write_file($lockFile, date('Y-m-d H:i:s'), 'w');
+
+            // Set timezone
+            date_default_timezone_set('Asia/Jakarta');
+
+            // Koneksi ke database
+            $db = \Config\Database::connect();
+
+            // Ambil semua booking yang expired
+            $expiredBookings = $db->table('booking')
+                ->where('jenispembayaran', 'Belum Bayar')
+                ->where('status', 'pending')
+                ->where('expired_at <', date('Y-m-d H:i:s'))
+                ->get()
+                ->getResultArray();
+
+            if (!empty($expiredBookings)) {
+                $db->transBegin();
+
+                try {
+                    $bookingModel = new \App\Models\BookingModel();
+                    $detailBookingModel = new \App\Models\DetailBookingModel();
+
+                    foreach ($expiredBookings as $booking) {
+                        // Update status booking
+                        $bookingModel->update($booking['kdbooking'], [
+                            'status' => 'expired'
+                        ]);
+
+                        // Update detail booking
+                        $detailBookingModel->where('kdbooking', $booking['kdbooking'])
+                            ->set(['status' => '0'])
+                            ->update();
+
+                        // Log
+                        log_message('info', 'Auto Cleanup: Booking ' . $booking['kdbooking'] . ' updated to expired');
+                    }
+
+                    $db->transCommit();
+
+                    // Log hasil
+                    log_message('info', 'Auto Cleanup: Processed ' . count($expiredBookings) . ' expired bookings');
+                } catch (\Exception $e) {
+                    $db->transRollback();
+                    log_message('error', 'Auto Cleanup Error: ' . $e->getMessage());
+                }
+            }
         }
     }
 });

@@ -35,6 +35,9 @@ class BookingNewController extends BaseController
 
     public function index()
     {
+        // Periksa dan perbarui status booking yang expired
+        $this->checkExpiredBookings();
+
         $title = 'Kelola Booking';
         return view('admin/booking_new/index', compact('title'));
     }
@@ -283,8 +286,11 @@ class BookingNewController extends BaseController
 
     public function show($id = null)
     {
+        // Periksa dan perbarui status booking yang expired
+        $this->checkExpiredBookings();
+
         if (empty($id)) {
-            return redirect()->to('admin/booking')->with('error', 'Kode booking tidak valid');
+            return redirect()->to('admin/booking')->with('error', 'ID booking tidak valid');
         }
 
         $booking = $this->bookingModel->getBookingWithPelanggan($id);

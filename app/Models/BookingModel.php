@@ -23,7 +23,8 @@ class BookingModel extends Model
         'idkaryawan',
         'tanggal_booking',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'expired_at'
     ];
 
     // Dates
@@ -68,10 +69,10 @@ class BookingModel extends Model
                 ]
             ],
             'jenispembayaran' => [
-                'rules' => 'required|in_list[DP,Lunas]',
+                'rules' => 'required|in_list[DP,Lunas,Belum Bayar]',
                 'errors' => [
                     'required' => 'Jenis pembayaran harus diisi',
-                    'in_list' => 'Jenis pembayaran harus DP atau Lunas'
+                    'in_list' => 'Jenis pembayaran harus DP, Lunas, atau Belum Bayar'
                 ]
             ],
             'tanggal_booking' => [

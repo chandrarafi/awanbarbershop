@@ -7,6 +7,13 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 
+// Cron Routes
+$routes->get('/cron/check-expired-bookings', 'Cron::checkExpiredBookings');
+$routes->get('/cron/expire-booking/(:segment)', 'Cron::forceExpireBooking/$1');
+$routes->get('/cron/check-booking/(:segment)', 'Cron::checkBookingStatus/$1');
+$routes->get('/cron/list-pending-bookings', 'Cron::listPendingBookings');
+$routes->get('/customer/check-expired-bookings', 'Customer\Booking::checkAllExpiredBookings');
+
 // Auth Routes (Admin)
 $routes->get('auth', 'Auth::index');
 $routes->post('auth/login', 'Auth::login');
@@ -34,10 +41,13 @@ $routes->group('customer', function ($routes) {
         $routes->get('create', 'Customer\Booking::create');
         $routes->post('store', 'Customer\Booking::store');
         $routes->get('detail/(:segment)', 'Customer\Booking::detail/$1');
+        $routes->get('payment/(:segment)', 'Customer\Booking::payment/$1');
+        $routes->post('savePayment', 'Customer\Booking::savePayment');
         $routes->get('getBookings', 'Customer\Booking::getBookings');
         $routes->get('getAvailableKaryawan', 'Customer\Booking::getAvailableKaryawan');
         $routes->get('checkAvailability', 'Customer\Booking::checkAvailability');
         $routes->get('create-test-notification', 'Customer\Booking::createTestNotification');
+        $routes->post('expire/(:segment)', 'Customer\Booking::expire/$1');
     });
 });
 
@@ -134,4 +144,22 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->get('delete/(:segment)', 'Admin\PengeluaranController::delete/$1');
         $routes->get('getPengeluaran', 'Admin\PengeluaranController::getPengeluaran');
     });
+});
+
+// Customer Booking Routes
+$routes->group('customer/booking', function ($routes) {
+    $routes->get('/', 'Customer\Booking::index', ['filter' => 'auth:customer']);
+    $routes->get('create', 'Customer\Booking::create', ['filter' => 'auth:customer']);
+    $routes->post('store', 'Customer\Booking::store', ['filter' => 'auth:customer']);
+    $routes->get('detail/(:segment)', 'Customer\Booking::detail/$1', ['filter' => 'auth:customer']);
+    $routes->get('payment/(:segment)', 'Customer\Booking::payment/$1', ['filter' => ['auth:customer', 'booking:pending']]);
+    $routes->post('payment/save', 'Customer\Booking::savePayment', ['filter' => 'auth:customer']);
+    $routes->get('expire/(:segment)', 'Customer\Booking::expire/$1', ['filter' => 'auth:customer']);
+    $routes->get('check-status/(:segment)', 'Customer\Booking::checkStatus/$1', ['filter' => 'auth:customer']);
+
+    // AJAX Endpoints
+    $routes->get('check-availability', 'Customer\Booking::checkAvailability');
+    $routes->get('get-available-karyawan', 'Customer\Booking::getAvailableKaryawan');
+    $routes->get('get-bookings', 'Customer\Booking::getBookings', ['filter' => 'auth:customer']);
+    $routes->get('create-test-notification', 'Customer\Booking::createTestNotification');
 });

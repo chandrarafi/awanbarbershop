@@ -31,7 +31,7 @@
                 </div>
             <?php else : ?>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
+                    <table class="w-full text-left" id="booking-table">
                         <thead>
                             <tr class="bg-gray-50 text-gray-700">
                                 <th class="py-3 px-4 font-medium">No. Booking</th>
@@ -74,6 +74,9 @@
                                                 $badgeClass = 'bg-green-100 text-green-800';
                                                 break;
                                             case 'cancelled':
+                                                $badgeClass = 'bg-red-100 text-red-800';
+                                                break;
+                                            case 'expired':
                                                 $badgeClass = 'bg-red-100 text-red-800';
                                                 break;
                                             case 'no-show':
@@ -129,6 +132,10 @@
                         <span class="ml-2 text-gray-700">Booking telah dibatalkan</span>
                     </li>
                     <li class="flex items-center">
+                        <span class="inline-block w-40 py-1 px-2 bg-red-100 text-red-800 text-xs font-medium text-center rounded-full">Batal (Waktu Habis)</span>
+                        <span class="ml-2 text-gray-700">Booking dibatalkan karena waktu pembayaran telah habis</span>
+                    </li>
+                    <li class="flex items-center">
                         <span class="inline-block w-24 py-1 px-2 bg-gray-100 text-gray-800 text-xs font-medium text-center rounded-full">Tidak Hadir</span>
                         <span class="ml-2 text-gray-700">Anda tidak hadir pada waktu yang telah ditentukan</span>
                     </li>
@@ -141,4 +148,55 @@
         </div>
     </div>
 </div>
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inisialisasi DataTables untuk tabel booking
+        const bookingTable = $('#booking-table').DataTable({
+            processing: true,
+            serverSide: false, // Ubah ke false karena kita sudah memuat data dari server
+            paging: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json'
+            },
+            responsive: true,
+            autoWidth: false,
+            order: [
+                [1, 'desc']
+            ] // Urutkan berdasarkan kolom tanggal (indeks 1) secara descending
+        });
+
+        // Periksa booking yang expired setiap 30 detik
+        function checkExpiredBookings() {
+            fetch('<?= site_url('cron/check-expired-bookings') ?>?key=awanbarbershop_secret_key', {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success' && data.processed > 0) {
+                        console.log('Berhasil memperbarui ' + data.processed + ' booking yang expired');
+                        // Reload halaman jika ada booking yang diperbarui
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking expired bookings:', error);
+                });
+        }
+
+        // Jalankan pemeriksaan saat halaman dimuat
+        checkExpiredBookings();
+
+        // Jalankan pemeriksaan setiap 30 detik
+        setInterval(checkExpiredBookings, 30000);
+    });
+</script>
 <?= $this->endSection() ?>

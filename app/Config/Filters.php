@@ -14,6 +14,7 @@ use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
 use App\Filters\AuthFilter;
 use App\Filters\RoleFilter;
+use App\Filters\BookingFilter;
 
 class Filters extends BaseFilters
 {
@@ -38,6 +39,7 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'auth'          => AuthFilter::class,
         'role'          => RoleFilter::class,
+        'booking'       => BookingFilter::class,
     ];
 
     /**
@@ -76,6 +78,7 @@ class Filters extends BaseFilters
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
+            'booking', // Add BookingFilter to run on every request
         ],
         'after' => [
             // 'honeypot',
@@ -107,5 +110,14 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+        'booking' => [
+            'before' => [
+                'customer/booking/*',
+                'customer/booking',
+                'admin/booking/*',
+                'admin/booking'
+            ],
+        ],
+    ];
 }
