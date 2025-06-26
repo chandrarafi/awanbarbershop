@@ -656,17 +656,25 @@ class BookingNewController extends BaseController
                     if ($booking['jumlahbayar'] < $booking['total']) {
                         $sisaPembayaran = $booking['total'] - $booking['jumlahbayar'];
 
-                        // Buat riwayat pembayaran pelunasan
-                        $pelunasanData = [
-                            'fakturbooking' => $kdbooking,
-                            'total_bayar' => $sisaPembayaran,
-                            'grandtotal' => $booking['total'],
-                            'metode' => 'cash', // Default ke cash untuk pelunasan otomatis
-                            'status' => 'paid',
-                            'jenis' => 'Pelunasan'
-                        ];
+                        // Cek apakah sudah ada pembayaran pelunasan untuk booking ini
+                        $existingPelunasan = $this->pembayaranModel->where('fakturbooking', $kdbooking)
+                            ->where('jenis', 'Pelunasan')
+                            ->countAllResults();
 
-                        $this->pembayaranModel->insert($pelunasanData);
+                        // Hanya tambahkan pembayaran pelunasan jika belum ada
+                        if ($existingPelunasan == 0) {
+                            // Buat riwayat pembayaran pelunasan
+                            $pelunasanData = [
+                                'fakturbooking' => $kdbooking,
+                                'total_bayar' => $sisaPembayaran,
+                                'grandtotal' => $booking['total'],
+                                'metode' => 'cash', // Default ke cash untuk pelunasan otomatis
+                                'status' => 'paid',
+                                'jenis' => 'Pelunasan'
+                            ];
+
+                            $this->pembayaranModel->insert($pelunasanData);
+                        }
                     }
                 } else if ($status == 'cancelled' || $status == 'rejected') {
                     // Jika status dibatalkan/ditolak, update status pembayaran menjadi cancelled menggunakan metode baru
@@ -695,24 +703,32 @@ class BookingNewController extends BaseController
                     throw new \Exception('Metode pembayaran tidak valid');
                 }
 
-                // Tambahkan data pembayaran baru
-                $pembayaranData = [
-                    'fakturbooking' => $kdbooking,
-                    'total_bayar' => $jumlahPembayaran,
-                    'grandtotal' => $booking['total'],
-                    'metode' => $metodePembayaran,
-                    'status' => 'paid',
-                    'jenis' => 'Pelunasan'
-                ];
+                // Cek apakah sudah ada pembayaran pelunasan untuk booking ini
+                $existingPelunasan = $this->pembayaranModel->where('fakturbooking', $kdbooking)
+                    ->where('jenis', 'Pelunasan')
+                    ->countAllResults();
 
-                $this->pembayaranModel->insert($pembayaranData);
+                // Hanya tambahkan pembayaran pelunasan jika belum ada
+                if ($existingPelunasan == 0) {
+                    // Tambahkan data pembayaran baru
+                    $pembayaranData = [
+                        'fakturbooking' => $kdbooking,
+                        'total_bayar' => $jumlahPembayaran,
+                        'grandtotal' => $booking['total'],
+                        'metode' => $metodePembayaran,
+                        'status' => 'paid',
+                        'jenis' => 'Pelunasan'
+                    ];
 
-                // Update jumlah pembayaran di booking
-                $totalPembayaran = $booking['jumlahbayar'] + $jumlahPembayaran;
-                $this->bookingModel->update($kdbooking, [
-                    'jumlahbayar' => $totalPembayaran,
-                    'jenispembayaran' => 'Lunas'
-                ]);
+                    $this->pembayaranModel->insert($pembayaranData);
+
+                    // Update jumlah pembayaran di booking
+                    $totalPembayaran = $booking['jumlahbayar'] + $jumlahPembayaran;
+                    $this->bookingModel->update($kdbooking, [
+                        'jumlahbayar' => $totalPembayaran,
+                        'jenispembayaran' => 'Lunas'
+                    ]);
+                }
             }
 
             $this->db->transCommit();
@@ -1198,7 +1214,7 @@ class BookingNewController extends BaseController
                                                 <td><?= ucfirst($bayar['metode']) ?></td>
                                                 <td>
                                                     <span class="badge <?= $bayar['status'] == 'paid' ? 'bg-success' : 'bg-warning' ?>">
-                                                        <?= $bayar['status'] == 'paid' ? 'Lunas' : 'Pending' ?>
+                                                        <?= $bayar['status'] == 'paid' ? 'Dibayar' : 'Belum Dibayar' ?>
                                                     </span>
                                                 </td>
                                                 <td>

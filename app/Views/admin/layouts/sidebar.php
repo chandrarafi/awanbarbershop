@@ -56,9 +56,9 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= $title == 'Reports' ? 'active' : '' ?>" href="<?= site_url('admin/reports') ?>">
+            <a class="nav-link <?= ($title == 'Laporan' || $title == 'Laporan Karyawan') ? 'active' : '' ?>" href="<?= site_url('admin/reports') ?>">
                 <i class="bi bi-file-earmark-text"></i>
-                <span>Reports</span>
+                <span>Laporan</span>
             </a>
         </li>
         <li class="nav-item">

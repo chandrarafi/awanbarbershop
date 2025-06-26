@@ -98,7 +98,7 @@
                 </div>
                 <div>
                     <h3 class="font-medium text-gray-800">Perhatian: Batas Waktu Pembayaran</h3>
-                    <p class="text-sm text-gray-600 mt-1">Setelah booking berhasil dibuat, Anda memiliki waktu <span class="font-semibold">30 menit</span> untuk menyelesaikan pembayaran. Jika melewati batas waktu, booking akan otomatis dibatalkan.</p>
+                    <p class="text-sm text-gray-600 mt-1">Setelah booking berhasil dibuat, Anda memiliki waktu <span class="font-semibold">5 menit</span> untuk menyelesaikan pembayaran. Jika melewati batas waktu, booking akan otomatis dibatalkan.</p>
                 </div>
             </div>
         </div>

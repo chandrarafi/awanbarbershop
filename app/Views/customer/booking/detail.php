@@ -29,7 +29,7 @@
                         <span>Lanjutkan Pembayaran</span>
                     </a>
                 <?php endif; ?>
-                <button id="btnPrint" class="btn-primary px-6 py-3 rounded-full inline-flex items-center">
+                <button id="btnPrint" class="btn-primary px-6 py-3 rounded-full inline-flex items-center" onclick="printFaktur()">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                     </svg>
@@ -388,7 +388,7 @@
                                                         <td class="py-3 px-4 text-gray-800"><?= ucfirst($bayar['metode']) ?></td>
                                                         <td class="py-3 px-4">
                                                             <span class="inline-block py-1 px-2 rounded-full text-xs <?= $bayar['status'] == 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?>">
-                                                                <?= $bayar['status'] == 'paid' ? 'Dibayarkan' : 'Pending' ?>
+                                                                <?= $bayar['status'] == 'paid' ? 'Dibayar' : 'Belum Dibayar' ?>
                                                             </span>
                                                         </td>
                                                         <td class="py-3 px-4">
@@ -404,14 +404,6 @@
                                     </div>
                                 </div>
                             <?php endif; ?>
-
-                            <!-- QR Code -->
-                            <div class="mb-8 flex justify-end">
-                                <div class="text-center">
-                                    <div id="qrcode" class="inline-block p-2 bg-white border border-gray-200 rounded-md"></div>
-                                    <p class="text-xs text-gray-500 mt-1">Scan untuk verifikasi</p>
-                                </div>
-                            </div>
 
                             <!-- Notes -->
                             <div class="mb-8">
@@ -492,39 +484,213 @@
 </div>
 <?= $this->endSection() ?>
 
-<?= $this->section('scripts') ?>
+<?= $this->section('custom_script') ?>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Fungsi untuk mencetak faktur
-        document.getElementById('btnPrint').addEventListener('click', function() {
+        function printFaktur() {
+            // Simpan konten asli
             const printContents = document.getElementById('fakturPrint').innerHTML;
             const originalContents = document.body.innerHTML;
 
-            document.body.innerHTML = `
-                <div style="padding: 20px;">
-                    <style>
-                        body { font-family: Arial, sans-serif; }
-                        .faktur-watermark { display: none; }
-                        @media print {
-                            .faktur-watermark {
-                                display: block;
-                                position: absolute;
-                                top: 50%;
-                                left: 50%;
-                                transform: translate(-50%, -50%) rotate(-45deg);
-                                font-size: 72px;
-                                opacity: 0.2;
-                                z-index: 1000;
-                            }
+            // Persiapkan halaman cetak
+            const printStyles = `
+                <style>
+                    @media print {
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            padding: 0;
+                            margin: 0;
+                            color: #333;
+                            height: 100%;
+                            overflow: hidden;
                         }
-                    </style>
-                    ${printContents}
-                </div>
+                        html {
+                            height: 100%;
+                            overflow: hidden;
+                        }
+                        .faktur-watermark {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%) rotate(-45deg);
+                            font-size: 60px;
+                            opacity: 0.15;
+                            z-index: 1000;
+                        }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { padding: 2px !important; text-align: left; }
+                        thead { background-color: #f3f4f6 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .no-print { display: none !important; }
+                        .rounded-lg { border-radius: 4px; }
+                        .rounded-full { border-radius: 9999px; }
+                        .bg-gray-50 { background-color: #f9fafb !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .bg-gray-100 { background-color: #f3f4f6 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .bg-blue-50 { background-color: #eff6ff !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .bg-red-50 { background-color: #fef2f2 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .bg-green-50 { background-color: #f0fdf4 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .bg-yellow-50 { background-color: #fffbeb !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .bg-white { background-color: #ffffff !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .text-gray-600 { color: #4b5563 !important; }
+                        .text-gray-700 { color: #374151 !important; }
+                        .text-gray-800 { color: #1f2937 !important; }
+                        .font-medium { font-weight: 500 !important; }
+                        .font-bold { font-weight: 700 !important; }
+                        .border { border: 1px solid #e5e7eb !important; }
+                        .border-t { border-top: 1px solid #e5e7eb !important; }
+                        .border-b { border-bottom: 1px solid #e5e7eb !important; }
+                        .mt-1 { margin-top: 0.15rem !important; }
+                        .mt-2 { margin-top: 0.25rem !important; }
+                        .mb-2 { margin-bottom: 0.25rem !important; }
+                        .mb-4 { margin-bottom: 0.5rem !important; }
+                        .mb-8 { margin-bottom: 0.75rem !important; }
+                        .p-4 { padding: 0.5rem !important; }
+                        .p-5 { padding: 0.5rem !important; }
+                        .p-6 { padding: 0.5rem !important; }
+                        .py-3 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+                        .px-4 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+                        .text-center { text-align: center !important; }
+                        .text-right { text-align: right !important; }
+                        .text-sm { font-size: 0.75rem !important; }
+                        .text-xs { font-size: 0.65rem !important; }
+                        .text-lg { font-size: 0.9rem !important; }
+                        .text-xl { font-size: 1rem !important; }
+                        .text-3xl { font-size: 1.25rem !important; }
+                        .uppercase { text-transform: uppercase !important; }
+                        .inline-block { display: inline-block !important; }
+                        .py-1 { padding-top: 0.15rem !important; padding-bottom: 0.15rem !important; }
+                        .px-2 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+                        .text-green-800 { color: #065f46 !important; }
+                        .bg-green-100 { background-color: #d1fae5 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .text-red-800 { color: #991b1b !important; }
+                        .bg-red-100 { background-color: #fee2e2 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .text-yellow-800 { color: #92400e !important; }
+                        .bg-yellow-100 { background-color: #fef3c7 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .text-blue-800 { color: #1e40af !important; }
+                        .bg-blue-100 { background-color: #dbeafe !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .grid { display: grid !important; }
+                        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+                        .gap-6 { gap: 0.75rem !important; }
+                        
+                        /* Tambahan untuk memastikan tampilan cetak baik */
+                        @page {
+                            size: A4 portrait;
+                            margin: 5mm;
+                        }
+                        
+                        /* Pastikan konten muat dalam satu halaman */
+                        #faktur-container {
+                            width: 100%;
+                            max-width: 100%;
+                            box-sizing: border-box;
+                            page-break-after: avoid;
+                            page-break-before: avoid;
+                            page-break-inside: avoid;
+                            font-size: 10px;
+                            transform: scale(0.85);
+                            transform-origin: top center;
+                            max-height: 100%;
+                            overflow: hidden;
+                            background-color: #fff;
+                            color-adjust: exact;
+                            print-color-adjust: exact;
+                            -webkit-print-color-adjust: exact;
+                        }
+                        
+                        /* Sembunyikan elemen yang tidak perlu dicetak */
+                        button, .btn-primary, .btn-secondary, a.btn-primary, a.btn-secondary, .no-print {
+                            display: none !important;
+                        }
+                        
+                        /* Ukuran teks yang lebih kecil untuk muat di satu halaman */
+                        h1, h2, h3, h4 { 
+                            font-size: 90% !important;
+                            margin: 2px 0 !important;
+                        }
+                        p { 
+                            font-size: 80% !important; 
+                            margin: 2px 0 !important;
+                            line-height: 1.2 !important;
+                        }
+                        th, td { 
+                            padding: 2px !important; 
+                            font-size: 80% !important;
+                            line-height: 1.2 !important;
+                        }
+                        
+                        /* Kurangi spasi pada tabel */
+                        table {
+                            margin-bottom: 0.5rem !important;
+                        }
+                        tbody tr td, thead tr th {
+                            padding: 2px 4px !important;
+                        }
+                        
+                        /* Kurangi ukuran logo */
+                        img.h-16 {
+                            height: 40px !important;
+                        }
+                        
+                        /* Kurangi spasi pada header dan footer */
+                        .pb-6 {
+                            padding-bottom: 0.5rem !important;
+                        }
+                        .pt-6 {
+                            padding-top: 0.5rem !important;
+                        }
+                        
+                        /* Mencegah halaman kosong */
+                        * {
+                            print-color-adjust: exact !important;
+                            -webkit-print-color-adjust: exact !important;
+                            color-adjust: exact !important;
+                        }
+                        
+                        /* Mencegah halaman tambahan */
+                        #faktur-print-wrapper {
+                            height: 100%;
+                            overflow: hidden;
+                            position: relative;
+                            page-break-after: avoid;
+                            background-color: #fff;
+                        }
+                        
+                        /* Hapus footer halaman */
+                        @page {
+                            margin-bottom: 0;
+                        }
+                        
+                        /* Pastikan background warna muncul */
+                        .bg-white {
+                            background-color: #fff !important;
+                            print-color-adjust: exact;
+                            -webkit-print-color-adjust: exact;
+                        }
+                    }
+                </style>
             `;
 
-            window.print();
-            document.body.innerHTML = originalContents;
-        });
+            // Ganti konten body dengan konten yang akan dicetak
+            document.body.innerHTML = printStyles + '<div id="faktur-print-wrapper"><div id="faktur-container" style="padding: 8px;">' + printContents + '</div></div>';
+
+            // Cetak
+            setTimeout(() => {
+                window.print();
+
+                // Kembalikan konten asli
+                setTimeout(() => {
+                    document.body.innerHTML = originalContents;
+
+                    // Reinisialisasi event listener setelah konten dikembalikan
+                    setTimeout(function() {
+                        document.getElementById('btnPrint').addEventListener('click', printFaktur);
+                    }, 100);
+                }, 100);
+            }, 100);
+        }
+
+        // Tambahkan event listener ke tombol cetak
+        document.getElementById('btnPrint').addEventListener('click', printFaktur);
 
         function checkExpiredBooking() {
             const kdbooking = '<?= $booking['kdbooking'] ?>';
