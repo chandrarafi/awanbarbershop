@@ -419,7 +419,7 @@
                                                     <td><?= ucfirst($bayar['metode']) ?></td>
                                                     <td>
                                                         <span class="badge <?= $bayar['status'] == 'paid' ? 'bg-success' : 'bg-warning' ?>">
-                                                            <?= $bayar['status'] == 'paid' ? 'Lunas' : 'Pending' ?>
+                                                            <?= $bayar['status'] == 'paid' ? 'Dibayar' : 'Belum Dibayar' ?>
                                                         </span>
                                                     </td>
                                                     <td>
@@ -485,68 +485,135 @@
             const status = $(this).data('status');
             const kdbooking = '<?= $booking['kdbooking'] ?>';
 
-            // Menentukan pesan sesuai status yang dipilih
-            let statusMessage = `Apakah Anda yakin ingin mengubah status booking menjadi ${status}?`;
-            let paymentStatusUpdate = false;
-
-            // Pesan khusus berdasarkan status
+            // Jika status completed, cek sisa pembayaran dulu
             if (status === 'completed') {
-                statusMessage = `Apakah Anda yakin ingin mengubah status booking menjadi SELESAI? Status pembayaran juga akan diubah menjadi LUNAS.`;
-                paymentStatusUpdate = true;
-            } else if (status === 'cancelled' || status === 'rejected') {
-                statusMessage = `Apakah Anda yakin ingin ${status === 'cancelled' ? 'MEMBATALKAN' : 'MENOLAK'} booking ini? Tindakan ini juga akan mempengaruhi status pembayaran.`;
-                paymentStatusUpdate = true;
+                // Cek apakah ada sisa pembayaran
+                $.ajax({
+                    url: '<?= site_url('admin/booking/getPaymentInfo') ?>',
+                    type: 'POST',
+                    data: {
+                        kdbooking: kdbooking
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            const data = response.data;
+
+                            // Set nilai kdbooking dan status pada modal
+                            $('#kdbooking').val(kdbooking);
+                            $('#status').val(status);
+
+                            // Jika ada sisa pembayaran, tampilkan form pelunasan
+                            if (parseFloat(data.sisa) > 0) {
+                                $('#booking_id_pembayaran').val(kdbooking);
+                                $('#sisa_pembayaran').val(data.sisa);
+
+                                // Format currency
+                                $('#totalBooking').text('Rp ' + formatRupiah(data.total));
+                                $('#sudahDibayar').text('Rp ' + formatRupiah(data.jumlahbayar));
+                                $('#sisaPembayaran').text('Rp ' + formatRupiah(data.sisa));
+
+                                // Tampilkan info sisa pembayaran
+                                $('#sisaPembayaranInfo').show();
+                                $('#formPelunasan').show();
+                            } else {
+                                $('#sisaPembayaranInfo').hide();
+                                $('#formPelunasan').hide();
+                            }
+
+                            // Tampilkan modal status
+                            $('#statusModal').modal('show');
+                        } else {
+                            console.error("Error fetching payment info:", response.message);
+                            showStatusConfirmation(kdbooking, status);
+                        }
+                    },
+                    error: function() {
+                        console.error("AJAX Error fetching payment info");
+                        showStatusConfirmation(kdbooking, status);
+                    }
+                });
+            } else {
+                // Untuk status selain completed, langsung tampilkan modal
+                $('#kdbooking').val(kdbooking);
+                $('#status').val(status);
+                $('#sisaPembayaranInfo').hide();
+                $('#formPelunasan').hide();
+                $('#statusModal').modal('show');
+            }
+        });
+
+        // Helper function untuk menampilkan konfirmasi status
+        function showStatusConfirmation(kdbooking, status) {
+            $('#kdbooking').val(kdbooking);
+            $('#status').val(status);
+            $('#sisaPembayaranInfo').hide();
+            $('#formPelunasan').hide();
+            $('#statusModal').modal('show');
+        }
+
+        // Handle form status submit
+        $('#statusForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const kdbooking = $('#kdbooking').val();
+            const status = $('#status').val();
+
+            // Data untuk update status
+            let data = {
+                kdbooking: kdbooking,
+                status: status,
+                update_payment: (status === 'completed' || status === 'cancelled' || status === 'rejected')
+            };
+
+            // Tambahkan data pelunasan jika status completed dan pelunasan dicentang
+            if (status === 'completed' && $('#formPelunasan').is(':visible') && $('#lunaskan').is(':checked')) {
+                data.pelunasan = true;
+                data.metode_pembayaran = $('#metode_pembayaran').val();
+                data.jumlah_pembayaran = $('#sisa_pembayaran').val();
             }
 
-            Swal.fire({
-                title: 'Konfirmasi',
-                text: statusMessage,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Ubah!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '<?= site_url('admin/booking/updateStatus') ?>',
-                        type: 'POST',
-                        data: {
-                            kdbooking: kdbooking,
-                            status: status,
-                            update_payment: paymentStatusUpdate
-                        },
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil!',
-                                    text: 'Status berhasil diperbarui',
-                                    timer: 1500
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal!',
-                                    text: 'Gagal memperbarui status: ' + response.message
-                                });
-                            }
-                        },
-                        error: function() {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error!',
-                                text: 'Terjadi kesalahan saat memperbarui status'
-                            });
-                        }
+            // Tutup modal
+            $('#statusModal').modal('hide');
+
+            // Kirim request update status
+            $.ajax({
+                url: '<?= site_url('admin/booking/updateStatus') ?>',
+                type: 'POST',
+                data: data,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: 'Status berhasil diperbarui',
+                            timer: 1500
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: 'Gagal memperbarui status: ' + response.message
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Terjadi kesalahan saat memperbarui status'
                     });
                 }
             });
         });
+
+        // Helper function untuk format angka ke format Rupiah
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID').format(angka);
+        }
 
         // Handle cetak faktur
         $('#btnPrintInvoice').on('click', function() {
@@ -728,6 +795,92 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Status -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">
+                    <i class="bi bi-arrow-repeat me-2"></i> Ubah Status Booking
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="statusForm">
+                <div class="modal-body">
+                    <input type="hidden" id="kdbooking" name="kdbooking">
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select class="form-control" id="status" name="status" required>
+                            <option value="pending">Menunggu Konfirmasi</option>
+                            <option value="confirmed">Terkonfirmasi</option>
+                            <option value="completed">Selesai</option>
+                            <option value="cancelled">Dibatalkan</option>
+                            <option value="no-show">Tidak Hadir</option>
+                            <option value="rejected">Ditolak</option>
+                        </select>
+                    </div>
+
+                    <!-- Informasi sisa pembayaran -->
+                    <div id="sisaPembayaranInfo" class="mt-3" style="display: none;">
+                        <div class="alert alert-info">
+                            <h6 class="mb-2"><i class="bi bi-info-circle"></i> Informasi Pembayaran</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless mb-0">
+                                    <tr>
+                                        <td>Total</td>
+                                        <td>:</td>
+                                        <td class="text-end" id="totalBooking">Rp 0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sudah Dibayar</td>
+                                        <td>:</td>
+                                        <td class="text-end" id="sudahDibayar">Rp 0</td>
+                                    </tr>
+                                    <tr class="fw-bold">
+                                        <td>Sisa</td>
+                                        <td>:</td>
+                                        <td class="text-end" id="sisaPembayaran">Rp 0</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Form pelunasan -->
+                        <div id="formPelunasan" class="mt-3">
+                            <h6 class="mb-2">Pelunasan Pembayaran</h6>
+                            <input type="hidden" id="booking_id_pembayaran" name="booking_id_pembayaran">
+                            <input type="hidden" id="sisa_pembayaran" name="sisa_pembayaran">
+
+                            <div class="form-group mb-2">
+                                <label for="metode_pembayaran">Metode Pembayaran</label>
+                                <select class="form-control" id="metode_pembayaran" name="metode_pembayaran">
+                                    <option value="cash">Cash</option>
+                                    <option value="transfer">Transfer Bank</option>
+                                    <option value="qris">QRIS</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="lunaskan" name="lunaskan" value="1" checked>
+                                    <label class="custom-control-label" for="lunaskan">Lunaskan pembayaran</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Simpan
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

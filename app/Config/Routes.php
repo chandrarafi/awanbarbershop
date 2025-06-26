@@ -144,6 +144,29 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->get('delete/(:segment)', 'Admin\PengeluaranController::delete/$1');
         $routes->get('getPengeluaran', 'Admin\PengeluaranController::getPengeluaran');
     });
+
+    // Laporan
+    $routes->get('reports', 'Admin\ReportsController::index');
+    $routes->get('reports/karyawan', 'Admin\ReportsController::karyawan');
+    $routes->get('reports/karyawan/print', 'Admin\ReportsController::printKaryawan');
+    $routes->get('reports/paket', 'Admin\ReportsController::paket');
+    $routes->get('reports/paket/print', 'Admin\ReportsController::printPaket');
+    $routes->get('reports/pelanggan', 'Admin\ReportsController::pelanggan');
+    $routes->get('reports/pelanggan/print', 'Admin\ReportsController::printPelanggan');
+    $routes->get('reports/booking', 'Admin\ReportsController::booking');
+    $routes->get('reports/booking/print', 'Admin\ReportsController::printBooking');
+    $routes->get('reports/pembayaran', 'Admin\ReportsController::pembayaran');
+    $routes->get('reports/pembayaran/print', 'Admin\ReportsController::printPembayaran');
+    $routes->get('reports/pendapatan-bulanan', 'Admin\ReportsController::pendapatanBulanan');
+    $routes->get('reports/pendapatan-bulanan/print', 'Admin\ReportsController::printPendapatanBulanan');
+    $routes->get('reports/pendapatan-tahunan', 'Admin\ReportsController::pendapatanTahunan');
+    $routes->get('reports/pendapatan-tahunan/print', 'Admin\ReportsController::printPendapatanTahunan');
+    $routes->get('reports/pengeluaran', 'Admin\ReportsController::pengeluaran');
+    $routes->get('reports/pengeluaran/print', 'Admin\ReportsController::printPengeluaran');
+    $routes->get('reports/laba-rugi', 'Admin\ReportsController::labaRugi');
+    $routes->get('reports/laba-rugi/print', 'Admin\ReportsController::printLabaRugi');
+    $routes->get('reports/laba-rugi-bulanan', 'Admin\ReportsController::labaRugiBulanan');
+    $routes->get('reports/laba-rugi-bulanan/print', 'Admin\ReportsController::printLabaRugiBulanan');
 });
 
 // Customer Booking Routes

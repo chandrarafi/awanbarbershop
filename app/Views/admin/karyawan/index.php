@@ -25,6 +25,7 @@
                                 <th>No</th>
                                 <th>ID Karyawan</th>
                                 <th>Nama</th>
+                                <th>Jenis Kelamin</th>
                                 <th>Alamat</th>
                                 <th>No HP</th>
                                 <th>Aksi</th>
@@ -186,6 +187,18 @@
                     data: 'namakaryawan'
                 },
                 {
+                    data: 'jenkel',
+                    render: function(data, type, row) {
+                        if (data === 'L') {
+                            return '<span class="badge bg-primary">Laki-laki</span>';
+                        } else if (data === 'P') {
+                            return '<span class="badge bg-info">Perempuan</span>';
+                        } else {
+                            return '<span class="badge bg-secondary">-</span>';
+                        }
+                    }
+                },
+                {
                     data: 'alamat'
                 },
                 {
@@ -332,6 +345,7 @@
                         var data = response.data;
                         $('#idkaryawan').val(data.idkaryawan);
                         $('#namakaryawan').val(data.namakaryawan);
+                        $('#jenkel').val(data.jenkel);
                         $('#alamat').val(data.alamat);
                         $('#nohp').val(data.nohp);
                         $('#modalKaryawan').modal('show');
@@ -511,11 +525,15 @@
 
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
-                            <label for="alamat" class="form-label">Alamat</label>
+                            <label for="jenkel" class="form-label">Jenis Kelamin</label>
                             <div class="input-group has-validation">
-                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                                <textarea class="form-control" id="alamat" name="alamat" rows="3"></textarea>
-                                <div class="invalid-feedback" id="alamatError"></div>
+                                <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                                <select class="form-control" id="jenkel" name="jenkel">
+                                    <option value="">Pilih Jenis Kelamin</option>
+                                    <option value="L">Laki-laki</option>
+                                    <option value="P">Perempuan</option>
+                                </select>
+                                <div class="invalid-feedback" id="jenkelError"></div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -524,6 +542,17 @@
                                 <span class="input-group-text"><i class="bi bi-phone"></i></span>
                                 <input type="text" class="form-control" id="nohp" name="nohp">
                                 <div class="invalid-feedback" id="nohpError"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label for="alamat" class="form-label">Alamat</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <textarea class="form-control" id="alamat" name="alamat" rows="3"></textarea>
+                                <div class="invalid-feedback" id="alamatError"></div>
                             </div>
                         </div>
                     </div>

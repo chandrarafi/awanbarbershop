@@ -151,6 +151,16 @@
         background-color: #bd2130;
     }
 
+    .filter-status.expired {
+        background-color: #6c757d;
+        color: #fff;
+    }
+
+    .filter-status.expired:hover,
+    .filter-status.expired.active {
+        background-color: #5a6268;
+    }
+
     .badge {
         font-size: 11px;
         padding: 5px 10px;
@@ -185,6 +195,11 @@
 
     .badge-rejected {
         background-color: #dc3545;
+        color: #fff;
+    }
+
+    .badge-expired {
+        background-color: #6c757d;
         color: #fff;
     }
 
@@ -379,6 +394,9 @@
                             <button type="button" class="btn filter-status rejected" data-status="rejected">
                                 <i class="bi bi-x-octagon"></i> Ditolak
                             </button>
+                            <button type="button" class="btn filter-status expired" data-status="expired">
+                                <i class="bi bi-hourglass-bottom"></i> Kedaluwarsa
+                            </button>
                         </div>
                     </div>
 
@@ -501,6 +519,10 @@
                             case 'rejected':
                                 badgeClass = 'badge-rejected';
                                 icon = 'bi bi-x-octagon';
+                                break;
+                            case 'expired':
+                                badgeClass = 'badge-expired';
+                                icon = 'bi bi-hourglass-bottom';
                                 break;
                             default:
                                 badgeClass = 'badge-secondary';

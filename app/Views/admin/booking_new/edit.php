@@ -289,7 +289,6 @@
                                     </div>
 
                                     <div id="timeSlotContainer" class="time-slots-container">
-                                        <div class="time-slot" data-time="08:00">08:00</div>
                                         <div class="time-slot" data-time="09:00">09:00</div>
                                         <div class="time-slot" data-time="10:00">10:00</div>
                                         <div class="time-slot" data-time="11:00">11:00</div>

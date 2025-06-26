@@ -13,7 +13,7 @@ class KaryawanModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['idkaryawan', 'namakaryawan', 'alamat', 'nohp', 'status'];
+    protected $allowedFields    = ['idkaryawan', 'namakaryawan', 'jenkel', 'alamat', 'nohp', 'status'];
 
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
@@ -50,6 +50,12 @@ class KaryawanModel extends Model
                     'max_length' => 'Nama Karyawan maksimal 100 karakter'
                 ]
             ],
+            'jenkel' => [
+                'rules' => 'permit_empty|in_list[L,P]',
+                'errors' => [
+                    'in_list' => 'Jenis Kelamin harus L atau P'
+                ]
+            ],
             'alamat' => [
                 'rules' => 'required',
                 'errors' => [
@@ -64,13 +70,13 @@ class KaryawanModel extends Model
                     'required' => 'Nomor HP harus diisi'
                 ]
             ],
-            'status' => [
-                'rules' => 'required|in_list[aktif,nonaktif]',
-                'errors' => [
-                    'required' => 'Status harus diisi',
-                    'in_list' => 'Status harus aktif atau nonaktif'
-                ]
-            ],
+            // 'status' => [
+            //     'rules' => 'required|in_list[aktif,nonaktif]',
+            //     'errors' => [
+            //         'required' => 'Status harus diisi',
+            //         'in_list' => 'Status harus aktif atau nonaktif'
+            //     ]
+            // ],
         ];
     }
 
