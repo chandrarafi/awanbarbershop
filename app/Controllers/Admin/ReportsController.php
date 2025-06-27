@@ -1090,8 +1090,8 @@ class ReportsController extends BaseController
         $headerData = [
             'title' => 'Cetak Laporan Laba Rugi',
             'nama_perusahaan' => 'AWAN BARBERSHOP',
-            'alamat_perusahaan' => 'Jl. Contoh No. 123, Kota',
-            'telepon' => '081234567890',
+            'alamat_perusahaan' => 'Jl. Dr. Moh. Hatta No.3kel, RT.01, Cupak Tangan, Kec. Pauh, Kota Padang, Sumatera Barat 25127',
+            'telepon' => '0811-6359-5965',
             'email' => 'info@awanbarbershop.com',
             'website' => 'www.awanbarbershop.com',
             'tanggal' => date('d F Y'),
@@ -1101,46 +1101,79 @@ class ReportsController extends BaseController
 
         // Membuat konten tabel
         $content = '
+        <div class="text-center mb-3">
+            <p class="mb-0">Periode: Tahun ' . $tahun . '</p>
+        </div>
+        
+        <!-- Tabel Pendapatan -->
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th class="text-center" width="5%">No</th>
-                    <th>Bulan</th>
-                    <th class="text-center">Pendapatan</th>
-                    <th class="text-center">Pengeluaran</th>
-                    <th class="text-center">Laba/Rugi</th>
+                    <th width="10%">NO</th>
+                    <th width="60%">Pendapatan</th>
+                    <th width="30%">Jumlah</th>
                 </tr>
             </thead>
             <tbody>';
 
         $no = 1;
-
         foreach ($dataBulanan as $bulan => $data) {
             $content .= '
             <tr>
                 <td class="text-center">' . $no++ . '</td>
                 <td>' . $namaBulan[$bulan] . '</td>
                 <td class="text-end">Rp ' . number_format($data['pendapatan'], 0, ',', '.') . '</td>
-                <td class="text-end">Rp ' . number_format($data['pengeluaran'], 0, ',', '.') . '</td>
-                <td class="text-end ' . ($data['laba'] >= 0 ? 'text-success' : 'text-danger') . ' fw-bold">
-                    Rp ' . number_format($data['laba'], 0, ',', '.') . '
-                </td>
             </tr>';
         }
 
         $content .= '
+            <tr>
+                <td colspan="2" class="text-end fw-bold">Total</td>
+                <td class="text-end fw-bold">Rp ' . number_format($totalPendapatan, 0, ',', '.') . '</td>
+            </tr>
             </tbody>
-            <tfoot>
-                <tr class="bg-light">
-                    <td colspan="2" class="text-end fw-bold">Total:</td>
-                    <td class="text-end fw-bold">Rp ' . number_format($totalPendapatan, 0, ',', '.') . '</td>
-                    <td class="text-end fw-bold">Rp ' . number_format($totalPengeluaran, 0, ',', '.') . '</td>
-                    <td class="text-end ' . ($labaBersih >= 0 ? 'text-success' : 'text-danger') . ' fw-bold">
-                        Rp ' . number_format($labaBersih, 0, ',', '.') . '
-                    </td>
+        </table>
+
+        <!-- Tabel Beban/Pengeluaran -->
+        <table class="table table-bordered mt-4">
+            <thead>
+                <tr>
+                    <th width="10%">NO</th>
+                    <th width="60%">Beban</th>
+                    <th width="30%">Jumlah</th>
                 </tr>
-            </tfoot>
-        </table>';
+            </thead>
+            <tbody>';
+
+        $no = 1;
+        foreach ($dataBulanan as $bulan => $data) {
+            $content .= '
+            <tr>
+                <td class="text-center">' . $no++ . '</td>
+                <td>' . $namaBulan[$bulan] . '</td>
+                <td class="text-end">Rp ' . number_format($data['pengeluaran'], 0, ',', '.') . '</td>
+            </tr>';
+        }
+
+        $content .= '
+            <tr>
+                <td colspan="2" class="text-end fw-bold">Total</td>
+                <td class="text-end fw-bold">Rp ' . number_format($totalPengeluaran, 0, ',', '.') . '</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Pendapatan Bersih -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <table class="table table-bordered" width="100%">
+                    <tr>
+                        <td width="70%" class="text-end fw-bold">Pendapatan Bersih</td>
+                        <td width="30%" class="text-end fw-bold">Rp ' . number_format($labaBersih, 0, ',', '.') . '</td>
+                    </tr>
+                </table>
+            </div>
+        </div>';
 
         // Menggabungkan data header dan konten
         $data = array_merge($headerData, ['content' => $content]);
@@ -1250,7 +1283,7 @@ class ReportsController extends BaseController
             }
         }
 
-        // Hitung laba per hari dan hapus hari tanpa transaksi
+        // Filter data harian (hanya tampilkan hari dengan transaksi)
         $dataHarianFiltered = [];
         foreach ($dataHarian as $tanggal => $data) {
             $data['laba'] = $data['pendapatan'] - $data['pengeluaran'];
@@ -1278,11 +1311,6 @@ class ReportsController extends BaseController
         );
         $daftarTahun = $queryTahun->getResultArray();
 
-        // Jika tidak ada data tahun, buat data default
-        if (empty($daftarTahun)) {
-            $daftarTahun = [['tahun' => date('Y')]];
-        }
-
         $data = [
             'title' => 'Laporan Laba Rugi Bulanan',
             'dataHarian' => $dataHarianFiltered,
@@ -1294,6 +1322,25 @@ class ReportsController extends BaseController
             'bulan' => $bulan,
             'daftarTahun' => $daftarTahun
         ];
+
+        // Debug: Pastikan struktur data benar
+        if (empty($daftarTahun)) {
+            // Jika tidak ada data tahun, buat data default
+            $data['daftarTahun'] = [['tahun' => date('Y')]];
+        }
+
+        // Pastikan setiap hari memiliki data pendapatan dan pengeluaran
+        foreach ($dataHarianFiltered as $tanggal => &$hariData) {
+            if (!isset($hariData['pendapatan'])) {
+                $hariData['pendapatan'] = 0;
+            }
+            if (!isset($hariData['pengeluaran'])) {
+                $hariData['pengeluaran'] = 0;
+            }
+            if (!isset($hariData['laba'])) {
+                $hariData['laba'] = $hariData['pendapatan'] - $hariData['pengeluaran'];
+            }
+        }
 
         return view('admin/reports/laba_rugi_bulanan', $data);
     }
@@ -1387,7 +1434,7 @@ class ReportsController extends BaseController
             }
         }
 
-        // Hitung laba per hari dan hapus hari tanpa transaksi
+        // Filter data harian (hanya tampilkan hari dengan transaksi)
         $dataHarianFiltered = [];
         foreach ($dataHarian as $tanggal => $data) {
             $data['laba'] = $data['pendapatan'] - $data['pengeluaran'];
@@ -1413,8 +1460,8 @@ class ReportsController extends BaseController
         $headerData = [
             'title' => 'Cetak Laporan Laba Rugi Bulanan',
             'nama_perusahaan' => 'AWAN BARBERSHOP',
-            'alamat_perusahaan' => 'Jl. Contoh No. 123, Kota',
-            'telepon' => '081234567890',
+            'alamat_perusahaan' => 'Jl. Dr. Moh. Hatta No.3kel, RT.01, Cupak Tangan, Kec. Pauh, Kota Padang, Sumatera Barat 25127',
+            'telepon' => '0811-6359-5965',
             'email' => 'info@awanbarbershop.com',
             'website' => 'www.awanbarbershop.com',
             'tanggal' => date('d F Y'),
@@ -1424,56 +1471,103 @@ class ReportsController extends BaseController
 
         // Membuat konten tabel
         $content = '
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th class="text-center" width="5%">No</th>
-                    <th>Tanggal</th>
-                    <th class="text-center">Pendapatan</th>
-                    <th class="text-center">Pengeluaran</th>
-                    <th class="text-center">Laba/Rugi</th>
-                </tr>
-            </thead>
-            <tbody>';
-
-        $no = 1;
+        <div class="text-center mb-3">
+            <p class="mb-0">Periode: ' . $namaBulan[$bulan] . ' ' . $tahun . '</p>
+        </div>';
 
         if (empty($dataHarianFiltered)) {
             $content .= '
-            <tr>
-                <td colspan="5" class="text-center">Tidak ada data laba rugi untuk bulan ' . $namaBulan[$bulan] . ' ' . $tahun . '</td>
-            </tr>';
+            <div class="alert alert-info">
+                Tidak ada data laba rugi untuk bulan ' . $namaBulan[$bulan] . ' ' . $tahun . '
+            </div>';
         } else {
+            $content .= '
+            <!-- Tabel Pendapatan -->
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th width="10%">NO</th>
+                        <th width="60%">Pendapatan</th>
+                        <th width="30%">Jumlah</th>
+                    </tr>
+                </thead>
+                <tbody>';
+
+            $no = 1;
             foreach ($dataHarianFiltered as $tanggal => $data) {
                 $content .= '
                 <tr>
                     <td class="text-center">' . $no++ . '</td>
-                    <td>' . date('d/m/Y', strtotime($tanggal)) . '</td>
+                    <td>Tanggal ' . date('d/m/Y', strtotime($tanggal)) . '</td>
                     <td class="text-end">Rp ' . number_format($data['pendapatan'], 0, ',', '.') . '</td>
-                    <td class="text-end">Rp ' . number_format($data['pengeluaran'], 0, ',', '.') . '</td>
-                    <td class="text-end ' . ($data['laba'] >= 0 ? 'text-success' : 'text-danger') . ' fw-bold">
-                        Rp ' . number_format($data['laba'], 0, ',', '.') . '
-                    </td>
                 </tr>';
             }
-        }
 
-        $content .= '
-            </tbody>
-            <tfoot>
-                <tr class="bg-light">
-                    <td colspan="2" class="text-end fw-bold">Total:</td>
+            $content .= '
+                <tr>
+                    <td colspan="2" class="text-end fw-bold">Total</td>
                     <td class="text-end fw-bold">Rp ' . number_format($totalPendapatan, 0, ',', '.') . '</td>
-                    <td class="text-end fw-bold">Rp ' . number_format($totalPengeluaran, 0, ',', '.') . '</td>
-                    <td class="text-end ' . ($labaBersih >= 0 ? 'text-success' : 'text-danger') . ' fw-bold">
-                        Rp ' . number_format($labaBersih, 0, ',', '.') . '
-                    </td>
                 </tr>
-            </tfoot>
-        </table>';
+                </tbody>
+            </table>
+
+            <!-- Tabel Beban/Pengeluaran -->
+            <table class="table table-bordered mt-4">
+                <thead>
+                    <tr>
+                        <th width="10%">NO</th>
+                        <th width="60%">Beban</th>
+                        <th width="30%">Jumlah</th>
+                    </tr>
+                </thead>
+                <tbody>';
+
+            $no = 1;
+            foreach ($dataHarianFiltered as $tanggal => $data) {
+                $content .= '
+                <tr>
+                    <td class="text-center">' . $no++ . '</td>
+                    <td>Tanggal ' . date('d/m/Y', strtotime($tanggal)) . '</td>
+                    <td class="text-end">Rp ' . number_format($data['pengeluaran'], 0, ',', '.') . '</td>
+                </tr>';
+            }
+
+            $content .= '
+                <tr>
+                    <td colspan="2" class="text-end fw-bold">Total</td>
+                    <td class="text-end fw-bold">Rp ' . number_format($totalPengeluaran, 0, ',', '.') . '</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- Pendapatan Bersih -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <table class="table table-bordered" width="100%">
+                        <tr>
+                            <td width="70%" class="text-end fw-bold">Pendapatan Bersih</td>
+                            <td width="30%" class="text-end fw-bold">Rp ' . number_format($labaBersih, 0, ',', '.') . '</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>';
+        }
 
         // Menggabungkan data header dan konten
         $data = array_merge($headerData, ['content' => $content]);
+
+        // Pastikan setiap hari memiliki data pendapatan dan pengeluaran
+        foreach ($dataHarianFiltered as $tanggal => &$hariData) {
+            if (!isset($hariData['pendapatan'])) {
+                $hariData['pendapatan'] = 0;
+            }
+            if (!isset($hariData['pengeluaran'])) {
+                $hariData['pengeluaran'] = 0;
+            }
+            if (!isset($hariData['laba'])) {
+                $hariData['laba'] = $hariData['pendapatan'] - $hariData['pengeluaran'];
+            }
+        }
 
         return view('admin/reports/template_laporan', $data);
     }
