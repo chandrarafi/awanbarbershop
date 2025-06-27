@@ -292,12 +292,7 @@
     </div>
 
     <script>
-        window.onload = function() {
-            // Auto print when page loads
-            setTimeout(function() {
-                window.print();
-            }, 500);
-        };
+        // Tidak ada auto-print saat halaman dimuat
     </script>
 </body>
 

@@ -97,18 +97,26 @@
     <div class="col-12">
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Laporan Laba Rugi Tahun <?= $tahun ?></h6>
+                <h6 class="m-0 font-weight-bold text-primary">Laporan Laba Rugi</h6>
             </div>
             <div class="card-body">
+                <div class="text-center mb-4">
+                    <h4 class="font-weight-bold">Awan Barbershop</h4>
+                    <p class="mb-0">Alamat: Jl. Dr. Moh. Hatta No.3kel, RT.01, Cupak Tangan,</p>
+                    <p class="mb-0">Kec. Pauh, Kota Padang, Sumatera Barat 25127</p>
+                    <p class="mb-0">Telp/Fax: 0811-6359-5965</p>
+                    <h5 class="mt-3 font-weight-bold">Laporan Laba Rugi</h5>
+                    <p class="mb-0">Periode: Tahun <?= $tahun ?></p>
+                </div>
+
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <!-- Tabel Pendapatan -->
+                    <table class="table table-bordered" width="100%" cellspacing="0">
                         <thead>
                             <tr>
-                                <th width="5%">No</th>
-                                <th>Bulan</th>
-                                <th class="text-center">Pendapatan</th>
-                                <th class="text-center">Pengeluaran</th>
-                                <th class="text-center">Laba/Rugi</th>
+                                <th width="10%">NO</th>
+                                <th width="60%">Pendapatan</th>
+                                <th width="30%">Jumlah</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -118,24 +126,59 @@
                                     <td><?= $no++ ?></td>
                                     <td><?= $namaBulan[$bulan] ?></td>
                                     <td class="text-end">Rp <?= number_format($data['pendapatan'] ?? 0, 0, ',', '.') ?></td>
-                                    <td class="text-end">Rp <?= number_format($data['pengeluaran'] ?? 0, 0, ',', '.') ?></td>
-                                    <td class="<?= ($data['laba'] ?? 0) >= 0 ? 'text-success' : 'text-danger' ?> fw-bold text-end">
-                                        Rp <?= number_format($data['laba'] ?? 0, 0, ',', '.') ?>
-                                    </td>
                                 </tr>
                             <?php endforeach; ?>
-                        </tbody>
-                        <tfoot>
-                            <tr class="bg-light">
-                                <td colspan="2" class="text-end fw-bold">Total:</td>
-                                <td class="fw-bold text-end">Rp <?= number_format($totalPendapatan ?? 0, 0, ',', '.') ?></td>
-                                <td class="fw-bold text-end">Rp <?= number_format($totalPengeluaran ?? 0, 0, ',', '.') ?></td>
-                                <td class="<?= ($labaBersih ?? 0) >= 0 ? 'text-success' : 'text-danger' ?> fw-bold text-end">
-                                    Rp <?= number_format($labaBersih ?? 0, 0, ',', '.') ?>
-                                </td>
+                            <tr>
+                                <td colspan="2" class="text-end fw-bold">Total</td>
+                                <td class="text-end fw-bold">Rp <?= number_format($totalPendapatan ?? 0, 0, ',', '.') ?></td>
                             </tr>
-                        </tfoot>
+                        </tbody>
                     </table>
+
+                    <!-- Tabel Beban/Pengeluaran -->
+                    <table class="table table-bordered mt-4" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th width="10%">NO</th>
+                                <th width="60%">Beban</th>
+                                <th width="30%">Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $no = 1; ?>
+                            <?php foreach ($dataBulanan as $bulan => $data) : ?>
+                                <tr>
+                                    <td><?= $no++ ?></td>
+                                    <td><?= $namaBulan[$bulan] ?></td>
+                                    <td class="text-end">Rp <?= number_format($data['pengeluaran'] ?? 0, 0, ',', '.') ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                            <tr>
+                                <td colspan="2" class="text-end fw-bold">Total</td>
+                                <td class="text-end fw-bold">Rp <?= number_format($totalPengeluaran ?? 0, 0, ',', '.') ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Pendapatan Bersih -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <table class="table table-bordered" width="100%">
+                                <tr>
+                                    <td width="70%" class="text-end fw-bold">Pendapatan Bersih</td>
+                                    <td width="30%" class="text-end fw-bold">Rp <?= number_format($labaBersih ?? 0, 0, ',', '.') ?></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tanda Tangan -->
+                    <div class="row mt-4">
+                        <div class="col-12 text-end">
+                            <p>Padang, <?= date('d-m-Y') ?></p>
+                            <p class="mt-5">Pimpinan</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
