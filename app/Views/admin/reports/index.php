@@ -194,7 +194,7 @@
                                     <div class="col mr-2">
                                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                             Laporan Laba Rugi Pertahun</div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">Pendapatan & Pengeluaran</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">Laba Rugi Per Tahun</div>
                                     </div>
                                     <div class="col-auto">
                                         <i class="fas fa-chart-pie fa-2x text-gray-300"></i>
@@ -215,7 +215,7 @@
                                     <div class="col mr-2">
                                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                             Laporan Laba Rugi Bulanan</div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">Laba Rugi Per Perbulan</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">Laba Rugi Per Bulan</div>
                                     </div>
                                     <div class="col-auto">
                                         <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
