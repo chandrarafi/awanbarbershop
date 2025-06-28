@@ -178,7 +178,7 @@ class CustomerAuth extends BaseController
                     'nama_lengkap' => $user['name'],
                     'jeniskelamin' => '-',
                     'alamat' => '-',
-                    'no_hp' => '0000000000', // Minimal 10 digit sesuai validasi
+                    'no_hp' => '', // Minimal 10 digit sesuai validasi
                     'tanggal_lahir' => null
                 ];
 
