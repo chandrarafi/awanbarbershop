@@ -25,6 +25,10 @@ class RoleFilter implements FilterInterface
 
         // Jika role user tidak sesuai dengan yang diizinkan
         if (!in_array($userRole, $arguments)) {
+            // Jika role adalah pimpinan, arahkan ke halaman reports
+            if ($userRole === 'pimpinan') {
+                return redirect()->to('admin/reports')->with('error', 'Anda hanya memiliki akses ke halaman laporan');
+            }
             return redirect()->back()->with('error', 'Anda tidak memiliki akses ke halaman tersebut');
         }
     }

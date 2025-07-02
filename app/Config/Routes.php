@@ -53,8 +53,8 @@ $routes->group('customer', function ($routes) {
 
 // Admin Routes
 $routes->group('admin', ['filter' => 'auth'], function ($routes) {
-    $routes->get('/', 'Admin::index', ['filter' => 'role:admin,manager']);
-    $routes->get('dashboard', 'Admin::index');
+    $routes->get('/', 'Admin::index', ['filter' => 'role:admin']);
+    $routes->get('dashboard', 'Admin::index', ['filter' => 'role:admin']);
 
     // Notifications routes
     $routes->group('notifications', function ($routes) {
@@ -145,28 +145,30 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->get('getPengeluaran', 'Admin\PengeluaranController::getPengeluaran');
     });
 
-    // Laporan
-    $routes->get('reports', 'Admin\ReportsController::index');
-    $routes->get('reports/karyawan', 'Admin\ReportsController::karyawan');
-    $routes->get('reports/karyawan/print', 'Admin\ReportsController::printKaryawan');
-    $routes->get('reports/paket', 'Admin\ReportsController::paket');
-    $routes->get('reports/paket/print', 'Admin\ReportsController::printPaket');
-    $routes->get('reports/pelanggan', 'Admin\ReportsController::pelanggan');
-    $routes->get('reports/pelanggan/print', 'Admin\ReportsController::printPelanggan');
-    $routes->get('reports/booking', 'Admin\ReportsController::booking');
-    $routes->get('reports/booking/print', 'Admin\ReportsController::printBooking');
-    $routes->get('reports/pembayaran', 'Admin\ReportsController::pembayaran');
-    $routes->get('reports/pembayaran/print', 'Admin\ReportsController::printPembayaran');
-    $routes->get('reports/pendapatan-bulanan', 'Admin\ReportsController::pendapatanBulanan');
-    $routes->get('reports/pendapatan-bulanan/print', 'Admin\ReportsController::printPendapatanBulanan');
-    $routes->get('reports/pendapatan-tahunan', 'Admin\ReportsController::pendapatanTahunan');
-    $routes->get('reports/pendapatan-tahunan/print', 'Admin\ReportsController::printPendapatanTahunan');
-    $routes->get('reports/pengeluaran', 'Admin\ReportsController::pengeluaran');
-    $routes->get('reports/pengeluaran/print', 'Admin\ReportsController::printPengeluaran');
-    $routes->get('reports/laba-rugi', 'Admin\ReportsController::labaRugi');
-    $routes->get('reports/laba-rugi/print', 'Admin\ReportsController::printLabaRugi');
-    $routes->get('reports/laba-rugi-bulanan', 'Admin\ReportsController::labaRugiBulanan');
-    $routes->get('reports/laba-rugi-bulanan/print', 'Admin\ReportsController::printLabaRugiBulanan');
+    // Laporan (accessible by admin and pimpinan)
+    $routes->group('reports', ['filter' => 'role:admin,pimpinan'], function ($routes) {
+        $routes->get('/', 'Admin\ReportsController::index');
+        $routes->get('karyawan', 'Admin\ReportsController::karyawan');
+        $routes->get('karyawan/print', 'Admin\ReportsController::printKaryawan');
+        $routes->get('paket', 'Admin\ReportsController::paket');
+        $routes->get('paket/print', 'Admin\ReportsController::printPaket');
+        $routes->get('pelanggan', 'Admin\ReportsController::pelanggan');
+        $routes->get('pelanggan/print', 'Admin\ReportsController::printPelanggan');
+        $routes->get('booking', 'Admin\ReportsController::booking');
+        $routes->get('booking/print', 'Admin\ReportsController::printBooking');
+        $routes->get('pembayaran', 'Admin\ReportsController::pembayaran');
+        $routes->get('pembayaran/print', 'Admin\ReportsController::printPembayaran');
+        $routes->get('pendapatan-bulanan', 'Admin\ReportsController::pendapatanBulanan');
+        $routes->get('pendapatan-bulanan/print', 'Admin\ReportsController::printPendapatanBulanan');
+        $routes->get('pendapatan-tahunan', 'Admin\ReportsController::pendapatanTahunan');
+        $routes->get('pendapatan-tahunan/print', 'Admin\ReportsController::printPendapatanTahunan');
+        $routes->get('pengeluaran', 'Admin\ReportsController::pengeluaran');
+        $routes->get('pengeluaran/print', 'Admin\ReportsController::printPengeluaran');
+        $routes->get('laba-rugi', 'Admin\ReportsController::labaRugi');
+        $routes->get('laba-rugi/print', 'Admin\ReportsController::printLabaRugi');
+        $routes->get('laba-rugi-bulanan', 'Admin\ReportsController::labaRugiBulanan');
+        $routes->get('laba-rugi-bulanan/print', 'Admin\ReportsController::printLabaRugiBulanan');
+    });
 });
 
 // Customer Booking Routes
