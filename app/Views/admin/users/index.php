@@ -621,11 +621,7 @@
                         </div>
                     </div>
 
-                    <hr>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Informasi Tambahan</label>
-                        <textarea class="form-control" id="additionalInfo" rows="3" placeholder="Catatan tambahan (opsional)"></textarea>
-                    </div>
+
                 </form>
             </div>
             <div class="modal-footer">
