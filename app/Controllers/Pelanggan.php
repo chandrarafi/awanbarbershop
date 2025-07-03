@@ -450,16 +450,19 @@ class Pelanggan extends BaseController
             // Cek apakah user sudah memiliki data pelanggan
             $pelanggan = $this->pelangganModel->where('user_id', $userId)->first();
 
+            // Matikan validasi untuk proses ini karena kita sudah melakukan validasi manual
+            $this->pelangganModel->skipValidation(true);
+
             if (!$pelanggan) {
                 // Jika belum ada data pelanggan, buat baru
                 $pelangganData['idpelanggan'] = $this->pelangganModel->generateId();
                 if (!$this->pelangganModel->insert($pelangganData)) {
-                    throw new \Exception('Gagal menyimpan data pelanggan');
+                    throw new \Exception('Gagal menyimpan data pelanggan: ' . json_encode($this->pelangganModel->errors()));
                 }
             } else {
                 // Jika sudah ada, update data pelanggan
                 if (!$this->pelangganModel->update($pelanggan['id'], $pelangganData)) {
-                    throw new \Exception('Gagal memperbarui data pelanggan');
+                    throw new \Exception('Gagal memperbarui data pelanggan: ' . json_encode($this->pelangganModel->errors()));
                 }
             }
 
