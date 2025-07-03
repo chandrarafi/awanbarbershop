@@ -43,19 +43,17 @@ class PelangganModel extends Model
             ]
         ],
         'jeniskelamin' => [
-            'rules' => 'required|in_list[Laki-laki,Perempuan]',
+            'rules' => 'permit_empty|in_list[Laki-laki,Perempuan]',
             'errors' => [
-                'in_list' => 'Jenis kelamin tidak valid',
-                'required' => 'Jenis kelamin harus diisi'
+                'in_list' => 'Jenis kelamin tidak valid'
             ]
         ],
         'no_hp' => [
-            'rules' => 'required|numeric|min_length[10]|max_length[15]',
+            'rules' => 'permit_empty|numeric|min_length[10]|max_length[15]',
             'errors' => [
                 'numeric' => 'No HP harus berupa angka',
                 'min_length' => 'No HP minimal 10 digit',
-                'max_length' => 'No HP maksimal 15 digit',
-                'required' => 'No HP harus diisi'
+                'max_length' => 'No HP maksimal 15 digit'
             ]
         ],
         'tanggal_lahir' => [
@@ -65,10 +63,9 @@ class PelangganModel extends Model
             ]
         ],
         'alamat' => [
-            'rules' => 'required|min_length[5]',
+            'rules' => 'permit_empty|min_length[5]',
             'errors' => [
-                'min_length' => 'Alamat minimal 5 karakter',
-                'required' => 'Alamat harus diisi'
+                'min_length' => 'Alamat minimal 5 karakter'
             ]
         ]
     ];
@@ -114,7 +111,6 @@ class PelangganModel extends Model
         // Jika ini adalah update, modifikasi aturan is_unique
         if (!empty($data['id'])) {
             $this->validationRules['idpelanggan']['rules'] = 'required|max_length[10]|is_unique[pelanggan.idpelanggan,id,' . $data['id'] . ']';
-            $this->validationRules['user_id']['rules'] = 'required|is_unique[pelanggan.user_id,id,' . $data['id'] . ']';
         }
 
         return parent::save($data);
