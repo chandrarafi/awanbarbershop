@@ -507,32 +507,28 @@
         // Event handler untuk tombol tambah paket
         $(document).on('click', '#addPaket, #addMorePaket', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             tambahPaket();
+            return false;
         });
 
         // Event handler untuk tombol booking
         $('#bookingForm').on('submit', function(e) {
             e.preventDefault();
 
-            // Validasi form
             let isValid = true;
             let missingFields = [];
 
             // Validasi paket dipilih
             let paketSelected = false;
 
-            // Cek jika paket sudah dipilih dari landing page
-            if ($('#selectedPakets').length && $('#selectedPakets').val()) {
-                paketSelected = true;
-            } else {
-                // Cek jika paket dipilih melalui dropdown
-                $('.paket-select').each(function() {
-                    if ($(this).val()) {
-                        paketSelected = true;
-                        return false; // keluar dari loop
-                    }
-                });
-            }
+            // Cek jika ada paket yang dipilih melalui dropdown
+            $('.paket-select').each(function() {
+                if ($(this).val()) {
+                    paketSelected = true;
+                    return false; // keluar dari loop
+                }
+            });
 
             if (!paketSelected) {
                 isValid = false;
@@ -593,6 +589,11 @@
                 </svg>
                 Memproses...
             `);
+
+            // Scroll ke bagian atas form
+            $('html, body').animate({
+                scrollTop: $('#bookingForm').offset().top - 100
+            }, 500);
 
             // Buat form data untuk upload file
             var formData = new FormData(this);
@@ -1241,18 +1242,13 @@
             // Validasi paket dipilih
             let paketSelected = false;
 
-            // Cek jika paket sudah dipilih dari landing page
-            if ($('#selectedPakets').length && $('#selectedPakets').val()) {
-                paketSelected = true;
-            } else {
-                // Cek jika paket dipilih melalui dropdown
-                $('.paket-select').each(function() {
-                    if ($(this).val()) {
-                        paketSelected = true;
-                        return false; // keluar dari loop
-                    }
-                });
-            }
+            // Cek jika ada paket yang dipilih melalui dropdown
+            $('.paket-select').each(function() {
+                if ($(this).val()) {
+                    paketSelected = true;
+                    return false; // keluar dari loop
+                }
+            });
 
             if (!paketSelected) {
                 isValid = false;
@@ -1580,6 +1576,83 @@
 
         // Fungsi untuk menambahkan paket baru
         function tambahPaket() {
+            // Jika ini adalah paket pertama yang ditambahkan dan ada paket yang dipilih dari landing page
+            if ($('#selectedPakets').length) {
+                // Ubah tampilan menjadi container paket biasa
+                const selectedPaketId = $('#selectedPakets').val();
+                const selectedPaketHarga = $('#selectedPakets').data('harga');
+                const selectedPaketDurasi = $('#selectedPakets').data('durasi') || 60;
+                const selectedPaketName = $('.font-semibold.text-lg.text-gray-800').text();
+
+                // Hapus tampilan paket yang dipilih dari landing page
+                const paketContainer = $('.bg-gray-50.p-4.rounded-lg.border.border-gray-200.flex.items-start');
+                if (paketContainer.length) {
+                    paketContainer.closest('div').remove();
+                } else {
+                    $('div:has(> #selectedPakets)').parent().find('> div:first').remove();
+                }
+
+                // Buat container paket baru
+                const paketContainerHtml = `
+                    <div>
+                        <label class="block mb-2 text-gray-700 font-medium">Pilih Paket Layanan</label>
+                        <div id="paketContainer" class="space-y-4">
+                            <div class="paket-selection bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="idpaket_0" class="block mb-1 text-sm text-gray-700">Pilih Paket</label>
+                                        <div class="relative">
+                                            <select id="idpaket_0" name="idpaket[]" class="paket-select bg-white border border-gray-300 rounded-lg w-full p-3 appearance-none focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all" required>
+                                                <option value="" disabled>-- Pilih Paket --</option>
+                                                <?php foreach ($paketList as $paket): ?>
+                                                    <option value="<?= $paket['idpaket'] ?>"
+                                                        data-harga="<?= $paket['harga'] ?>"
+                                                        data-durasi="<?= $paket['durasi'] ?? 60 ?>"
+                                                        <?= $paket['idpaket'] == '${selectedPaketId}' ? 'selected' : '' ?>>
+                                                        <?= $paket['namapaket'] ?> - Rp. <?= number_format($paket['harga'], 0, ',', '.') ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="paket-info">
+                                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 h-full flex flex-col justify-center">
+                                            <div class="text-sm text-gray-600">Durasi: <span class="paket-durasi font-medium">${selectedPaketDurasi}</span> menit</div>
+                                            <div class="text-sm text-gray-600 mt-1">Harga: <span class="paket-harga font-medium">Rp. ${formatNumber(selectedPaketHarga)}</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="button" id="addPaket" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Tambah Paket Lain
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Tambahkan container paket baru ke dalam DOM
+                $('div:has(> #selectedPakets)').parent().html(paketContainerHtml);
+
+                // Hapus input hidden selectedPakets
+                $('#selectedPakets').remove();
+
+                // Trigger perubahan pada select untuk menampilkan info paket
+                $('#idpaket_0').trigger('change');
+
+                return;
+            }
+
+            // Tambahkan paket baru seperti biasa
             const newPaketHtml = `
                 <div class="paket-selection bg-white p-4 rounded-lg border border-gray-200 shadow-sm mt-3">
                     <div class="flex justify-end mb-1">
