@@ -63,6 +63,18 @@
 
                     <div class="row mb-3">
                         <div class="col-md-6">
+                            <label for="durasi" class="form-label">Durasi (menit) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                <input type="number" class="form-control" id="durasi" name="durasi" required min="15" value="60">
+                                <div class="invalid-feedback" id="durasiError"></div>
+                            </div>
+                            <small class="text-muted">Masukkan durasi layanan dalam menit (minimal 15 menit)</small>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
                             <label for="gambar" class="form-label">Gambar Paket <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-image"></i></span>
@@ -190,6 +202,15 @@
                 isValid = false;
             } else if ($('#harga').val() <= 0) {
                 errors.harga = 'Harga harus lebih dari 0';
+                isValid = false;
+            }
+
+            // Validasi durasi
+            if (!$('#durasi').val()) {
+                errors.durasi = 'Durasi harus diisi';
+                isValid = false;
+            } else if ($('#durasi').val() < 15) {
+                errors.durasi = 'Durasi minimal 15 menit';
                 isValid = false;
             }
 

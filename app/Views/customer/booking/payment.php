@@ -250,15 +250,37 @@
                     </div>
                     <div class="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3 hover:bg-gray-50 px-2 rounded transition-all">
                         <div class="w-full md:w-1/3 font-medium text-gray-600">Jam</div>
-                        <div class="w-full md:w-2/3 text-gray-800"><?= isset($details[0]) ? $details[0]['jamstart'] . ' - ' . $details[0]['jamend'] : '-' ?></div>
+                        <div class="w-full md:w-2/3 text-gray-800">
+                            <?php if (!empty($details)): ?>
+                                <?php foreach ($details as $index => $detail): ?>
+                                    <?= $detail['jamstart'] . ' - ' . $detail['jamend'] ?>
+                                    <?php if ($index < count($details) - 1): ?>
+                                        <br>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <div class="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3 hover:bg-gray-50 px-2 rounded transition-all">
                         <div class="w-full md:w-1/3 font-medium text-gray-600">Paket</div>
-                        <div class="w-full md:w-2/3 text-gray-800"><?= isset($details[0]) ? $details[0]['nama_paket'] : '-' ?></div>
+                        <div class="w-full md:w-2/3 text-gray-800">
+                            <?php if (!empty($details)): ?>
+                                <?php foreach ($details as $index => $detail): ?>
+                                    <?= $detail['nama_paket'] ?>
+                                    <?php if ($index < count($details) - 1): ?>
+                                        <br>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <div class="flex flex-col md:flex-row md:items-center hover:bg-gray-50 px-2 py-2 rounded transition-all">
                         <div class="w-full md:w-1/3 font-medium text-gray-600">Total</div>
-                        <div class="w-full md:w-2/3 text-gray-800 font-bold text-lg">Rp <?= number_format($booking['total'], 0, ',', '.') ?></div>
+                        <div class="w-full md:w-2/3 text-gray-800 font-bold text-lg">Rp <?= number_format($booking['total'] ?? 0, 0, ',', '.') ?></div>
                     </div>
                 </div>
             </div>
