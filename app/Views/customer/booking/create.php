@@ -505,9 +505,14 @@
         let paketCounter = 1;
 
         // Event handler untuk tombol tambah paket
+        // Hapus event handler yang mungkin sudah terdaftar sebelumnya untuk mencegah duplikasi
+        $(document).off('click', '#addPaket, #addMorePaket');
+
+        // Daftarkan event handler baru
         $(document).on('click', '#addPaket, #addMorePaket', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            console.log('Tambah paket diklik');
             tambahPaket();
             return false;
         });
@@ -1741,13 +1746,6 @@
             } else {
                 $paketInfo.addClass('hidden');
             }
-        });
-
-        // Event handler untuk tombol tambah paket
-        $(document).on('click', '#addPaket, #addMorePaket', function(e) {
-            e.preventDefault();
-            tambahPaket();
-            return false;
         });
 
         // Event handler untuk menghapus paket
