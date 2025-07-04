@@ -264,15 +264,15 @@
                                         <tfoot>
                                             <tr class="bg-gray-50">
                                                 <th colspan="2" class="py-3 px-4 text-right font-medium text-gray-800">Total</th>
-                                                <th class="py-3 px-4 text-right font-medium text-gray-800">Rp <?= number_format($booking['total'], 0, ',', '.') ?></th>
+                                                <th class="py-3 px-4 text-right font-medium text-gray-800">Rp <?= number_format($booking['total'] ?? 0, 0, ',', '.') ?></th>
                                             </tr>
                                             <tr class="bg-gray-50">
                                                 <th colspan="2" class="py-3 px-4 text-right font-medium text-gray-800">Dibayar</th>
-                                                <th class="py-3 px-4 text-right font-medium text-green-700">Rp <?= number_format($booking['jumlahbayar'], 0, ',', '.') ?></th>
+                                                <th class="py-3 px-4 text-right font-medium text-green-700">Rp <?= number_format($booking['jumlahbayar'] ?? 0, 0, ',', '.') ?></th>
                                             </tr>
                                             <tr class="bg-gray-50">
                                                 <th colspan="2" class="py-3 px-4 text-right font-medium text-gray-800">Sisa</th>
-                                                <th class="py-3 px-4 text-right font-medium <?= ($booking['total'] - $booking['jumlahbayar'] > 0) ? 'text-red-700' : 'text-green-700' ?>">Rp <?= number_format($booking['total'] - $booking['jumlahbayar'], 0, ',', '.') ?></th>
+                                                <th class="py-3 px-4 text-right font-medium <?= (($booking['total'] ?? 0) - ($booking['jumlahbayar'] ?? 0) > 0) ? 'text-red-700' : 'text-green-700' ?>">Rp <?= number_format(($booking['total'] ?? 0) - ($booking['jumlahbayar'] ?? 0), 0, ',', '.') ?></th>
                                             </tr>
                                         </tfoot>
                                     </table>

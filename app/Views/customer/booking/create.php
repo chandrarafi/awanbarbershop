@@ -140,6 +140,9 @@
                         <h2 class="text-xl font-semibold text-gray-800">Informasi Layanan</h2>
                     </div>
 
+                    <!-- Container untuk informasi durasi -->
+                    <div id="durasiInfo" class="hidden"></div>
+
                     <div class="space-y-5">
                         <?php if ($selectedPaket): ?>
                             <!-- Jika paket sudah dipilih dari landing page -->
@@ -177,46 +180,46 @@
                             <!-- Jika paket belum dipilih, tampilkan pilihan paket -->
                             <div>
                                 <label class="block mb-2 text-gray-700 font-medium">Pilih Paket Layanan</label>
-                                <div id="paketContainer" class="space-y-4">
-                                    <div class="paket-selection bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label for="idpaket_0" class="block mb-1 text-sm text-gray-700">Pilih Paket</label>
-                                                <div class="relative">
-                                                    <select id="idpaket_0" name="idpaket[]" class="paket-select bg-white border border-gray-300 rounded-lg w-full p-3 appearance-none focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all" required>
-                                                        <option value="" selected disabled>-- Pilih Paket --</option>
-                                                        <?php foreach ($paketList as $paket): ?>
-                                                            <option value="<?= $paket['idpaket'] ?>"
-                                                                data-harga="<?= $paket['harga'] ?>"
-                                                                data-durasi="<?= $paket['durasi'] ?? 60 ?>">
-                                                                <?= $paket['namapaket'] ?> - Rp. <?= number_format($paket['harga'], 0, ',', '.') ?>
-                                                            </option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                                        </svg>
+                                <div id="paketContainer">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                        <?php foreach ($paketList as $paket): ?>
+                                            <div class="paket-card border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                                                data-id="<?= $paket['idpaket'] ?>"
+                                                data-harga="<?= $paket['harga'] ?>"
+                                                data-durasi="<?= $paket['durasi'] ?? 60 ?>">
+                                                <div class="relative h-40 bg-gray-100">
+                                                    <?php if (!empty($paket['image'])): ?>
+                                                        <img src="<?= base_url('uploads/paket/' . $paket['image']) ?>" alt="<?= $paket['namapaket'] ?>"
+                                                            class="w-full h-full object-cover">
+                                                    <?php else: ?>
+                                                        <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                            </svg>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    <div class="absolute bottom-0 right-0 bg-gradient-to-l from-indigo-600 to-indigo-500 text-white px-3 py-1 text-sm font-medium">
+                                                        <?= $paket['durasi'] ?? 60 ?> menit
+                                                    </div>
+                                                </div>
+                                                <div class="p-4">
+                                                    <h3 class="font-semibold text-gray-800 mb-1"><?= $paket['namapaket'] ?></h3>
+                                                    <p class="text-sm text-gray-600 line-clamp-2 mb-2"><?= $paket['deskripsi'] ?? 'Tidak ada deskripsi' ?></p>
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-indigo-600 font-bold">Rp. <?= number_format($paket['harga'], 0, ',', '.') ?></span>
+                                                        <button type="button" class="add-paket-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-full p-1">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="paket-info hidden">
-                                                <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 h-full flex flex-col justify-center">
-                                                    <div class="text-sm text-gray-600">Durasi: <span class="paket-durasi font-medium">-</span> menit</div>
-                                                    <div class="text-sm text-gray-600 mt-1">Harga: <span class="paket-harga font-medium">-</span></div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <?php endforeach; ?>
                                     </div>
                                 </div>
-                                <div class="mt-3">
-                                    <button type="button" id="addPaket" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                        </svg>
-                                        Tambah Paket Lain
-                                    </button>
-                                </div>
+                                <div id="selectedPaketsContainer" class="mt-4 space-y-3"></div>
+                                <input type="hidden" id="selectedPaketIds" name="selectedPakets" value="">
                             </div>
                         <?php endif; ?>
 
@@ -502,7 +505,6 @@
         let totalHarga = 0;
         let totalDurasi = 0;
         let selectedPakets = [];
-        let paketCounter = 1;
 
         // Event handler untuk tombol tambah paket
         // Hapus event handler yang mungkin sudah terdaftar sebelumnya untuk mencegah duplikasi
@@ -517,9 +519,51 @@
             return false;
         });
 
+        // Event handler untuk klik pada paket card
+        $(document).on('click', '.paket-card', function(e) {
+            // Jangan trigger jika yang diklik adalah tombol add
+            if ($(e.target).closest('.add-paket-btn').length) {
+                return;
+            }
+
+            const $card = $(this);
+            const id = $card.data('id');
+            const nama = $card.find('h3').text();
+            const harga = $card.data('harga');
+            const durasi = $card.data('durasi');
+
+            tambahPaketKeSelected(id, nama, harga, durasi);
+        });
+
+        // Event handler untuk tombol add pada paket card
+        $(document).on('click', '.add-paket-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $card = $(this).closest('.paket-card');
+            const id = $card.data('id');
+            const nama = $card.find('h3').text();
+            const harga = $card.data('harga');
+            const durasi = $card.data('durasi');
+
+            tambahPaketKeSelected(id, nama, harga, durasi);
+        });
+
+        // Event handler untuk menghapus paket yang dipilih
+        $(document).on('click', '.remove-selected-paket', function() {
+            $(this).closest('.selected-paket-item').remove();
+            hitungTotal();
+        });
+
         // Event handler untuk tombol booking
         $('#bookingForm').on('submit', function(e) {
             e.preventDefault();
+
+            // Debug form data sebelum submit
+            console.log('Form data before submit:');
+            console.log('Total:', $('#total').val(), 'Type:', typeof $('#total').val());
+            console.log('Selected pakets:', $('#selectedPaketIds').val());
+            console.log('Karyawan ID:', $('#idkaryawan').val());
 
             let isValid = true;
             let missingFields = [];
@@ -527,13 +571,14 @@
             // Validasi paket dipilih
             let paketSelected = false;
 
-            // Cek jika ada paket yang dipilih melalui dropdown
-            $('.paket-select').each(function() {
-                if ($(this).val()) {
-                    paketSelected = true;
-                    return false; // keluar dari loop
-                }
-            });
+            // Cek jika ada paket yang dipilih
+            if ($('#selectedPakets').length) {
+                // Jika menggunakan UI lama
+                paketSelected = true;
+            } else if ($('.selected-paket-item').length > 0) {
+                // Jika menggunakan UI baru
+                paketSelected = true;
+            }
 
             if (!paketSelected) {
                 isValid = false;
@@ -553,7 +598,10 @@
             }
 
             // Validasi karyawan
-            if (!$('input[name="idkaryawan"]:checked').val()) {
+            const karyawanId = $('#idkaryawan').val();
+            console.log('Validasi karyawan:', karyawanId); // Log untuk debugging
+
+            if (!karyawanId) {
                 isValid = false;
                 missingFields.push('karyawan');
             }
@@ -600,8 +648,21 @@
                 scrollTop: $('#bookingForm').offset().top - 100
             }, 500);
 
+            // Ensure total is a number before submitting
+            const totalValue = parseInt($('#total').val()) || 0;
+            $('#total').val(totalValue);
+
             // Buat form data untuk upload file
             var formData = new FormData(this);
+
+            // Log form data untuk debugging
+            console.log('Form data:');
+            for (var pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+
+            // Double check total value after FormData creation
+            console.log('Final total value:', formData.get('total'));
 
             $.ajax({
                 url: '<?= site_url('customer/booking/store') ?>',
@@ -628,6 +689,7 @@
                                 <div class="ml-3">
                                     <h3 class="text-sm font-medium text-red-800">Gagal membuat booking</h3>
                                     <p class="mt-2 text-sm text-red-700">${response.message}</p>
+                                    ${response.debug ? `<pre class="mt-2 text-xs bg-gray-100 p-2 overflow-auto">${JSON.stringify(response.debug, null, 2)}</pre>` : ''}
                                 </div>
                             </div>
                         `;
@@ -763,7 +825,7 @@
         // Hiding min payment info initially - will only show when payment type is selected
 
         // Jika paket sudah dipilih dari landing page, langsung update summary
-        if ($('#idpaket').is('input[type="hidden"]')) {
+        if ($('#selectedPakets').length) {
             updateSummary();
         }
         // Format tanggal untuk tampilan
@@ -1051,6 +1113,12 @@
 
             if (!tanggal || !jamstart) return;
 
+            // Reset nilai karyawan yang dipilih sebelumnya
+            $('#idkaryawan').val('');
+
+            // Tampilkan container karyawan
+            $('#karyawanContainer').removeClass('hidden').fadeIn(500);
+
             // Tampilkan indikator loading
             $('#karyawanList').html(`
                 <div class="col-span-full flex justify-center items-center py-8">
@@ -1080,10 +1148,13 @@
                                     <p class="text-gray-500 mt-1">Silakan pilih waktu lain</p>
                                 </div>
                             `;
+
+                            // Disable tombol submit karena tidak ada karyawan tersedia
+                            $('#btnSubmit').prop('disabled', true);
                         } else {
-                            response.data.forEach(function(karyawan) {
+                            response.data.forEach(function(karyawan, index) {
                                 karyawanHTML += `
-                                    <div class="karyawan-item bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-all hover:border-green-300" data-id="${karyawan.id}">
+                                    <div class="karyawan-item bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-all hover:border-green-300 ${index === 0 ? 'border-green-500 ring-2 ring-green-500' : ''}" data-id="${karyawan.id}">
                                         <div class="p-4">
                                             <div class="flex items-center">
                                                 <div class="w-16 h-16 bg-gray-200 rounded-full overflow-hidden mr-3 flex-shrink-0 shadow-sm">
@@ -1110,10 +1181,18 @@
                                     </div>
                                 `;
                             });
+
+                            // Set nilai karyawan pertama sebagai default
+                            if (response.data.length > 0) {
+                                $('#idkaryawan').val(response.data[0].id);
+                                console.log('Default karyawan set:', response.data[0].id);
+
+                                // Enable tombol submit
+                                $('#btnSubmit').prop('disabled', false);
+                            }
                         }
 
                         $('#karyawanList').html(karyawanHTML);
-                        $('#karyawanContainer').fadeIn(500);
                     } else {
                         $('#booking-alert')
                             .removeClass('hidden bg-green-100 text-green-800')
@@ -1137,7 +1216,11 @@
             $('.karyawan-item').removeClass('border-green-500 ring-2 ring-green-500');
             $(this).addClass('border-green-500 ring-2 ring-green-500');
 
-            $('#idkaryawan').val($(this).data('id'));
+            // Set nilai karyawan ke input hidden
+            const karyawanId = $(this).data('id');
+            $('#idkaryawan').val(karyawanId);
+
+            console.log('Karyawan dipilih:', karyawanId); // Log untuk debugging
 
             // Update summary
             updateSummary();
@@ -1247,13 +1330,14 @@
             // Validasi paket dipilih
             let paketSelected = false;
 
-            // Cek jika ada paket yang dipilih melalui dropdown
-            $('.paket-select').each(function() {
-                if ($(this).val()) {
-                    paketSelected = true;
-                    return false; // keluar dari loop
-                }
-            });
+            // Cek jika ada paket yang dipilih
+            if ($('#selectedPakets').length) {
+                // Jika menggunakan UI lama
+                paketSelected = true;
+            } else if ($('.selected-paket-item').length > 0) {
+                // Jika menggunakan UI baru
+                paketSelected = true;
+            }
 
             if (!paketSelected) {
                 isValid = false;
@@ -1523,11 +1607,12 @@
             totalDurasi = 0;
             selectedPakets = [];
 
-            // Jika ada paket yang sudah dipilih dari landing page
-            if ($('#selectedPakets').length) {
-                const paketId = $('#selectedPakets').val();
-                const harga = parseFloat($('#selectedPakets').data('harga'));
-                const durasi = parseInt($('#selectedPakets').data('durasi'));
+            // Ambil semua paket yang dipilih
+            $('.selected-paket-item').each(function() {
+                const $item = $(this);
+                const paketId = $item.data('id');
+                const harga = parseFloat($item.data('harga'));
+                const durasi = parseInt($item.data('durasi'));
 
                 if (paketId && !isNaN(harga)) {
                     totalHarga += harga;
@@ -1538,37 +1623,89 @@
                         durasi: durasi
                     });
                 }
-            }
-
-            // Hitung dari semua paket yang dipilih melalui dropdown
-            $('.paket-select').each(function() {
-                const $select = $(this);
-                const paketId = $select.val();
-
-                if (paketId) {
-                    const $option = $select.find('option:selected');
-                    const harga = parseFloat($option.data('harga'));
-                    const durasi = parseInt($option.data('durasi'));
-
-                    if (!isNaN(harga)) {
-                        totalHarga += harga;
-                        totalDurasi += durasi;
-                        selectedPakets.push({
-                            id: paketId,
-                            harga: harga,
-                            durasi: durasi
-                        });
-                    }
-                }
             });
 
-            // Update tampilan total harga
+            // Update tampilan total harga dan durasi
             $('#totalHarga').text('Rp. ' + formatNumber(totalHarga));
             $('#totalDurasi').text(totalDurasi + ' menit');
 
             // Update hidden input untuk total
             $('#total').val(totalHarga);
             $('#durasi_total').val(totalDurasi);
+
+            // Debug total value
+            console.log('Total harga updated:', totalHarga, 'Type:', typeof totalHarga);
+
+            // Tampilkan informasi durasi dan jam selesai yang lebih jelas
+            if (totalDurasi > 0) {
+                // Hitung jam selesai berdasarkan jam mulai yang dipilih dan durasi total
+                const jamMulai = $('#jamstart').val();
+                if (jamMulai) {
+                    const [jam, menit] = jamMulai.split(':');
+                    let jamMulaiMenit = (parseInt(jam) * 60) + parseInt(menit);
+                    let jamSelesaiMenit = jamMulaiMenit + totalDurasi;
+
+                    // Format jam selesai
+                    let jamSelesai = Math.floor(jamSelesaiMenit / 60);
+                    let menitSelesai = jamSelesaiMenit % 60;
+                    let jamSelesaiStr = `${jamSelesai.toString().padStart(2, '0')}:${menitSelesai.toString().padStart(2, '0')}`;
+
+                    // Update tampilan jam selesai
+                    $('#jamend').val(jamSelesaiStr);
+
+                    // Tampilkan informasi durasi yang lebih jelas
+                    let durasiInfo = '';
+                    if (totalDurasi >= 60) {
+                        const jam = Math.floor(totalDurasi / 60);
+                        const menit = totalDurasi % 60;
+                        durasiInfo = `${jam} jam`;
+                        if (menit > 0) {
+                            durasiInfo += ` ${menit} menit`;
+                        }
+                    } else {
+                        durasiInfo = `${totalDurasi} menit`;
+                    }
+
+                    // Tambahkan informasi durasi dan jam selesai ke UI
+                    $('#durasiInfo').html(`
+                        <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                            <h4 class="font-medium text-blue-800">Informasi Durasi Layanan</h4>
+                            <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="text-gray-700">Total Durasi: <span class="font-medium">${durasiInfo}</span></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="text-gray-700">Jam Selesai: <span class="font-medium">${jamSelesaiStr}</span></span>
+                                </div>
+                            </div>
+                            <p class="mt-2 text-sm text-blue-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Karyawan akan dibooking untuk durasi ini dan tidak tersedia untuk pelanggan lain.
+                            </p>
+                        </div>
+                    `).removeClass('hidden');
+                }
+            } else {
+                $('#durasiInfo').addClass('hidden');
+            }
+
+            // Update selected paket IDs - pastikan format array untuk server
+            if (selectedPakets.length > 0) {
+                // Gunakan array untuk mengirim ke server, bukan string dengan koma
+                const selectedIds = selectedPakets.map(p => p.id);
+                $('#selectedPaketIds').val(JSON.stringify(selectedIds));
+                console.log('Selected paket IDs:', selectedIds);
+            } else {
+                $('#selectedPaketIds').val('');
+            }
 
             // Perbarui jam selesai berdasarkan durasi total
             updateJamEnd();
@@ -1597,51 +1734,50 @@
                     $('div:has(> #selectedPakets)').parent().find('> div:first').remove();
                 }
 
-                // Buat container paket baru
+                // Buat container paket baru dengan UI card
                 const paketContainerHtml = `
                     <div>
                         <label class="block mb-2 text-gray-700 font-medium">Pilih Paket Layanan</label>
-                        <div id="paketContainer" class="space-y-4">
-                            <div class="paket-selection bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="idpaket_0" class="block mb-1 text-sm text-gray-700">Pilih Paket</label>
-                                        <div class="relative">
-                                            <select id="idpaket_0" name="idpaket[]" class="paket-select bg-white border border-gray-300 rounded-lg w-full p-3 appearance-none focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all" required>
-                                                <option value="" disabled>-- Pilih Paket --</option>
-                                                <?php foreach ($paketList as $paket): ?>
-                                                    <option value="<?= $paket['idpaket'] ?>"
-                                                        data-harga="<?= $paket['harga'] ?>"
-                                                        data-durasi="<?= $paket['durasi'] ?? 60 ?>"
-                                                        <?= $paket['idpaket'] == '${selectedPaketId}' ? 'selected' : '' ?>>
-                                                        <?= $paket['namapaket'] ?> - Rp. <?= number_format($paket['harga'], 0, ',', '.') ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                                </svg>
+                        <div id="paketContainer">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                <?php foreach ($paketList as $paket): ?>
+                                    <div class="paket-card border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer" 
+                                        data-id="<?= $paket['idpaket'] ?>" 
+                                        data-harga="<?= $paket['harga'] ?>" 
+                                        data-durasi="<?= $paket['durasi'] ?? 60 ?>">
+                                        <div class="relative h-40 bg-gray-100">
+                                            <?php if (!empty($paket['image'])): ?>
+                                                <img src="<?= base_url('uploads/paket/' . $paket['image']) ?>" alt="<?= $paket['namapaket'] ?>" 
+                                                    class="w-full h-full object-cover">
+                                            <?php else: ?>
+                                                <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                            <?php endif; ?>
+                                            <div class="absolute bottom-0 right-0 bg-gradient-to-l from-indigo-600 to-indigo-500 text-white px-3 py-1 text-sm font-medium">
+                                                <?= $paket['durasi'] ?? 60 ?> menit
+                                            </div>
+                                        </div>
+                                        <div class="p-4">
+                                            <h3 class="font-semibold text-gray-800 mb-1"><?= $paket['namapaket'] ?></h3>
+                                            <p class="text-sm text-gray-600 line-clamp-2 mb-2"><?= $paket['deskripsi'] ?? 'Tidak ada deskripsi' ?></p>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-indigo-600 font-bold">Rp. <?= number_format($paket['harga'], 0, ',', '.') ?></span>
+                                                <button type="button" class="add-paket-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-full p-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                                    </svg>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="paket-info">
-                                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 h-full flex flex-col justify-center">
-                                            <div class="text-sm text-gray-600">Durasi: <span class="paket-durasi font-medium">${selectedPaketDurasi}</span> menit</div>
-                                            <div class="text-sm text-gray-600 mt-1">Harga: <span class="paket-harga font-medium">Rp. ${formatNumber(selectedPaketHarga)}</span></div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <?php endforeach; ?>
                             </div>
                         </div>
-                        <div class="mt-3">
-                            <button type="button" id="addPaket" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                Tambah Paket Lain
-                            </button>
-                        </div>
+                        <div id="selectedPaketsContainer" class="mt-4 space-y-3"></div>
+                        <input type="hidden" id="selectedPaketIds" name="selectedPakets" value="">
                     </div>
                 `;
 
@@ -1651,57 +1787,91 @@
                 // Hapus input hidden selectedPakets
                 $('#selectedPakets').remove();
 
-                // Trigger perubahan pada select untuk menampilkan info paket
-                $('#idpaket_0').trigger('change');
+                // Tambahkan paket yang sudah dipilih sebelumnya ke dalam selected pakets
+                tambahPaketKeSelected(selectedPaketId, selectedPaketName, selectedPaketHarga, selectedPaketDurasi);
 
                 return;
             }
+        }
 
-            // Tambahkan paket baru seperti biasa
-            const newPaketHtml = `
-                <div class="paket-selection bg-white p-4 rounded-lg border border-gray-200 shadow-sm mt-3">
-                    <div class="flex justify-end mb-1">
-                        <button type="button" class="remove-paket text-red-500 hover:text-red-700 text-sm flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Hapus
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="idpaket_${paketCounter}" class="block mb-1 text-sm text-gray-700">Pilih Paket</label>
-                            <div class="relative">
-                                <select id="idpaket_${paketCounter}" name="idpaket[]" class="paket-select bg-white border border-gray-300 rounded-lg w-full p-3 appearance-none focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all" required>
-                                    <option value="" selected disabled>-- Pilih Paket --</option>
-                                    <?php foreach ($paketList as $paket): ?>
-                                        <option value="<?= $paket['idpaket'] ?>"
-                                            data-harga="<?= $paket['harga'] ?>"
-                                            data-durasi="<?= $paket['durasi'] ?? 60 ?>">
-                                            <?= $paket['namapaket'] ?> - Rp. <?= number_format($paket['harga'], 0, ',', '.') ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="paket-info hidden">
-                            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 h-full flex flex-col justify-center">
-                                <div class="text-sm text-gray-600">Durasi: <span class="paket-durasi font-medium">-</span> menit</div>
-                                <div class="text-sm text-gray-600 mt-1">Harga: <span class="paket-harga font-medium">-</span></div>
-                            </div>
+        // Fungsi untuk menambahkan paket ke daftar yang dipilih
+        function tambahPaketKeSelected(id, nama, harga, durasi) {
+            // Periksa apakah paket sudah dipilih
+            if ($(`#selected-paket-${id}`).length) {
+                return;
+            }
+
+            const formattedHarga = formatNumber(harga);
+
+            const paketHTML = `
+                <div id="selected-paket-${id}" class="selected-paket-item bg-white border border-gray-200 rounded-lg p-3 flex items-center justify-between" 
+                    data-id="${id}" data-harga="${harga}" data-durasi="${durasi}">
+                    <div>
+                        <h4 class="font-medium text-gray-800">${nama}</h4>
+                        <div class="flex items-center text-sm">
+                            <span class="text-indigo-600 font-semibold mr-3">Rp. ${formattedHarga}</span>
+                            <span class="text-gray-500">${durasi} menit</span>
                         </div>
                     </div>
+                    <button type="button" class="remove-selected-paket text-red-500 hover:text-red-700 p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
             `;
 
-            $('#paketContainer').append(newPaketHtml);
-            paketCounter++;
+            $('#selectedPaketsContainer').append(paketHTML);
+
+            // Log untuk debugging
+            console.log('Paket ditambahkan:', {
+                id,
+                nama,
+                harga,
+                durasi
+            });
+
+            hitungTotal();
         }
+
+        // Event handlers untuk UI paket baru
+        $(document).ready(function() {
+            // Event handler untuk klik pada paket card
+            $(document).on('click', '.paket-card', function(e) {
+                // Jangan trigger jika yang diklik adalah tombol add
+                if ($(e.target).closest('.add-paket-btn').length) {
+                    return;
+                }
+
+                const $card = $(this);
+                const id = $card.data('id');
+                const nama = $card.find('h3').text();
+                const harga = $card.data('harga');
+                const durasi = $card.data('durasi');
+
+                tambahPaketKeSelected(id, nama, harga, durasi);
+            });
+
+            // Event handler untuk tombol add pada paket card
+            $(document).on('click', '.add-paket-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const $card = $(this).closest('.paket-card');
+                const id = $card.data('id');
+                const nama = $card.find('h3').text();
+                const harga = $card.data('harga');
+                const durasi = $card.data('durasi');
+
+                tambahPaketKeSelected(id, nama, harga, durasi);
+            });
+
+            // Event handler untuk menghapus paket yang dipilih
+            $(document).on('click', '.remove-selected-paket', function() {
+                $(this).closest('.selected-paket-item').remove();
+                hitungTotal();
+            });
+        });
 
         // Fungsi untuk memperbarui jam selesai berdasarkan jam mulai dan durasi
         function updateJamEnd() {
@@ -1987,6 +2157,74 @@
 
     .pulse-animation {
         animation: pulse 2s infinite;
+    }
+
+    /* Styling untuk paket card */
+    .paket-card {
+        transition: all 0.3s ease;
+    }
+
+    .paket-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .paket-card.selected {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 2px #4f46e5;
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Styling untuk selected paket item */
+    .selected-paket-item {
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .remove-selected-paket {
+        opacity: 0.7;
+        transition: all 0.2s ease;
+    }
+
+    .remove-selected-paket:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    /* Animasi untuk tombol add paket */
+    .add-paket-btn {
+        transition: all 0.2s ease;
+    }
+
+    .add-paket-btn:hover {
+        transform: scale(1.1);
+        background-color: #c7d2fe;
+    }
+
+    /* Styling untuk durasi badge */
+    .paket-card .absolute {
+        transition: all 0.3s ease;
+    }
+
+    .paket-card:hover .absolute {
+        padding-right: 15px;
     }
 </style>
 <?= $this->endSection() ?>

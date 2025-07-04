@@ -44,7 +44,16 @@
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
+                            <label for="durasi" class="form-label">Durasi (menit) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                <input type="number" class="form-control" id="durasi" name="durasi" required min="15" value="60">
+                                <div class="invalid-feedback" id="durasiError"></div>
+                            </div>
+                            <small class="text-muted">Masukkan durasi layanan dalam menit (minimal 15 menit)</small>
+                        </div>
+                        <div class="col-md-6">
                             <label for="deskripsi" class="form-label">Deskripsi <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-file-text"></i></span>
@@ -203,6 +212,7 @@
                     $('#namapaket').val(paket.namapaket);
                     $('#deskripsi').val(paket.deskripsi);
                     $('#harga').val(paket.harga);
+                    $('#durasi').val(paket.durasi);
 
                     // Set preview gambar jika ada
                     if (paket.image) {
@@ -275,6 +285,15 @@
                 isValid = false;
             } else if ($('#harga').val() <= 0) {
                 errors.harga = 'Harga harus lebih dari 0';
+                isValid = false;
+            }
+
+            // Validasi durasi
+            if (!$('#durasi').val()) {
+                errors.durasi = 'Durasi harus diisi';
+                isValid = false;
+            } else if ($('#durasi').val() < 15) {
+                errors.durasi = 'Durasi minimal 15 menit';
                 isValid = false;
             }
 

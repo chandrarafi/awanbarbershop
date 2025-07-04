@@ -12,7 +12,7 @@ class PaketModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['idpaket', 'namapaket', 'deskripsi', 'harga', 'image'];
+    protected $allowedFields    = ['idpaket', 'namapaket', 'deskripsi', 'harga', 'image', 'durasi'];
 
     // Dates
     protected $useTimestamps = true;
@@ -58,6 +58,14 @@ class PaketModel extends Model
                     'required' => 'Harga harus diisi',
                     'numeric' => 'Harga harus berupa angka',
                     'greater_than' => 'Harga harus lebih besar dari 0'
+                ]
+            ],
+            'durasi' => [
+                'rules' => 'required|numeric|greater_than[0]',
+                'errors' => [
+                    'required' => 'Durasi harus diisi',
+                    'numeric' => 'Durasi harus berupa angka',
+                    'greater_than' => 'Durasi harus lebih besar dari 0'
                 ]
             ],
             'gambar' => [
