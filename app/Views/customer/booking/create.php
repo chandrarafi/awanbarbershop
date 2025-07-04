@@ -161,29 +161,61 @@
                                         <h3 class="font-semibold text-lg text-gray-800"><?= $selectedPaket['namapaket'] ?></h3>
                                         <p class="text-gray-600 text-sm mb-2"><?= $selectedPaket['deskripsi'] ?? 'Tidak ada deskripsi' ?></p>
                                         <p class="font-bold text-indigo-600">Rp. <?= number_format($selectedPaket['harga'], 0, ',', '.') ?></p>
+                                        <div class="mt-2">
+                                            <button type="button" id="addMorePaket" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                </svg>
+                                                Tambah Paket Lain
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                                <input type="hidden" id="idpaket" name="idpaket" value="<?= $selectedPaket['idpaket'] ?>" data-harga="<?= $selectedPaket['harga'] ?>">
+                                <input type="hidden" id="selectedPakets" name="selectedPakets" value="<?= $selectedPaket['idpaket'] ?>" data-harga="<?= $selectedPaket['harga'] ?>" data-durasi="<?= $selectedPaket['durasi'] ?? 60 ?>">
                             </div>
                         <?php else: ?>
-                            <!-- Jika paket belum dipilih, tampilkan dropdown -->
+                            <!-- Jika paket belum dipilih, tampilkan pilihan paket -->
                             <div>
-                                <label for="idpaket" class="block mb-2 text-gray-700 font-medium">Pilih Paket Layanan</label>
-                                <div class="relative">
-                                    <select id="idpaket" name="idpaket" class="bg-white border border-gray-300 rounded-lg w-full p-3 appearance-none focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all" required>
-                                        <option value="" selected disabled>-- Pilih Paket --</option>
-                                        <?php foreach ($paketList as $paket): ?>
-                                            <option value="<?= $paket['idpaket'] ?>"
-                                                data-harga="<?= $paket['harga'] ?>">
-                                                <?= $paket['namapaket'] ?> - Rp. <?= number_format($paket['harga'], 0, ',', '.') ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                        </svg>
+                                <label class="block mb-2 text-gray-700 font-medium">Pilih Paket Layanan</label>
+                                <div id="paketContainer" class="space-y-4">
+                                    <div class="paket-selection bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label for="idpaket_0" class="block mb-1 text-sm text-gray-700">Pilih Paket</label>
+                                                <div class="relative">
+                                                    <select id="idpaket_0" name="idpaket[]" class="paket-select bg-white border border-gray-300 rounded-lg w-full p-3 appearance-none focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all" required>
+                                                        <option value="" selected disabled>-- Pilih Paket --</option>
+                                                        <?php foreach ($paketList as $paket): ?>
+                                                            <option value="<?= $paket['idpaket'] ?>"
+                                                                data-harga="<?= $paket['harga'] ?>"
+                                                                data-durasi="<?= $paket['durasi'] ?? 60 ?>">
+                                                                <?= $paket['namapaket'] ?> - Rp. <?= number_format($paket['harga'], 0, ',', '.') ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="paket-info hidden">
+                                                <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 h-full flex flex-col justify-center">
+                                                    <div class="text-sm text-gray-600">Durasi: <span class="paket-durasi font-medium">-</span> menit</div>
+                                                    <div class="text-sm text-gray-600 mt-1">Harga: <span class="paket-harga font-medium">-</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button type="button" id="addPaket" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Tambah Paket Lain
+                                    </button>
                                 </div>
                             </div>
                         <?php endif; ?>
@@ -290,188 +322,145 @@
                 </div>
 
                 <!-- Ringkasan Booking -->
-                <div id="summaryContainer" class="hidden">
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm form-section" data-aos="fade-up" data-aos-delay="300">
-                        <div class="flex items-center mb-4">
-                            <div class="rounded-full bg-purple-50 p-2 mr-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                </svg>
-                            </div>
-                            <h2 class="text-xl font-semibold text-gray-800">Ringkasan Booking</h2>
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm form-section mt-6">
+                    <div class="flex items-center mb-4">
+                        <div class="rounded-full bg-green-50 p-2 mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
                         </div>
+                        <h2 class="text-xl font-semibold text-gray-800">Ringkasan Booking</h2>
+                    </div>
 
-                        <div class="bg-gray-50 p-5 rounded-lg shadow-sm border border-gray-200">
-                            <div class="grid grid-cols-2 gap-y-4 text-gray-700">
-                                <div class="font-medium flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                    </svg>
-                                    Paket
-                                </div>
-                                <div id="summary_paket" class="text-gray-800">-</div>
-
-                                <div class="font-medium flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    Tanggal
-                                </div>
-                                <div id="summary_tanggal" class="text-gray-800">-</div>
-
-                                <div class="font-medium flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Waktu
-                                </div>
-                                <div id="summary_waktu" class="text-gray-800">-</div>
-
-                                <div class="font-medium flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                    Karyawan
-                                </div>
-                                <div id="summary_karyawan" class="text-gray-800">-</div>
-
-                                <div class="font-medium flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                    </svg>
-                                    Total
-                                </div>
-                                <div id="summary_total" class="text-lg font-bold text-orange-500">-</div>
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-gray-600 mb-1">Total Durasi:</p>
+                                <p class="text-lg font-semibold text-gray-800" id="totalDurasi">0 menit</p>
                             </div>
+                            <div>
+                                <p class="text-gray-600 mb-1">Total Harga:</p>
+                                <p class="text-lg font-semibold text-indigo-600" id="totalHarga">Rp. 0</p>
+                            </div>
+                        </div>
+                    </div>
 
-                            <input type="hidden" id="total" name="total">
-                            <input type="hidden" id="min_payment" name="min_payment" value="0">
+                    <!-- Hidden input untuk menyimpan total -->
+                    <input type="hidden" id="total" name="total" value="0">
+                    <input type="hidden" id="durasi_total" name="durasi_total" value="0">
+                </div>
 
-                            <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                                <div class="flex">
-                                    <div class="flex-shrink-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                    <p class="ml-3 text-sm text-gray-700">Setelah menekan tombol booking, Anda akan diarahkan ke halaman pembayaran. Mohon datang tepat waktu sesuai jadwal booking yang telah dipilih.</p>
+                <!-- Opsi Pembayaran -->
+                <div class="mt-6 bg-white p-5 rounded-lg border border-gray-200 shadow-sm hidden">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-1 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Opsi Pembayaran
+                    </h3>
+                    <p class="text-gray-600 mb-4 text-sm">Silakan pilih jenis pembayaran dan metode pembayaran yang diinginkan</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block mb-2 text-gray-700 font-medium">Jenis Pembayaran</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="payment-option-wrapper">
+                                    <input type="radio" id="payment_dp" name="jenis_pembayaran" value="DP" class="hidden payment-radio">
+                                    <label for="payment_dp" class="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition w-full h-full">
+                                        <div class="radio-circle mr-2 h-4 w-4 rounded-full border border-gray-400 flex items-center justify-center">
+                                            <div class="radio-dot h-2 w-2 rounded-full bg-blue-600 hidden"></div>
+                                        </div>
+                                        <span class="text-gray-700">DP (50%)</span>
+                                    </label>
                                 </div>
+                                <div class="payment-option-wrapper">
+                                    <input type="radio" id="payment_full" name="jenis_pembayaran" value="Lunas" class="hidden payment-radio">
+                                    <label for="payment_full" class="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition w-full h-full">
+                                        <div class="radio-circle mr-2 h-4 w-4 rounded-full border border-gray-400 flex items-center justify-center">
+                                            <div class="radio-dot h-2 w-2 rounded-full bg-blue-600 hidden"></div>
+                                        </div>
+                                        <span class="text-gray-700">Bayar Penuh</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="minPaymentInfo" class="mt-2 p-2 bg-yellow-50 border border-yellow-100 rounded text-sm text-gray-700 hidden">
+                                Minimal pembayaran DP: <span id="minPayment" class="font-semibold text-orange-600">Rp 0</span>
                             </div>
                         </div>
 
-                        <!-- Opsi Pembayaran -->
-                        <div class="mt-6 bg-white p-5 rounded-lg border border-gray-200 shadow-sm hidden">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-1 flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        <div id="metode-pembayaran-container" class="mt-5 hidden">
+                            <label class="block mb-2 text-gray-700 font-medium">Metode Pembayaran</label>
+                            <p class="text-sm text-gray-600 mb-2">Pilih salah satu metode pembayaran di bawah ini:</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="method-option-wrapper">
+                                    <input type="radio" id="method_transfer" name="metode_pembayaran" value="transfer" class="hidden method-radio">
+                                    <label for="method_transfer" class="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition w-full h-full">
+                                        <div class="radio-circle mr-2 h-4 w-4 rounded-full border border-gray-400 flex items-center justify-center">
+                                            <div class="radio-dot h-2 w-2 rounded-full bg-blue-600 hidden"></div>
+                                        </div>
+                                        <span class="text-gray-700">Transfer Bank</span>
+                                    </label>
+                                </div>
+                                <div class="method-option-wrapper">
+                                    <input type="radio" id="method_qris" name="metode_pembayaran" value="qris" class="hidden method-radio">
+                                    <label for="method_qris" class="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition w-full h-full">
+                                        <div class="radio-circle mr-2 h-4 w-4 rounded-full border border-gray-400 flex items-center justify-center">
+                                            <div class="radio-dot h-2 w-2 rounded-full bg-blue-600 hidden"></div>
+                                        </div>
+                                        <span class="text-gray-700">QRIS</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="paymentInfo" class="p-4 bg-blue-50 border border-blue-100 rounded-lg hidden">
+                            <h4 class="font-medium text-gray-800 mb-2 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Opsi Pembayaran
-                            </h3>
-                            <p class="text-gray-600 mb-4 text-sm">Silakan pilih jenis pembayaran dan metode pembayaran yang diinginkan</p>
+                                Informasi Pembayaran
+                            </h4>
 
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block mb-2 text-gray-700 font-medium">Jenis Pembayaran</label>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div class="payment-option-wrapper">
-                                            <input type="radio" id="payment_dp" name="jenis_pembayaran" value="DP" class="hidden payment-radio">
-                                            <label for="payment_dp" class="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition w-full h-full">
-                                                <div class="radio-circle mr-2 h-4 w-4 rounded-full border border-gray-400 flex items-center justify-center">
-                                                    <div class="radio-dot h-2 w-2 rounded-full bg-blue-600 hidden"></div>
-                                                </div>
-                                                <span class="text-gray-700">DP (50%)</span>
-                                            </label>
-                                        </div>
-                                        <div class="payment-option-wrapper">
-                                            <input type="radio" id="payment_full" name="jenis_pembayaran" value="Lunas" class="hidden payment-radio">
-                                            <label for="payment_full" class="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition w-full h-full">
-                                                <div class="radio-circle mr-2 h-4 w-4 rounded-full border border-gray-400 flex items-center justify-center">
-                                                    <div class="radio-dot h-2 w-2 rounded-full bg-blue-600 hidden"></div>
-                                                </div>
-                                                <span class="text-gray-700">Bayar Penuh</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div id="minPaymentInfo" class="mt-2 p-2 bg-yellow-50 border border-yellow-100 rounded text-sm text-gray-700 hidden">
-                                        Minimal pembayaran DP: <span id="minPayment" class="font-semibold text-orange-600">Rp 0</span>
-                                    </div>
+                            <!-- Transfer Bank Info -->
+                            <div id="transferInfo">
+                                <p class="text-gray-600 text-sm mb-2">Silakan transfer ke rekening berikut:</p>
+                                <div class="bg-white p-3 rounded border border-gray-200 mb-2">
+                                    <p class="text-gray-800">Bank BCA</p>
+                                    <p class="text-gray-800 font-semibold">1234567890</p>
+                                    <p class="text-gray-800">a.n. Awan Barbershop</p>
                                 </div>
+                            </div>
 
-                                <div id="metode-pembayaran-container" class="mt-5 hidden">
-                                    <label class="block mb-2 text-gray-700 font-medium">Metode Pembayaran</label>
-                                    <p class="text-sm text-gray-600 mb-2">Pilih salah satu metode pembayaran di bawah ini:</p>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div class="method-option-wrapper">
-                                            <input type="radio" id="method_transfer" name="metode_pembayaran" value="transfer" class="hidden method-radio">
-                                            <label for="method_transfer" class="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition w-full h-full">
-                                                <div class="radio-circle mr-2 h-4 w-4 rounded-full border border-gray-400 flex items-center justify-center">
-                                                    <div class="radio-dot h-2 w-2 rounded-full bg-blue-600 hidden"></div>
-                                                </div>
-                                                <span class="text-gray-700">Transfer Bank</span>
-                                            </label>
-                                        </div>
-                                        <div class="method-option-wrapper">
-                                            <input type="radio" id="method_qris" name="metode_pembayaran" value="qris" class="hidden method-radio">
-                                            <label for="method_qris" class="flex items-center p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition w-full h-full">
-                                                <div class="radio-circle mr-2 h-4 w-4 rounded-full border border-gray-400 flex items-center justify-center">
-                                                    <div class="radio-dot h-2 w-2 rounded-full bg-blue-600 hidden"></div>
-                                                </div>
-                                                <span class="text-gray-700">QRIS</span>
-                                            </label>
-                                        </div>
-                                    </div>
+                            <!-- QRIS Info -->
+                            <div id="qrisInfo" class="text-center hidden">
+                                <p class="text-gray-600 text-sm mb-2">Scan kode QRIS berikut untuk melakukan pembayaran:</p>
+                                <div class="bg-white p-3 rounded border border-gray-200 mb-2 flex justify-center">
+                                    <img src="<?= base_url('assets/images/qris-sample.png') ?>" alt="QRIS Code" class="max-w-[200px] h-auto" onerror="this.src='https://placehold.co/200x200/e2e8f0/64748b?text=QRIS+Code'">
                                 </div>
+                            </div>
 
-                                <div id="paymentInfo" class="p-4 bg-blue-50 border border-blue-100 rounded-lg hidden">
-                                    <h4 class="font-medium text-gray-800 mb-2 flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Informasi Pembayaran
-                                    </h4>
+                            <div class="mt-3">
+                                <label for="bukti_pembayaran" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Upload Bukti Pembayaran
+                                </label>
+                                <input type="file" id="bukti_pembayaran" name="bukti_pembayaran" accept="image/*" class="block w-full text-sm text-gray-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-md file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-blue-50 file:text-blue-700
+                                    hover:file:bg-blue-100">
+                                <p class="mt-1 text-sm text-gray-500">JPG, PNG, atau GIF (Maks. 2MB)</p>
 
-                                    <!-- Transfer Bank Info -->
-                                    <div id="transferInfo">
-                                        <p class="text-gray-600 text-sm mb-2">Silakan transfer ke rekening berikut:</p>
-                                        <div class="bg-white p-3 rounded border border-gray-200 mb-2">
-                                            <p class="text-gray-800">Bank BCA</p>
-                                            <p class="text-gray-800 font-semibold">1234567890</p>
-                                            <p class="text-gray-800">a.n. Awan Barbershop</p>
-                                        </div>
-                                    </div>
-
-                                    <!-- QRIS Info -->
-                                    <div id="qrisInfo" class="text-center hidden">
-                                        <p class="text-gray-600 text-sm mb-2">Scan kode QRIS berikut untuk melakukan pembayaran:</p>
-                                        <div class="bg-white p-3 rounded border border-gray-200 mb-2 flex justify-center">
-                                            <img src="<?= base_url('assets/images/qris-sample.png') ?>" alt="QRIS Code" class="max-w-[200px] h-auto" onerror="this.src='https://placehold.co/200x200/e2e8f0/64748b?text=QRIS+Code'">
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-3">
-                                        <label for="bukti_pembayaran" class="block text-sm font-medium text-gray-700 mb-1">
-                                            Upload Bukti Pembayaran
-                                        </label>
-                                        <input type="file" id="bukti_pembayaran" name="bukti_pembayaran" accept="image/*" class="block w-full text-sm text-gray-500
-                                            file:mr-4 file:py-2 file:px-4
-                                            file:rounded-md file:border-0
-                                            file:text-sm file:font-semibold
-                                            file:bg-blue-50 file:text-blue-700
-                                            hover:file:bg-blue-100">
-                                        <p class="mt-1 text-sm text-gray-500">JPG, PNG, atau GIF (Maks. 2MB)</p>
-
-                                        <!-- Preview Bukti Pembayaran -->
-                                        <div id="buktiPreviewContainer" class="mt-3 hidden">
-                                            <p class="text-sm font-medium text-gray-700 mb-2">Preview:</p>
-                                            <div class="relative">
-                                                <img id="buktiPreview" src="#" alt="Bukti Pembayaran" class="max-h-60 rounded-lg border border-gray-200 shadow-sm">
-                                                <button type="button" id="removeBukti" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
+                                <!-- Preview Bukti Pembayaran -->
+                                <div id="buktiPreviewContainer" class="mt-3 hidden">
+                                    <p class="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+                                    <div class="relative">
+                                        <img id="buktiPreview" src="#" alt="Bukti Pembayaran" class="max-h-60 rounded-lg border border-gray-200 shadow-sm">
+                                        <button type="button" id="removeBukti" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -509,9 +498,180 @@
             once: true
         });
 
+        // Inisialisasi variabel global
+        let totalHarga = 0;
+        let totalDurasi = 0;
+        let selectedPakets = [];
+        let paketCounter = 1;
 
+        // Event handler untuk tombol tambah paket
+        $(document).on('click', '#addPaket, #addMorePaket', function(e) {
+            e.preventDefault();
+            tambahPaket();
+        });
 
+        // Event handler untuk tombol booking
+        $('#bookingForm').on('submit', function(e) {
+            e.preventDefault();
 
+            // Validasi form
+            let isValid = true;
+            let missingFields = [];
+
+            // Validasi paket dipilih
+            let paketSelected = false;
+
+            // Cek jika paket sudah dipilih dari landing page
+            if ($('#selectedPakets').length && $('#selectedPakets').val()) {
+                paketSelected = true;
+            } else {
+                // Cek jika paket dipilih melalui dropdown
+                $('.paket-select').each(function() {
+                    if ($(this).val()) {
+                        paketSelected = true;
+                        return false; // keluar dari loop
+                    }
+                });
+            }
+
+            if (!paketSelected) {
+                isValid = false;
+                missingFields.push('paket layanan');
+            }
+
+            // Validasi tanggal booking
+            if (!$('#tanggal_booking').val()) {
+                isValid = false;
+                missingFields.push('tanggal booking');
+            }
+
+            // Validasi jam mulai
+            if (!$('#jamstart').val()) {
+                isValid = false;
+                missingFields.push('jam booking');
+            }
+
+            // Validasi karyawan
+            if (!$('input[name="idkaryawan"]:checked').val()) {
+                isValid = false;
+                missingFields.push('karyawan');
+            }
+
+            if (!isValid) {
+                // Scroll ke bagian atas form
+                $('html, body').animate({
+                    scrollTop: $('#bookingForm').offset().top - 100
+                }, 500);
+
+                let messageHTML = `
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Harap isi semua field yang diperlukan</h3>
+                            <p class="mt-1 text-xs text-red-700">Field yang harus diisi: ${missingFields.join(', ')}</p>
+                        </div>
+                    </div>
+                `;
+
+                $('#booking-alert')
+                    .removeClass('hidden bg-green-100 text-green-800 border-green-200')
+                    .addClass('bg-red-100 text-red-800 border-red-200')
+                    .html(messageHTML)
+                    .fadeIn();
+                return;
+            }
+
+            // Disable tombol submit untuk mencegah double submit
+            $('#btnSubmit').prop('disabled', true).html(`
+                <svg class="animate-spin mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Memproses...
+            `);
+
+            // Buat form data untuk upload file
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '<?= site_url('customer/booking/store') ?>',
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // Hapus alert lama jika ada
+                        $('#booking-alert').hide();
+
+                        // Tampilkan modal sukses yang sudah ada di HTML
+                        showSuccessModal(response.kdbooking);
+                    } else {
+                        let errorHTML = `
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-red-800">Gagal membuat booking</h3>
+                                    <p class="mt-2 text-sm text-red-700">${response.message}</p>
+                                </div>
+                            </div>
+                        `;
+
+                        $('#booking-alert')
+                            .removeClass('hidden bg-green-100 text-green-800 border-green-200')
+                            .addClass('bg-red-100 text-red-800 border-red-200')
+                            .html(errorHTML)
+                            .fadeIn();
+
+                        // Re-enable tombol submit
+                        $('#btnSubmit').prop('disabled', false).html(`
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Booking Sekarang
+                        `);
+                    }
+                },
+                error: function() {
+                    let errorHTML = `
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">Terjadi kesalahan</h3>
+                                <p class="mt-2 text-sm text-red-700">Sistem tidak dapat memproses booking Anda. Silakan coba lagi.</p>
+                            </div>
+                        </div>
+                    `;
+
+                    $('#booking-alert')
+                        .removeClass('hidden bg-green-100 text-green-800 border-green-200')
+                        .addClass('bg-red-100 text-red-800 border-red-200')
+                        .html(errorHTML)
+                        .fadeIn();
+
+                    // Re-enable tombol submit
+                    $('#btnSubmit').prop('disabled', false).html(`
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Booking Sekarang
+                    `);
+                }
+            });
+        });
 
         // Setup custom radio buttons
         function setupCustomRadios() {
@@ -691,53 +851,164 @@
             }
         });
 
-        // Memeriksa ketersediaan slot waktu
+        // Fungsi untuk memeriksa ketersediaan
         function checkAvailability() {
             const tanggal = $('#tanggal_booking').val();
 
-            if (!tanggal) return;
+            if (!tanggal) {
+                showAlert('warning', 'Silakan pilih tanggal terlebih dahulu');
+                return;
+            }
 
-            // Tampilkan indikator loading pada timeSlotGrid
-            $('#timeSlotGrid').addClass('opacity-50');
+            // Tampilkan loading
+            $('#timeSlotContainer').removeClass('hidden');
+            $('#bookingDateDisplay').html(`
+                <div class="flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memeriksa ketersediaan...</span>
+                </div>
+            `);
 
+            // Reset semua time slot
+            $('.time-slot').removeClass('bg-green-500 text-white border-green-500 bg-red-200 text-red-800 border-red-300 cursor-not-allowed')
+                .addClass('border-gray-200 hover:border-indigo-300 cursor-pointer')
+                .removeAttr('disabled')
+                .data('karyawan', []);
+
+            // Ambil durasi total dari paket yang dipilih
+            const durasiTotal = $('#durasi_total').val() || 60;
+
+            // Kirim request ke server
             $.ajax({
-                url: '<?= site_url('customer/booking/checkAvailability') ?>',
+                url: '<?= base_url('customer/booking/check-availability') ?>',
                 type: 'GET',
                 data: {
-                    tanggal: tanggal
+                    tanggal: tanggal,
+                    durasi: durasiTotal
                 },
                 dataType: 'json',
                 success: function(response) {
-                    // Hilangkan indikator loading
-                    $('#timeSlotGrid').removeClass('opacity-50');
-
                     if (response.status === 'success') {
-                        // Update status setiap slot waktu
-                        response.data.forEach(function(slot) {
-                            const timeSlot = $(`.time-slot[data-time="${slot.time}"]`);
+                        // Format tanggal untuk display
+                        const formattedDate = new Date(tanggal).toLocaleDateString('id-ID', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                        });
 
-                            // Jangan override status disabled (waktu yang sudah lewat)
-                            if (!timeSlot.hasClass('disabled')) {
-                                if (slot.status === 'booked') {
-                                    timeSlot.addClass('booked bg-red-200 text-gray-500');
-                                    timeSlot.attr('title', 'Slot penuh');
-                                } else {
-                                    timeSlot.removeClass('booked bg-red-200 text-gray-500');
-                                    if (!timeSlot.attr('title')) {
-                                        timeSlot.removeAttr('title');
-                                    }
-                                    timeSlot.data('available-karyawan', slot.availableKaryawan);
-                                }
+                        $('#bookingDateDisplay').html(`
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Ketersediaan untuk <span class="font-semibold">${formattedDate}</span>
+                        `);
+
+                        // Update status setiap time slot
+                        response.data.forEach(function(slot) {
+                            const $slot = $(`.time-slot[data-time="${slot.time}"]`);
+
+                            if (slot.status === 'available') {
+                                $slot.data('karyawan', slot.availableKaryawan);
+                                $slot.data('endTime', slot.endTime);
+                            } else {
+                                $slot.addClass('bg-red-200 text-red-800 border-red-300 cursor-not-allowed')
+                                    .removeClass('border-gray-200 hover:border-indigo-300 cursor-pointer')
+                                    .attr('disabled', true);
                             }
                         });
+                    } else {
+                        showAlert('error', response.message || 'Terjadi kesalahan saat memeriksa ketersediaan');
                     }
                 },
                 error: function() {
-                    $('#booking-alert')
-                        .removeClass('hidden bg-green-100 text-green-800')
-                        .addClass('bg-red-100 text-red-800')
-                        .html('Terjadi kesalahan saat memeriksa ketersediaan slot waktu')
-                        .fadeIn();
+                    showAlert('error', 'Terjadi kesalahan saat memeriksa ketersediaan');
+                }
+            });
+        }
+
+        // Fungsi untuk mendapatkan karyawan yang tersedia
+        function getAvailableKaryawan(jamstart) {
+            const tanggal = $('#tanggal_booking').val();
+            const durasiTotal = $('#durasi_total').val() || 60;
+
+            if (!tanggal || !jamstart) {
+                return;
+            }
+
+            // Tampilkan loading
+            $('#karyawanContainer').html(`
+                <div class="flex items-center justify-center p-4">
+                    <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memuat data karyawan...</span>
+                </div>
+            `);
+
+            // Kirim request ke server
+            $.ajax({
+                url: '<?= base_url('customer/booking/get-available-karyawan') ?>',
+                type: 'GET',
+                data: {
+                    tanggal: tanggal,
+                    jamstart: jamstart,
+                    durasi: durasiTotal
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success' && response.data.length > 0) {
+                        let html = '';
+
+                        response.data.forEach(function(karyawan, index) {
+                            const isChecked = index === 0 ? 'checked' : '';
+                            html += `
+                                <div class="karyawan-option">
+                                    <input type="radio" id="karyawan_${karyawan.id}" name="idkaryawan" value="${karyawan.id}" ${isChecked} class="hidden peer">
+                                    <label for="karyawan_${karyawan.id}" class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer transition-all peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:bg-gray-50">
+                                        <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-700">${karyawan.nama}</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            `;
+                        });
+
+                        $('#karyawanContainer').html(html);
+                        $('#karyawanSection').removeClass('hidden');
+
+                        // Set nilai karyawan pertama sebagai default
+                        if (response.data.length > 0) {
+                            $('input[name="idkaryawan"]:first').prop('checked', true);
+                        }
+                    } else {
+                        $('#karyawanContainer').html(`
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700">Tidak ada karyawan yang tersedia pada waktu ini. Silakan pilih waktu lain.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    }
+                },
+                error: function() {
+                    showAlert('error', 'Terjadi kesalahan saat memuat data karyawan');
                 }
             });
         }
@@ -964,19 +1235,47 @@
         $('#bookingForm').on('submit', function(e) {
             e.preventDefault();
 
-            const requiredFields = ['idpaket', 'tanggal_booking', 'jamstart', 'idkaryawan'];
             let isValid = true;
             let missingFields = [];
 
-            // Validasi semua field yang required
-            requiredFields.forEach(field => {
-                if (!$('#' + field).val()) {
-                    isValid = false;
-                    missingFields.push(field);
-                }
-            });
+            // Validasi paket dipilih
+            let paketSelected = false;
 
-            // Validasi pembayaran dipindahkan ke halaman payment.php
+            // Cek jika paket sudah dipilih dari landing page
+            if ($('#selectedPakets').length && $('#selectedPakets').val()) {
+                paketSelected = true;
+            } else {
+                // Cek jika paket dipilih melalui dropdown
+                $('.paket-select').each(function() {
+                    if ($(this).val()) {
+                        paketSelected = true;
+                        return false; // keluar dari loop
+                    }
+                });
+            }
+
+            if (!paketSelected) {
+                isValid = false;
+                missingFields.push('paket layanan');
+            }
+
+            // Validasi tanggal booking
+            if (!$('#tanggal_booking').val()) {
+                isValid = false;
+                missingFields.push('tanggal booking');
+            }
+
+            // Validasi jam mulai
+            if (!$('#jamstart').val()) {
+                isValid = false;
+                missingFields.push('jam booking');
+            }
+
+            // Validasi karyawan
+            if (!$('input[name="idkaryawan"]:checked').val()) {
+                isValid = false;
+                missingFields.push('karyawan');
+            }
 
             if (!isValid) {
                 // Scroll ke bagian atas form
@@ -993,6 +1292,7 @@
                         </div>
                         <div class="ml-3">
                             <h3 class="text-sm font-medium text-red-800">Harap isi semua field yang diperlukan</h3>
+                            <p class="mt-1 text-xs text-red-700">Field yang harus diisi: ${missingFields.join(', ')}</p>
                         </div>
                     </div>
                 `;
@@ -1215,6 +1515,181 @@
                 window.location.href = '<?= site_url('customer/booking/payment/') ?>' + bookingCode;
             }, 3000);
         }
+
+        // Fungsi untuk menghitung total harga dan durasi
+        function hitungTotal() {
+            totalHarga = 0;
+            totalDurasi = 0;
+            selectedPakets = [];
+
+            // Jika ada paket yang sudah dipilih dari landing page
+            if ($('#selectedPakets').length) {
+                const paketId = $('#selectedPakets').val();
+                const harga = parseFloat($('#selectedPakets').data('harga'));
+                const durasi = parseInt($('#selectedPakets').data('durasi'));
+
+                if (paketId && !isNaN(harga)) {
+                    totalHarga += harga;
+                    totalDurasi += durasi;
+                    selectedPakets.push({
+                        id: paketId,
+                        harga: harga,
+                        durasi: durasi
+                    });
+                }
+            }
+
+            // Hitung dari semua paket yang dipilih melalui dropdown
+            $('.paket-select').each(function() {
+                const $select = $(this);
+                const paketId = $select.val();
+
+                if (paketId) {
+                    const $option = $select.find('option:selected');
+                    const harga = parseFloat($option.data('harga'));
+                    const durasi = parseInt($option.data('durasi'));
+
+                    if (!isNaN(harga)) {
+                        totalHarga += harga;
+                        totalDurasi += durasi;
+                        selectedPakets.push({
+                            id: paketId,
+                            harga: harga,
+                            durasi: durasi
+                        });
+                    }
+                }
+            });
+
+            // Update tampilan total harga
+            $('#totalHarga').text('Rp. ' + formatNumber(totalHarga));
+            $('#totalDurasi').text(totalDurasi + ' menit');
+
+            // Update hidden input untuk total
+            $('#total').val(totalHarga);
+            $('#durasi_total').val(totalDurasi);
+
+            // Perbarui jam selesai berdasarkan durasi total
+            updateJamEnd();
+        }
+
+        // Fungsi untuk memformat angka sebagai mata uang
+        function formatNumber(num) {
+            return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+        }
+
+        // Fungsi untuk menambahkan paket baru
+        function tambahPaket() {
+            const newPaketHtml = `
+                <div class="paket-selection bg-white p-4 rounded-lg border border-gray-200 shadow-sm mt-3">
+                    <div class="flex justify-end mb-1">
+                        <button type="button" class="remove-paket text-red-500 hover:text-red-700 text-sm flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Hapus
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="idpaket_${paketCounter}" class="block mb-1 text-sm text-gray-700">Pilih Paket</label>
+                            <div class="relative">
+                                <select id="idpaket_${paketCounter}" name="idpaket[]" class="paket-select bg-white border border-gray-300 rounded-lg w-full p-3 appearance-none focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all" required>
+                                    <option value="" selected disabled>-- Pilih Paket --</option>
+                                    <?php foreach ($paketList as $paket): ?>
+                                        <option value="<?= $paket['idpaket'] ?>"
+                                            data-harga="<?= $paket['harga'] ?>"
+                                            data-durasi="<?= $paket['durasi'] ?? 60 ?>">
+                                            <?= $paket['namapaket'] ?> - Rp. <?= number_format($paket['harga'], 0, ',', '.') ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="paket-info hidden">
+                            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 h-full flex flex-col justify-center">
+                                <div class="text-sm text-gray-600">Durasi: <span class="paket-durasi font-medium">-</span> menit</div>
+                                <div class="text-sm text-gray-600 mt-1">Harga: <span class="paket-harga font-medium">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('#paketContainer').append(newPaketHtml);
+            paketCounter++;
+        }
+
+        // Fungsi untuk memperbarui jam selesai berdasarkan jam mulai dan durasi
+        function updateJamEnd() {
+            const jamStart = $('#jamstart').val();
+            if (jamStart && totalDurasi > 0) {
+                // Konversi jam mulai ke menit
+                const [hours, minutes] = jamStart.split(':').map(Number);
+                const startMinutes = hours * 60 + minutes;
+
+                // Tambahkan durasi total
+                const endMinutes = startMinutes + totalDurasi;
+
+                // Konversi kembali ke format jam
+                const endHours = Math.floor(endMinutes / 60) % 24;
+                const endMins = endMinutes % 60;
+
+                const formattedEndHours = endHours.toString().padStart(2, '0');
+                const formattedEndMins = endMins.toString().padStart(2, '0');
+
+                const jamEnd = `${formattedEndHours}:${formattedEndMins}`;
+                $('#jamend').val(jamEnd);
+            }
+        }
+
+        // Event handler untuk perubahan paket
+        $(document).on('change', '.paket-select', function() {
+            const $select = $(this);
+            const $paketInfo = $select.closest('.paket-selection').find('.paket-info');
+            const $durasi = $paketInfo.find('.paket-durasi');
+            const $harga = $paketInfo.find('.paket-harga');
+
+            if ($select.val()) {
+                const $option = $select.find('option:selected');
+                const harga = parseFloat($option.data('harga'));
+                const durasi = parseInt($option.data('durasi'));
+
+                $durasi.text(durasi);
+                $harga.text('Rp. ' + formatNumber(harga));
+                $paketInfo.removeClass('hidden');
+
+                hitungTotal();
+            } else {
+                $paketInfo.addClass('hidden');
+            }
+        });
+
+        // Event handler untuk tombol tambah paket
+        $(document).on('click', '#addPaket, #addMorePaket', function(e) {
+            e.preventDefault();
+            tambahPaket();
+            return false;
+        });
+
+        // Event handler untuk menghapus paket
+        $(document).on('click', '.remove-paket', function() {
+            $(this).closest('.paket-selection').remove();
+            hitungTotal();
+        });
+
+        // Perbarui jam end saat jam start berubah
+        $('#jamstart').on('change', function() {
+            updateJamEnd();
+        });
+
+        // Inisialisasi perhitungan total saat halaman dimuat
+        hitungTotal();
     });
 </script>
 <?= $this->endSection() ?>
