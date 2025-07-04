@@ -334,18 +334,81 @@ class Booking extends BaseController
                 ]);
             }
 
+            // Proses paket yang dipilih
+            $paketIds = $this->request->getPost('idpaket');
+
+            // Jika menggunakan UI baru dengan selectedPakets dalam format JSON
+            $selectedPakets = $this->request->getPost('selectedPakets');
+            if (empty($paketIds) && !empty($selectedPakets)) {
+                // Log raw input untuk debugging
+                log_message('debug', 'Raw selectedPakets: ' . $selectedPakets);
+
+                // Coba parse JSON
+                $decodedPakets = json_decode($selectedPakets, true);
+                if (is_array($decodedPakets)) {
+                    $paketIds = $decodedPakets;
+                    log_message('debug', 'Decoded JSON paket IDs: ' . json_encode($paketIds));
+                } else if (strpos($selectedPakets, ',') !== false) {
+                    // Fallback jika bukan JSON, mungkin string dengan koma
+                    $paketIds = explode(',', $selectedPakets);
+                    log_message('debug', 'Comma-separated paket IDs: ' . json_encode($paketIds));
+                } else {
+                    // Single value
+                    $paketIds = [$selectedPakets];
+                    log_message('debug', 'Single paket ID: ' . $selectedPakets);
+                }
+            }
+
+            // Jika hanya satu paket yang dipilih (dari landing page dengan input hidden)
+            if (empty($paketIds) && $this->request->getPost('selectedPakets')) {
+                if (is_string($this->request->getPost('selectedPakets')) && !is_array($paketIds)) {
+                    $paketIds = [$this->request->getPost('selectedPakets')];
+                    log_message('debug', 'Landing page paket ID: ' . $this->request->getPost('selectedPakets'));
+                }
+            }
+
+            // Pastikan $paketIds adalah array
+            if (!is_array($paketIds)) {
+                $paketIds = [$paketIds];
+            }
+
+            // Log untuk debugging
+            log_message('debug', 'Final paket IDs: ' . json_encode($paketIds));
+
+            // Log raw total value for debugging
+            log_message('debug', 'Raw total value: ' . print_r($data['total'], true));
+
+            // Selalu hitung total dari paket yang dipilih untuk memastikan nilai yang benar
+            $calculatedTotal = 0;
+            if (!empty($paketIds) && is_array($paketIds)) {
+                foreach ($paketIds as $paketId) {
+                    $paket = $this->paketModel->find($paketId);
+                    if ($paket) {
+                        $calculatedTotal += (int)$paket['harga'];
+                        log_message('debug', 'Adding paket: ' . $paket['idpaket'] . ' - ' . $paket['namapaket'] . ' with price: ' . $paket['harga']);
+                    }
+                }
+                log_message('debug', 'Calculated total from pakets: ' . $calculatedTotal);
+            }
+
+            // Gunakan total yang dihitung dari paket, bukan dari form
+            $total = $calculatedTotal;
+
             // Persiapkan data booking
             $bookingData = [
                 'kdbooking' => $kdbooking,
                 'idpelanggan' => $idPelanggan,
                 'tanggal_booking' => $data['tanggal_booking'],
                 'status' => 'pending', // default status untuk booking dari pelanggan
-                'total' => $data['total'],
+                'total' => $total, // Nilai total yang sudah diproses
                 'idkaryawan' => $data['idkaryawan'] ?? null,
                 'jenispembayaran' => 'Belum Bayar', // Set default jenispembayaran
                 'jumlahbayar' => 0, // Set default jumlahbayar
                 'expired_at' => date('Y-m-d H:i:s', strtotime('+5 minutes')), // Set expired time 5 menit dari sekarang
             ];
+
+            // Log data booking untuk debugging
+            log_message('debug', 'Booking data to be saved: ' . json_encode($bookingData));
 
             // Simpan data booking
             if (!$this->bookingModel->save($bookingData)) {
@@ -357,39 +420,73 @@ class Booking extends BaseController
                 ]);
             }
 
-            // Dapatkan data paket
-            $paket = $this->paketModel->find($data['idpaket']);
 
-            if (!$paket) {
-                $this->db->transRollback();
-                return $this->response->setStatusCode(400)->setJSON([
-                    'status' => 'error',
-                    'message' => 'Paket tidak ditemukan'
-                ]);
-            }
 
-            // Simpan detail booking
-            $detailData = [
-                'iddetail' => $this->detailBookingModel->generateDetailId(),
-                'tgl' => $data['tanggal_booking'],
-                'kdbooking' => $kdbooking,
-                'kdpaket' => $paket['idpaket'],
-                'nama_paket' => $paket['namapaket'],
-                'deskripsi' => $paket['deskripsi'],
-                'harga' => $paket['harga'],
-                'jamstart' => $data['jamstart'],
-                'jamend' => $data['jamend'] ?? date('H:i', strtotime($data['jamstart'] . ' +1 hour')),
-                'status' => '1', // 1 = Pending
-                'idkaryawan' => $data['idkaryawan'] ?? null,
-            ];
+            // Durasi total untuk menghitung jam selesai
+            $durasiTotal = 0;
+            $jamStart = $data['jamstart'];
 
-            if (!$this->detailBookingModel->save($detailData)) {
-                $this->db->transRollback();
-                return $this->response->setStatusCode(400)->setJSON([
-                    'status' => 'error',
-                    'message' => 'Gagal membuat detail booking',
-                    'errors' => $this->detailBookingModel->errors()
-                ]);
+            foreach ($paketIds as $paketId) {
+                // Log untuk debugging
+                log_message('debug', 'Processing paket ID: ' . $paketId);
+
+                // Dapatkan data paket
+                $paket = $this->paketModel->find($paketId);
+
+                if (!$paket) {
+                    $this->db->transRollback();
+                    log_message('error', 'Paket not found: ' . $paketId);
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'status' => 'error',
+                        'message' => 'Paket dengan ID ' . $paketId . ' tidak ditemukan',
+                        'debug' => [
+                            'paket_ids' => $paketIds,
+                            'current_id' => $paketId,
+                            'post_data' => $this->request->getPost()
+                        ]
+                    ]);
+                }
+
+                // Hitung jam selesai berdasarkan durasi paket
+                $durasi = $paket['durasi'] ?? 60; // Default 60 menit jika tidak ada durasi
+                $durasiTotal += $durasi;
+
+                // Konversi jam mulai ke menit
+                $jamStartParts = explode(':', $jamStart);
+                $startMinutes = (int)$jamStartParts[0] * 60 + (int)$jamStartParts[1];
+
+                // Hitung jam selesai untuk paket ini
+                $endMinutes = $startMinutes + $durasi;
+                $endHours = floor($endMinutes / 60) % 24;
+                $endMins = $endMinutes % 60;
+                $jamEnd = sprintf('%02d:%02d', $endHours, $endMins);
+
+                // Simpan detail booking untuk paket ini
+                $detailData = [
+                    'iddetail' => $this->detailBookingModel->generateDetailId(),
+                    'tgl' => $data['tanggal_booking'],
+                    'kdbooking' => $kdbooking,
+                    'kdpaket' => $paket['idpaket'],
+                    'nama_paket' => $paket['namapaket'],
+                    'deskripsi' => $paket['deskripsi'],
+                    'harga' => $paket['harga'],
+                    'jamstart' => $jamStart,
+                    'jamend' => $jamEnd,
+                    'status' => '1', // 1 = Pending
+                    'idkaryawan' => $data['idkaryawan'] ?? null,
+                ];
+
+                if (!$this->detailBookingModel->save($detailData)) {
+                    $this->db->transRollback();
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'status' => 'error',
+                        'message' => 'Gagal membuat detail booking untuk paket ' . $paket['namapaket'],
+                        'errors' => $this->detailBookingModel->errors()
+                    ]);
+                }
+
+                // Update jam mulai untuk paket berikutnya
+                $jamStart = $jamEnd;
             }
 
             // Buat notifikasi untuk admin tentang booking baru
@@ -507,9 +604,10 @@ class Booking extends BaseController
         $this->cleanupExpiredBookings();
 
         $tanggal = $this->request->getGet('tanggal');
+        $durasi = (int)$this->request->getGet('durasi') ?: 60; // Durasi total dalam menit, default 60 menit
 
         if (empty($tanggal)) {
-            return $this->response->setJSON([
+            return $this->response->setStatusCode(400)->setJSON([
                 'status' => 'error',
                 'message' => 'Tanggal harus diisi'
             ]);
@@ -518,7 +616,7 @@ class Booking extends BaseController
         // Format tanggal ke Y-m-d
         $tanggal = date('Y-m-d', strtotime($tanggal));
 
-        // Ambil semua booking yang ada pada tanggal tersebut
+        // Ambil semua booking di tanggal yang sama
         // Hanya ambil booking yang aktif (status != '0' dan booking.status != 'expired')
         $bookings = $this->db->table('detail_booking db')
             ->select('db.*, b.status as booking_status')
@@ -532,7 +630,7 @@ class Booking extends BaseController
         $karyawanList = $this->karyawanModel->where('status', 'aktif')->findAll();
         $karyawanIds = array_column($karyawanList, 'idkaryawan');
 
-        // Daftar slot waktu yang tersedia (jam operasional 09:00 - 21:00)
+        // Definisikan slot waktu (jam operasional)
         $slots = [
             '09:00',
             '10:00',
@@ -551,7 +649,10 @@ class Booking extends BaseController
         // Mengecek ketersediaan untuk setiap slot waktu
         $availability = [];
         foreach ($slots as $slot) {
-            $endTime = date('H:i', strtotime($slot . ' +1 hour'));
+            // Hitung jam selesai berdasarkan durasi yang diminta
+            $slotStartMinutes = $this->timeToMinutes($slot);
+            $slotEndMinutes = $slotStartMinutes + $durasi;
+            $endTime = $this->minutesToTime($slotEndMinutes);
 
             // Cari karyawan yang tersedia di slot ini
             $availableKaryawan = $karyawanIds;
@@ -567,10 +668,36 @@ class Booking extends BaseController
                 }
             }
 
+            // Periksa juga slot waktu berikutnya jika durasi > 60 menit
+            // Ini untuk memastikan karyawan tersedia selama seluruh durasi layanan
+            if ($durasi > 60) {
+                $hoursNeeded = ceil($durasi / 60);
+
+                // Periksa ketersediaan di slot waktu berikutnya
+                for ($i = 1; $i < $hoursNeeded; $i++) {
+                    $nextSlotStartMinutes = $slotStartMinutes + ($i * 60);
+                    $nextSlotTime = $this->minutesToTime($nextSlotStartMinutes);
+                    $nextSlotEndMinutes = $nextSlotStartMinutes + 60;
+                    $nextSlotEndTime = $this->minutesToTime($nextSlotEndMinutes);
+
+                    foreach ($bookings as $booking) {
+                        $bookingStart = $booking['jamstart'];
+                        $bookingEnd = $booking['jamend'];
+                        $bookingKaryawan = $booking['idkaryawan'];
+
+                        // Jika ada overlap di slot berikutnya, hapus karyawan dari daftar tersedia
+                        if ($this->isOverlapping($nextSlotTime, $nextSlotEndTime, $bookingStart, $bookingEnd) && in_array($bookingKaryawan, $availableKaryawan)) {
+                            $availableKaryawan = array_diff($availableKaryawan, [$bookingKaryawan]);
+                        }
+                    }
+                }
+            }
+
             $status = count($availableKaryawan) > 0 ? 'available' : 'booked';
 
             $availability[] = [
                 'time' => $slot,
+                'endTime' => $endTime,
                 'status' => $status,
                 'availableKaryawan' => $availableKaryawan
             ];
@@ -599,6 +726,7 @@ class Booking extends BaseController
 
         $tanggal = $this->request->getGet('tanggal');
         $jamstart = $this->request->getGet('jamstart');
+        $durasi = (int)$this->request->getGet('durasi') ?: 60; // Durasi total dalam menit, default 60 menit
 
         if (empty($tanggal) || empty($jamstart)) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -610,10 +738,12 @@ class Booking extends BaseController
         // Format tanggal ke Y-m-d
         $tanggal = date('Y-m-d', strtotime($tanggal));
 
-        // Jam selesai (1 jam setelah jam mulai)
-        $jamend = date('H:i', strtotime($jamstart . ' +1 hour'));
+        // Hitung jam selesai berdasarkan durasi
+        $startMinutes = $this->timeToMinutes($jamstart);
+        $endMinutes = $startMinutes + $durasi;
+        $jamend = $this->minutesToTime($endMinutes);
 
-        // Ambil semua booking di slot waktu yang sama
+        // Ambil semua booking di tanggal yang sama
         // Hanya ambil booking yang aktif (status != '0' dan booking.status != 'expired')
         $bookings = $this->db->table('detail_booking db')
             ->select('db.*, b.status as booking_status')
@@ -632,18 +762,29 @@ class Booking extends BaseController
         foreach ($karyawanList as $karyawan) {
             $isAvailable = true;
 
-            foreach ($bookings as $booking) {
-                $bookingStart = $booking['jamstart'];
-                $bookingEnd = $booking['jamend'];
-                $bookingKaryawan = $booking['idkaryawan'];
+            // Periksa ketersediaan karyawan untuk seluruh durasi layanan
+            $hoursNeeded = ceil($durasi / 60);
 
-                // Jika karyawan sama dan waktunya overlap, tandai tidak tersedia
-                if (
-                    $bookingKaryawan == $karyawan['idkaryawan'] &&
-                    $this->isOverlapping($jamstart, $jamend, $bookingStart, $bookingEnd)
-                ) {
-                    $isAvailable = false;
-                    break;
+            // Periksa setiap jam dalam rentang durasi
+            for ($i = 0; $i < $hoursNeeded; $i++) {
+                $currentSlotStartMinutes = $startMinutes + ($i * 60);
+                $currentSlotTime = $this->minutesToTime($currentSlotStartMinutes);
+                $currentSlotEndMinutes = min($currentSlotStartMinutes + 60, $endMinutes); // Jangan melebihi jam akhir
+                $currentSlotEndTime = $this->minutesToTime($currentSlotEndMinutes);
+
+                foreach ($bookings as $booking) {
+                    $bookingStart = $booking['jamstart'];
+                    $bookingEnd = $booking['jamend'];
+                    $bookingKaryawan = $booking['idkaryawan'];
+
+                    // Jika karyawan sama dan waktunya overlap, tandai tidak tersedia
+                    if (
+                        $bookingKaryawan == $karyawan['idkaryawan'] &&
+                        $this->isOverlapping($currentSlotTime, $currentSlotEndTime, $bookingStart, $bookingEnd)
+                    ) {
+                        $isAvailable = false;
+                        break 2; // Keluar dari kedua loop jika ditemukan konflik
+                    }
                 }
             }
 
@@ -668,6 +809,25 @@ class Booking extends BaseController
     private function isOverlapping($start1, $end1, $start2, $end2)
     {
         return ((strtotime($start1) < strtotime($end2)) && (strtotime($end1) > strtotime($start2)));
+    }
+
+    /**
+     * Helper: Konversi waktu format HH:MM ke menit
+     */
+    private function timeToMinutes($time)
+    {
+        list($hours, $minutes) = explode(':', $time);
+        return (int)$hours * 60 + (int)$minutes;
+    }
+
+    /**
+     * Helper: Konversi menit ke waktu format HH:MM
+     */
+    private function minutesToTime($minutes)
+    {
+        $hours = floor($minutes / 60) % 24;
+        $mins = $minutes % 60;
+        return sprintf('%02d:%02d', $hours, $mins);
     }
 
     /**
