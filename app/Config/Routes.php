@@ -96,6 +96,11 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->post('updateStatus', 'Admin\BookingNewController::updateStatus');
         $routes->post('getPaymentInfo', 'Admin\BookingNewController::getPaymentInfo');
         $routes->post('print-invoice', 'Admin\BookingNewController::print_invoice');
+
+        // Endpoint untuk multiple paket
+        $routes->get('get-pelanggan', 'Admin\BookingNewController::getAllPelanggan');
+        $routes->post('check-available-slots', 'Admin\BookingNewController::checkAvailableTimeSlots');
+        $routes->post('check-available-karyawan', 'Admin\BookingNewController::checkAvailableKaryawan');
     });
 
     // Karyawan Routes
