@@ -140,18 +140,16 @@
                         <h2 class="text-xl font-semibold text-gray-800">Informasi Layanan</h2>
                     </div>
 
-                    <!-- Container untuk informasi durasi -->
-                    <div id="durasiInfo" class="hidden"></div>
-
                     <div class="space-y-5">
                         <?php if ($selectedPaket): ?>
                             <!-- Jika paket sudah dipilih dari landing page -->
                             <div>
-                                <label class="block mb-2 text-gray-700 font-medium">Paket Layanan</label>
                                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-start">
                                     <div class="flex-shrink-0 mr-4">
                                         <?php if (!empty($selectedPaket['gambar'])): ?>
                                             <img src="<?= base_url('uploads/paket/' . $selectedPaket['gambar']) ?>" alt="<?= $selectedPaket['namapaket'] ?>" class="w-20 h-20 object-cover rounded-lg shadow-sm">
+                                        <?php elseif (!empty($selectedPaket['image'])): ?>
+                                            <img src="<?= base_url('uploads/paket/' . $selectedPaket['image']) ?>" alt="<?= $selectedPaket['namapaket'] ?>" class="w-20 h-20 object-cover rounded-lg shadow-sm">
                                         <?php else: ?>
                                             <div class="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -179,7 +177,6 @@
                         <?php else: ?>
                             <!-- Jika paket belum dipilih, tampilkan pilihan paket -->
                             <div>
-                                <label class="block mb-2 text-gray-700 font-medium">Pilih Paket Layanan</label>
                                 <div id="paketContainer">
                                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         <?php foreach ($paketList as $paket): ?>
@@ -188,7 +185,10 @@
                                                 data-harga="<?= $paket['harga'] ?>"
                                                 data-durasi="<?= $paket['durasi'] ?? 60 ?>">
                                                 <div class="relative h-40 bg-gray-100">
-                                                    <?php if (!empty($paket['image'])): ?>
+                                                    <?php if (!empty($paket['gambar'])): ?>
+                                                        <img src="<?= base_url('uploads/paket/' . $paket['gambar']) ?>" alt="<?= $paket['namapaket'] ?>"
+                                                            class="w-full h-full object-cover">
+                                                    <?php elseif (!empty($paket['image'])): ?>
                                                         <img src="<?= base_url('uploads/paket/' . $paket['image']) ?>" alt="<?= $paket['namapaket'] ?>"
                                                             class="w-full h-full object-cover">
                                                     <?php else: ?>
@@ -339,18 +339,30 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <p class="text-gray-600 mb-1">Total Durasi:</p>
-                                <p class="text-lg font-semibold text-gray-800" id="totalDurasi">0 menit</p>
+                                <p class="text-lg font-semibold text-gray-800" id="totalDurasi">
+                                    <?php if (isset($selectedPaket['durasi'])): ?>
+                                        <?= $selectedPaket['durasi'] ?> menit
+                                    <?php else: ?>
+                                        0 menit
+                                    <?php endif; ?>
+                                </p>
                             </div>
                             <div>
                                 <p class="text-gray-600 mb-1">Total Harga:</p>
-                                <p class="text-lg font-semibold text-indigo-600" id="totalHarga">Rp. 0</p>
+                                <p class="text-lg font-semibold text-indigo-600" id="totalHarga">
+                                    <?php if (isset($selectedPaket['harga'])): ?>
+                                        Rp. <?= number_format($selectedPaket['harga'], 0, ',', '.') ?>
+                                    <?php else: ?>
+                                        Rp. 0
+                                    <?php endif; ?>
+                                </p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Hidden input untuk menyimpan total -->
-                    <input type="hidden" id="total" name="total" value="0">
-                    <input type="hidden" id="durasi_total" name="durasi_total" value="0">
+                    <input type="hidden" id="total" name="total" value="<?= isset($selectedPaket['harga']) ? $selectedPaket['harga'] : 0 ?>">
+                    <input type="hidden" id="durasi_total" name="durasi_total" value="<?= isset($selectedPaket['durasi']) ? $selectedPaket['durasi'] : 0 ?>">
                 </div>
 
                 <!-- Opsi Pembayaran -->
@@ -506,6 +518,58 @@
         let totalDurasi = 0;
         let selectedPakets = [];
 
+        // Debug mode untuk membantu pencarian bug
+        const DEBUG = true;
+
+        function debug(message, data) {
+            if (DEBUG) console.log(message, data || '');
+        }
+
+        // Ketika paket dipilih dari landing page, langsung update summary
+        if ($('#selectedPakets').length) {
+            // Ambil data paket yang sudah dipilih
+            const paketId = $('#selectedPakets').val();
+            const paketHarga = parseFloat($('#selectedPakets').data('harga'));
+            const paketDurasi = parseInt($('#selectedPakets').data('durasi') || 60);
+
+            debug('Paket dari URL detected', {
+                id: paketId,
+                harga: paketHarga,
+                durasi: paketDurasi
+            });
+
+            // Inisialisasi nilai awal
+            totalHarga = paketHarga;
+            totalDurasi = paketDurasi;
+
+            // Update tampilan
+            $('#totalHarga').text('Rp. ' + formatNumber(totalHarga));
+            $('#totalDurasi').text(totalDurasi + ' menit');
+
+            // Update hidden input untuk total
+            $('#total').val(totalHarga);
+            $('#durasi_total').val(totalDurasi);
+
+            // Log untuk debugging
+            debug('Inisialisasi paket dari URL', {
+                id: paketId,
+                harga: paketHarga,
+                durasi: paketDurasi,
+                totalHarga: totalHarga,
+                totalDurasi: totalDurasi
+            });
+
+            // Tampilkan informasi durasi
+            setTimeout(function() {
+                updateDurasiInfo(true);
+            }, 500);
+
+            // Pastikan tombol Submit aktif jika paket sudah dipilih
+            if (!$('#tanggal_booking').val()) {
+                $('#btnSubmit').prop('disabled', true);
+            }
+        }
+
         // Event handler untuk tombol tambah paket
         // Hapus event handler yang mungkin sudah terdaftar sebelumnya untuk mencegah duplikasi
         $(document).off('click', '#addPaket, #addMorePaket');
@@ -516,6 +580,13 @@
             e.stopPropagation();
             console.log('Tambah paket diklik');
             tambahPaket();
+
+            // Pastikan tanggal booking tidak hilang dengan men-trigger event change
+            // jika sudah ada tanggal yang dipilih sebelumnya
+            if ($('#tanggal_booking').val()) {
+                $('#tanggal_booking').trigger('change');
+            }
+
             return false;
         });
 
@@ -824,10 +895,6 @@
         // Initialize form with no payment options selected
         // Hiding min payment info initially - will only show when payment type is selected
 
-        // Jika paket sudah dipilih dari landing page, langsung update summary
-        if ($('#selectedPakets').length) {
-            updateSummary();
-        }
         // Format tanggal untuk tampilan
         function formatTanggal(tanggal) {
             const options = {
@@ -852,6 +919,12 @@
         // Ketika tanggal dipilih
         $('#tanggal_booking').on('change', function() {
             const selectedDate = $(this).val();
+
+            // Jika tanggal dipilih, hilangkan alert
+            if (selectedDate) {
+                $('#booking-alert').fadeOut();
+                $(this).removeClass('border-yellow-400 ring-2 ring-yellow-200');
+            }
 
             if (selectedDate) {
                 // Format tanggal untuk tampilan
@@ -1144,7 +1217,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-yellow-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                     </svg>
-                                    <p class="text-lg font-medium text-gray-700">Tidak ada karyawan yang tersedia pada slot waktu ini</p>
+                                    <p class="text-lg font-medium text-gray-700">Jadwal sudah penuh</p>
                                     <p class="text-gray-500 mt-1">Silakan pilih waktu lain</p>
                                 </div>
                             `;
@@ -1323,9 +1396,48 @@
         // Form submit
         $('#bookingForm').on('submit', function(e) {
             e.preventDefault();
+            console.log('Form submit triggered');
 
-            let isValid = true;
-            let missingFields = [];
+            // Reset semua validasi visual
+            $('.form-control-error').removeClass('form-control-error');
+
+            // Validasi khusus untuk tanggal booking
+            if (!$('#tanggal_booking').val()) {
+                console.log('Tanggal booking tidak diisi');
+
+                // Tampilkan alert khusus untuk tanggal yang belum dipilih
+                let dateAlertHTML = `
+                    <div class="flex bg-yellow-100 rounded-lg p-4 mb-4 text-sm text-yellow-700 border border-yellow-200">
+                        <svg class="w-5 h-5 inline mr-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div>
+                            <span class="font-medium">Perhatian!</span> Silakan pilih tanggal booking terlebih dahulu.
+                        </div>
+                    </div>
+                `;
+
+                $('#booking-alert')
+                    .removeClass('hidden')
+                    .removeClass('bg-red-100 text-red-800 border-red-200 bg-green-100 text-green-800 border-green-200')
+                    .addClass('bg-yellow-100 text-yellow-800 border-yellow-200')
+                    .html(dateAlertHTML)
+                    .show();
+
+                // Scroll ke input tanggal dan berikan efek highlight
+                $('html, body').animate({
+                    scrollTop: $('#tanggal_booking').offset().top - 120
+                }, 500);
+
+                $('#tanggal_booking').addClass('border-yellow-400 ring-2 ring-yellow-200');
+
+                // Hapus highlight setelah beberapa detik
+                setTimeout(function() {
+                    $('#tanggal_booking').removeClass('border-yellow-400 ring-2 ring-yellow-200');
+                }, 3000);
+
+                return false;
+            }
 
             // Validasi paket dipilih
             let paketSelected = false;
@@ -1357,7 +1469,10 @@
             }
 
             // Validasi karyawan
-            if (!$('input[name="idkaryawan"]:checked').val()) {
+            const karyawanId = $('#idkaryawan').val();
+            console.log('Validasi karyawan:', karyawanId); // Log untuk debugging
+
+            if (!karyawanId) {
                 isValid = false;
                 missingFields.push('karyawan');
             }
@@ -1389,6 +1504,8 @@
                     .fadeIn();
                 return;
             }
+
+            // Kode existing setelahnya tetap sama...
 
             // Disable tombol submit untuk mencegah double submit
             $('#btnSubmit').prop('disabled', true).html(`
@@ -1607,7 +1724,24 @@
             totalDurasi = 0;
             selectedPakets = [];
 
-            // Ambil semua paket yang dipilih
+            // Jika ada paket yang dipilih dari URL parameter dan belum klik "Tambah Paket"
+            if ($('#selectedPakets').length) {
+                const paketId = $('#selectedPakets').val();
+                const harga = parseFloat($('#selectedPakets').data('harga'));
+                const durasi = parseInt($('#selectedPakets').data('durasi')) || 60;
+
+                if (paketId && !isNaN(harga)) {
+                    totalHarga = harga;
+                    totalDurasi = durasi;
+                    selectedPakets.push({
+                        id: paketId,
+                        harga: harga,
+                        durasi: durasi
+                    });
+                }
+            }
+
+            // Ambil semua paket yang dipilih di UI cards
             $('.selected-paket-item').each(function() {
                 const $item = $(this);
                 const paketId = $item.data('id');
@@ -1634,68 +1768,10 @@
             $('#durasi_total').val(totalDurasi);
 
             // Debug total value
-            console.log('Total harga updated:', totalHarga, 'Type:', typeof totalHarga);
+            console.log('Total harga updated:', totalHarga, 'Type:', typeof totalHarga, 'Total durasi:', totalDurasi);
 
-            // Tampilkan informasi durasi dan jam selesai yang lebih jelas
-            if (totalDurasi > 0) {
-                // Hitung jam selesai berdasarkan jam mulai yang dipilih dan durasi total
-                const jamMulai = $('#jamstart').val();
-                if (jamMulai) {
-                    const [jam, menit] = jamMulai.split(':');
-                    let jamMulaiMenit = (parseInt(jam) * 60) + parseInt(menit);
-                    let jamSelesaiMenit = jamMulaiMenit + totalDurasi;
-
-                    // Format jam selesai
-                    let jamSelesai = Math.floor(jamSelesaiMenit / 60);
-                    let menitSelesai = jamSelesaiMenit % 60;
-                    let jamSelesaiStr = `${jamSelesai.toString().padStart(2, '0')}:${menitSelesai.toString().padStart(2, '0')}`;
-
-                    // Update tampilan jam selesai
-                    $('#jamend').val(jamSelesaiStr);
-
-                    // Tampilkan informasi durasi yang lebih jelas
-                    let durasiInfo = '';
-                    if (totalDurasi >= 60) {
-                        const jam = Math.floor(totalDurasi / 60);
-                        const menit = totalDurasi % 60;
-                        durasiInfo = `${jam} jam`;
-                        if (menit > 0) {
-                            durasiInfo += ` ${menit} menit`;
-                        }
-                    } else {
-                        durasiInfo = `${totalDurasi} menit`;
-                    }
-
-                    // Tambahkan informasi durasi dan jam selesai ke UI
-                    $('#durasiInfo').html(`
-                        <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                            <h4 class="font-medium text-blue-800">Informasi Durasi Layanan</h4>
-                            <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span class="text-gray-700">Total Durasi: <span class="font-medium">${durasiInfo}</span></span>
-                                </div>
-                                <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span class="text-gray-700">Jam Selesai: <span class="font-medium">${jamSelesaiStr}</span></span>
-                                </div>
-                            </div>
-                            <p class="mt-2 text-sm text-blue-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Karyawan akan dibooking untuk durasi ini dan tidak tersedia untuk pelanggan lain.
-                            </p>
-                        </div>
-                    `).removeClass('hidden');
-                }
-            } else {
-                $('#durasiInfo').addClass('hidden');
-            }
+            // Update informasi durasi
+            updateDurasiInfo();
 
             // Update selected paket IDs - pastikan format array untuk server
             if (selectedPakets.length > 0) {
@@ -1703,8 +1779,14 @@
                 const selectedIds = selectedPakets.map(p => p.id);
                 $('#selectedPaketIds').val(JSON.stringify(selectedIds));
                 console.log('Selected paket IDs:', selectedIds);
+
+                // Enable tombol submit jika paket sudah dipilih dan tanggal sudah dipilih
+                if ($('#tanggal_booking').val()) {
+                    $('#btnSubmit').prop('disabled', false);
+                }
             } else {
                 $('#selectedPaketIds').val('');
+                $('#btnSubmit').prop('disabled', true);
             }
 
             // Perbarui jam selesai berdasarkan durasi total
@@ -1724,29 +1806,33 @@
                 const selectedPaketId = $('#selectedPakets').val();
                 const selectedPaketHarga = $('#selectedPakets').data('harga');
                 const selectedPaketDurasi = $('#selectedPakets').data('durasi') || 60;
-                const selectedPaketName = $('.font-semibold.text-lg.text-gray-800').text();
+                const selectedPaketName = $('.bg-gray-50.p-4 h3.font-semibold.text-lg').text().trim();
 
                 // Hapus tampilan paket yang dipilih dari landing page
                 const paketContainer = $('.bg-gray-50.p-4.rounded-lg.border.border-gray-200.flex.items-start');
                 if (paketContainer.length) {
                     paketContainer.closest('div').remove();
                 } else {
-                    $('div:has(> #selectedPakets)').parent().find('> div:first').remove();
+                    // Hanya hapus div yang berisi paket yang dipilih
+                    $('div:has(> #selectedPakets)').remove();
                 }
 
                 // Buat container paket baru dengan UI card
                 const paketContainerHtml = `
                     <div>
-                        <label class="block mb-2 text-gray-700 font-medium">Pilih Paket Layanan</label>
                         <div id="paketContainer">
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 <?php foreach ($paketList as $paket): ?>
                                     <div class="paket-card border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer" 
                                         data-id="<?= $paket['idpaket'] ?>" 
                                         data-harga="<?= $paket['harga'] ?>" 
-                                        data-durasi="<?= $paket['durasi'] ?? 60 ?>">
+                                        data-durasi="<?= $paket['durasi'] ?? 60 ?>"
+                                        data-image="<?= !empty($paket['gambar']) ? $paket['gambar'] : (!empty($paket['image']) ? $paket['image'] : '') ?>">
                                         <div class="relative h-40 bg-gray-100">
-                                            <?php if (!empty($paket['image'])): ?>
+                                            <?php if (!empty($paket['gambar'])): ?>
+                                                <img src="<?= base_url('uploads/paket/' . $paket['gambar']) ?>" alt="<?= $paket['namapaket'] ?>" 
+                                                    class="w-full h-full object-cover">
+                                            <?php elseif (!empty($paket['image'])): ?>
                                                 <img src="<?= base_url('uploads/paket/' . $paket['image']) ?>" alt="<?= $paket['namapaket'] ?>" 
                                                     class="w-full h-full object-cover">
                                             <?php else: ?>
@@ -1781,8 +1867,15 @@
                     </div>
                 `;
 
-                // Tambahkan container paket baru ke dalam DOM
-                $('div:has(> #selectedPakets)').parent().html(paketContainerHtml);
+                // Tambahkan container paket baru ke dalam DOM, segera setelah label "Informasi Layanan"
+                const layananHeading = $('.text-xl.font-semibold:contains("Informasi Layanan")');
+                if (layananHeading.length) {
+                    layananHeading.closest('.flex').after(paketContainerHtml);
+                } else {
+                    // Fallback jika heading tidak ditemukan
+                    const dataBookingSection = $('#durasiInfo').closest('.bg-white');
+                    dataBookingSection.find('.space-y-5').prepend(paketContainerHtml);
+                }
 
                 // Hapus input hidden selectedPakets
                 $('#selectedPakets').remove();
@@ -1801,16 +1894,42 @@
                 return;
             }
 
+            // Bersihkan nama paket dari karakter tidak perlu
+            const cleanedNama = nama.replace(/\d+\s*menit\s*Opsi Pembayaran/g, '').trim();
+
             const formattedHarga = formatNumber(harga);
+
+            // Cari gambar paket dari card
+            let imageSrc = '';
+            const paketCard = $(`.paket-card[data-id="${id}"]`);
+
+            if (paketCard.length) {
+                const cardImage = paketCard.find('img');
+                if (cardImage.length) {
+                    imageSrc = cardImage.attr('src');
+                }
+            }
 
             const paketHTML = `
                 <div id="selected-paket-${id}" class="selected-paket-item bg-white border border-gray-200 rounded-lg p-3 flex items-center justify-between" 
                     data-id="${id}" data-harga="${harga}" data-durasi="${durasi}">
+                    <div class="flex items-center">
+                        ${imageSrc ? 
+                        `<div class="w-12 h-12 rounded-md overflow-hidden mr-3 flex-shrink-0">
+                            <img src="${imageSrc}" alt="${cleanedNama}" class="w-full h-full object-cover">
+                         </div>` : 
+                        `<div class="w-12 h-12 bg-gray-100 rounded-md mr-3 flex-shrink-0 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                         </div>`
+                        }
                     <div>
-                        <h4 class="font-medium text-gray-800">${nama}</h4>
+                            <h4 class="font-medium text-gray-800">${cleanedNama}</h4>
                         <div class="flex items-center text-sm">
                             <span class="text-indigo-600 font-semibold mr-3">Rp. ${formattedHarga}</span>
                             <span class="text-gray-500">${durasi} menit</span>
+                            </div>
                         </div>
                     </div>
                     <button type="button" class="remove-selected-paket text-red-500 hover:text-red-700 p-1">
@@ -1822,13 +1941,15 @@
             `;
 
             $('#selectedPaketsContainer').append(paketHTML);
+            $('#selectedPaketsContainer').removeClass('hidden');
 
             // Log untuk debugging
             console.log('Paket ditambahkan:', {
                 id,
-                nama,
+                nama: cleanedNama,
                 harga,
-                durasi
+                durasi,
+                imageSrc
             });
 
             hitungTotal();
@@ -1931,6 +2052,52 @@
 
         // Inisialisasi perhitungan total saat halaman dimuat
         hitungTotal();
+
+        // Fungsi untuk memperbarui informasi durasi
+        function updateDurasiInfo(isInitial) {
+            debug('Memperbarui informasi durasi', {
+                totalDurasi,
+                isInitial
+            });
+
+            if (totalDurasi > 0) {
+                // Hitung jam selesai berdasarkan jam mulai yang dipilih dan durasi total
+                const jamMulai = $('#jamstart').val();
+
+                // Tampilkan informasi durasi yang lebih jelas
+                let durasiInfo = '';
+                if (totalDurasi >= 60) {
+                    const jam = Math.floor(totalDurasi / 60);
+                    const menit = totalDurasi % 60;
+                    durasiInfo = `${jam} jam`;
+                    if (menit > 0) {
+                        durasiInfo += ` ${menit} menit`;
+                    }
+                } else {
+                    durasiInfo = `${totalDurasi} menit`;
+                }
+
+                // Update jam selesai jika ada jam mulai
+                if (jamMulai) {
+                    const [jam, menit] = jamMulai.split(':');
+                    let jamMulaiMenit = (parseInt(jam) * 60) + parseInt(menit);
+                    let jamSelesaiMenit = jamMulaiMenit + totalDurasi;
+
+                    // Format jam selesai
+                    let jamSelesai = Math.floor(jamSelesaiMenit / 60);
+                    let menitSelesai = jamSelesaiMenit % 60;
+                    let jamSelesaiStr = `${jamSelesai.toString().padStart(2, '0')}:${menitSelesai.toString().padStart(2, '0')}`;
+
+                    // Update tampilan jam selesai
+                    $('#jamend').val(jamSelesaiStr);
+                }
+
+                // Kosongkan container durasi info untuk menghilangkan teks
+                $('#durasiInfo').html('').addClass('hidden');
+            } else {
+                $('#durasiInfo').addClass('hidden');
+            }
+        }
     });
 </script>
 <?= $this->endSection() ?>
@@ -1956,6 +2123,26 @@
 
     .animate__fadeIn {
         animation-name: fadeIn;
+    }
+
+    /* Styling untuk input tanggal saat validasi */
+    @keyframes pulseBorder {
+        0% {
+            box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.6);
+        }
+
+        70% {
+            box-shadow: 0 0 0 6px rgba(250, 204, 21, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(250, 204, 21, 0);
+        }
+    }
+
+    .border-yellow-400.ring-2 {
+        animation: pulseBorder 1.5s infinite;
+        transition: all 0.3s ease;
     }
 
     /* Style untuk tombol radio */

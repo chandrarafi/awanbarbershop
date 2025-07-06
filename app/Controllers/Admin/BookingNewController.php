@@ -53,7 +53,7 @@ class BookingNewController extends BaseController
             'paketList' => $paketModel->findAll(),
         ];
 
-        return view('admin/booking_new/create', $data);
+        return view('admin/booking_new/create_multi', $data);
     }
 
     public function getBookings()
@@ -74,13 +74,32 @@ class BookingNewController extends BaseController
         $filterStatus = $request->getGet('status'); // Filter berdasarkan status
         $dateFilter = $request->getGet('date_filter'); // Filter berdasarkan tanggal
 
+        // Parameter untuk mengelompokkan berdasarkan kode booking
+        $groupByKdbooking = false;
+        if ($request->getGet('group_by_kdbooking')) {
+            $groupByKdbooking = ($request->getGet('group_by_kdbooking') === 'true');
+        }
+
         // Query dasar dengan joins untuk data lengkap dan informasi waktu booking dari detail_booking
-        $builder = $this->db->table('booking b')
-            ->select('b.*, p.nama_lengkap, p.no_hp, k.namakaryawan, db.jamstart, db.jamend')
-            ->join('pelanggan p', 'p.idpelanggan = b.idpelanggan', 'left')
-            ->join('karyawan k', 'k.idkaryawan = b.idkaryawan', 'left')
-            ->join('detail_booking db', 'db.kdbooking = b.kdbooking', 'left')
-            ->orderBy('b.created_at', 'DESC');
+        if ($groupByKdbooking) {
+            // Query untuk mengelompokkan booking berdasarkan kode booking
+            $builder = $this->db->table('booking b')
+                ->select('b.*, p.nama_lengkap, p.no_hp, k.namakaryawan, 
+                          (SELECT COUNT(*) FROM detail_booking WHERE kdbooking = b.kdbooking) as jumlah_paket,
+                          (SELECT GROUP_CONCAT(CONCAT(jamstart, "-", jamend) ORDER BY jamstart SEPARATOR ", ") FROM detail_booking WHERE kdbooking = b.kdbooking) as jam_detail')
+                ->join('pelanggan p', 'p.idpelanggan = b.idpelanggan', 'left')
+                ->join('karyawan k', 'k.idkaryawan = b.idkaryawan', 'left')
+                ->groupBy('b.kdbooking')
+                ->orderBy('b.created_at', 'DESC');
+        } else {
+            // Query dasar dengan joins untuk data lengkap dan informasi waktu booking dari detail_booking
+            $builder = $this->db->table('booking b')
+                ->select('b.*, p.nama_lengkap, p.no_hp, k.namakaryawan, db.jamstart, db.jamend')
+                ->join('pelanggan p', 'p.idpelanggan = b.idpelanggan', 'left')
+                ->join('karyawan k', 'k.idkaryawan = b.idkaryawan', 'left')
+                ->join('detail_booking db', 'db.kdbooking = b.kdbooking', 'left')
+                ->orderBy('b.created_at', 'DESC');
+        }
 
         // Total records (cache result)
         $totalRecords = $this->db->table('booking')->countAllResults();
@@ -128,6 +147,14 @@ class BookingNewController extends BaseController
             // Dapatkan status yang lebih user-friendly
             $statusText = $this->getStatusText($row['status']);
 
+            // Format detail jam jika menggunakan pengelompokan
+            $detailJam = null;
+            if (isset($row['jam_detail'])) {
+                $detailJam = $row['jam_detail'];
+            } elseif (!empty($row['jamstart'])) {
+                $detailJam = $row['jamstart'] . ' - ' . $row['jamend'];
+            }
+
             return [
                 'kdbooking' => $row['kdbooking'],
                 'nama_lengkap' => $row['nama_lengkap'] ?? 'Pelanggan tidak ditemukan',
@@ -141,7 +168,8 @@ class BookingNewController extends BaseController
                 'jumlahbayar' => $row['jumlahbayar'],
                 'jumlahbayar_formatted' => 'Rp ' . number_format($row['jumlahbayar'], 0, ',', '.'),
                 'namakaryawan' => $row['namakaryawan'] ?? 'Belum ditentukan',
-                'detail_jam' => !empty($row['jamstart']) ? $row['jamstart'] . ' - ' . $row['jamend'] : null,
+                'jumlah_paket' => $row['jumlah_paket'] ?? 1,
+                'detail_jam' => $detailJam,
                 'actions' => ''
             ];
         }, $results);
@@ -175,8 +203,12 @@ class BookingNewController extends BaseController
         try {
             $data = $this->request->getPost();
 
+            // Log data yang diterima untuk debugging
+            log_message('debug', 'Data POST yang diterima: ' . json_encode($data));
+
             // Generate kode booking baru
             $kdbooking = $this->bookingModel->generateBookingCode();
+            log_message('debug', 'Kode booking yang dibuat: ' . $kdbooking);
 
             // Periksa secara manual apakah kdbooking sudah ada di database
             $existingBooking = $this->bookingModel->find($kdbooking);
@@ -188,95 +220,179 @@ class BookingNewController extends BaseController
                 ]);
             }
 
-            // Persiapkan data booking
+            // Validasi data
+            if (
+                empty($data['idpelanggan']) || empty($data['tanggal_booking']) ||
+                empty($data['jamstart']) || empty($data['idkaryawan'])
+            ) {
+                $this->db->transRollback();
+                return $this->response->setStatusCode(400)->setJSON([
+                    'status' => 'error',
+                    'message' => 'Data tidak lengkap'
+                ]);
+            }
+
+            // Validasi paket yang dipilih
+            if (empty($data['selected_pakets'])) {
+                $this->db->transRollback();
+                return $this->response->setStatusCode(400)->setJSON([
+                    'status' => 'error',
+                    'message' => 'Tidak ada paket yang dipilih'
+                ]);
+            }
+
+            // Decode paket yang dipilih
+            $selectedPakets = json_decode($data['selected_pakets'], true);
+            if (empty($selectedPakets)) {
+                $this->db->transRollback();
+                return $this->response->setStatusCode(400)->setJSON([
+                    'status' => 'error',
+                    'message' => 'Format paket tidak valid'
+                ]);
+            }
+
+            log_message('debug', 'Paket yang dipilih: ' . json_encode($selectedPakets));
+
+            // Hitung total harga dan durasi
+            $totalHarga = 0;
+            $totalDurasi = 0;
+            foreach ($selectedPakets as $paket) {
+                $totalHarga += $paket['harga'];
+                $totalDurasi += $paket['durasi'];
+            }
+
+            log_message('debug', 'Total harga: ' . $totalHarga . ', Total durasi: ' . $totalDurasi);
+
+            // Siapkan data booking
             $bookingData = [
                 'kdbooking' => $kdbooking,
                 'idpelanggan' => $data['idpelanggan'],
+                'idkaryawan' => $data['idkaryawan'],
                 'tanggal_booking' => $data['tanggal_booking'],
-                'status' => 'confirmed',
-                'jenispembayaran' => $data['jenispembayaran'],
-                'jumlahbayar' => $data['jumlahbayar'] ?? ($data['jenispembayaran'] == 'DP' ? ($data['total'] * 0.5) : 0),
-                'total' => $data['total'],
-                'idkaryawan' => $data['idkaryawan'] ?? null,
+                'total' => $totalHarga,
+                'status' => 'Pending', // Huruf besar untuk status
+                'jenispembayaran' => !empty($data['jenispembayaran']) ? $data['jenispembayaran'] : 'Lunas',
+                'jumlahbayar' => !empty($data['jumlahbayar']) ? $data['jumlahbayar'] : $totalHarga,
+                'created_at' => date('Y-m-d H:i:s')
             ];
 
-            // Simpan data booking
-            if (!$this->bookingModel->save($bookingData)) {
+            log_message('debug', 'Data booking yang akan disimpan: ' . json_encode($bookingData));
+
+            // Insert data booking
+            $result = $this->bookingModel->insert($bookingData);
+            log_message('debug', 'Hasil insert booking: ' . ($result ? 'Berhasil' : 'Gagal'));
+
+            if (!$result) {
+                log_message('error', 'Error saat insert booking: ' . json_encode($this->bookingModel->errors()));
                 $this->db->transRollback();
-                return $this->response->setStatusCode(400)->setJSON([
+                return $this->response->setStatusCode(500)->setJSON([
                     'status' => 'error',
-                    'message' => 'Gagal membuat booking',
-                    'errors' => $this->bookingModel->errors()
+                    'message' => 'Gagal menyimpan data booking'
                 ]);
             }
 
-            // Dapatkan data paket
-            $paketModel = new PaketModel();
-            $paket = $paketModel->find($data['idpaket']);
-
-            if (!$paket) {
-                $this->db->transRollback();
-                return $this->response->setStatusCode(400)->setJSON([
-                    'status' => 'error',
-                    'message' => 'Paket tidak ditemukan'
-                ]);
-            }
-
-            // Simpan detail booking
-            $detailData = [
-                'iddetail' => $this->detailBookingModel->generateDetailId(),
-                'tgl' => $data['tanggal_booking'],
-                'kdbooking' => $kdbooking,
-                'kdpaket' => $paket['idpaket'],
-                'nama_paket' => $paket['namapaket'],
-                'deskripsi' => $paket['deskripsi'],
-                'harga' => $paket['harga'],
-                'jamstart' => $data['jamstart'],
-                'jamend' => $data['jamend'] ?? date('H:i', strtotime($data['jamstart'] . ' +1 hour')),
-                'status' => '2', // 2 = Confirmed (sebelumnya 1 = Pending)
-                'idkaryawan' => $data['idkaryawan'] ?? null,
-            ];
-
-            if (!$this->detailBookingModel->save($detailData)) {
-                $this->db->transRollback();
-                return $this->response->setStatusCode(400)->setJSON([
-                    'status' => 'error',
-                    'message' => 'Gagal membuat detail booking',
-                    'errors' => $this->detailBookingModel->errors()
-                ]);
-            }
-
-            // Jika ada pembayaran DP atau lunas
-            if ($data['jenispembayaran'] != '' && $data['jumlahbayar'] > 0) {
-                $pembayaranData = [
-                    'fakturbooking' => $kdbooking,
-                    'total_bayar' => $data['jumlahbayar'],
-                    'grandtotal' => $data['total'],
-                    'metode' => $data['metode_pembayaran'] ?? 'cash',
-                    'status' => 'paid',
-                    'jenis' => ($data['jenispembayaran'] == 'DP') ? 'DP' : 'Lunas'  // Tandai sesuai dengan jenis pembayaran
+            // Insert detail booking untuk setiap paket
+            $detailBookingModel = new \App\Models\DetailBookingModel();
+            foreach ($selectedPakets as $paket) {
+                $detailId = $detailBookingModel->generateDetailId();
+                $detailBookingData = [
+                    'iddetail' => $detailId,
+                    'kdbooking' => $kdbooking,
+                    'kdpaket' => $paket['id'],
+                    'nama_paket' => $paket['nama'],
+                    'harga' => $paket['harga'],
+                    'tgl' => $data['tanggal_booking'],
+                    'jamstart' => $data['jamstart'],
+                    'jamend' => $data['jamend'],
+                    'status' => '1', // 1 = Pending
+                    'idkaryawan' => $data['idkaryawan'] // Tambahkan idkaryawan di detail booking
                 ];
 
-                if (!$this->pembayaranModel->save($pembayaranData)) {
+                log_message('debug', 'Data detail booking yang akan disimpan: ' . json_encode($detailBookingData));
+
+                $detailResult = $detailBookingModel->insert($detailBookingData);
+                log_message('debug', 'Hasil insert detail booking: ' . ($detailResult ? 'Berhasil' : 'Gagal'));
+
+                if (!$detailResult) {
+                    log_message('error', 'Error saat insert detail booking: ' . json_encode($detailBookingModel->errors()));
                     $this->db->transRollback();
-                    return $this->response->setStatusCode(400)->setJSON([
+                    return $this->response->setStatusCode(500)->setJSON([
                         'status' => 'error',
-                        'message' => 'Gagal mencatat pembayaran',
-                        'errors' => $this->pembayaranModel->errors()
+                        'message' => 'Gagal menyimpan detail booking'
                     ]);
                 }
             }
 
+            // Jika ada pembayaran, insert data pembayaran
+            if (!empty($data['jenispembayaran'])) {
+                $pembayaranModel = new \App\Models\PembayaranModel();
+
+                // Generate kode pembayaran
+                $kdpembayaran = 'PAY-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                log_message('debug', 'Kode pembayaran yang dibuat: ' . $kdpembayaran);
+
+                // Hitung jumlah bayar berdasarkan jenis pembayaran
+                $jumlahBayar = $data['jumlahbayar'] ?? ($data['jenispembayaran'] == 'DP' ? $totalHarga / 2 : $totalHarga);
+
+                // Siapkan data pembayaran
+                $pembayaranData = [
+                    'fakturbooking' => $kdbooking,
+                    'total_bayar' => $jumlahBayar,
+                    'grandtotal' => $totalHarga,
+                    'metode' => $data['metode_pembayaran'] ?? 'cash',
+                    'status' => 'paid',
+                    'jenis' => $data['jenispembayaran'] ?? 'Lunas'
+                ];
+
+                log_message('debug', 'Data pembayaran yang akan disimpan: ' . json_encode($pembayaranData));
+
+                // Insert data pembayaran
+                $paymentResult = $pembayaranModel->insert($pembayaranData);
+                log_message('debug', 'Hasil insert pembayaran: ' . ($paymentResult ? 'Berhasil' : 'Gagal'));
+
+                if (!$paymentResult) {
+                    log_message('error', 'Error saat insert pembayaran: ' . json_encode($pembayaranModel->errors()));
+                    $this->db->transRollback();
+                    return $this->response->setStatusCode(500)->setJSON([
+                        'status' => 'error',
+                        'message' => 'Gagal menyimpan data pembayaran'
+                    ]);
+                }
+
+                // Update status booking jika pembayaran lunas
+                if ($data['jenispembayaran'] == 'Lunas') {
+                    $updateResult = $this->bookingModel->update($kdbooking, ['status' => 'confirmed']);
+                    log_message('debug', 'Hasil update status booking: ' . ($updateResult ? 'Berhasil' : 'Gagal'));
+                }
+            }
+
+            // Buat notifikasi untuk admin
+            $notificationModel = new \App\Models\NotificationModel();
+            $notificationData = [
+                'title' => 'Booking Baru',
+                'message' => 'Booking baru dengan kode ' . $kdbooking . ' telah dibuat oleh admin',
+                'type' => 'booking',
+                'reference_id' => $kdbooking,
+                'is_read' => 0,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+
+            log_message('debug', 'Data notifikasi yang akan disimpan: ' . json_encode($notificationData));
+
+            $notifResult = $notificationModel->insert($notificationData);
+            log_message('debug', 'Hasil insert notifikasi: ' . ($notifResult ? 'Berhasil' : 'Gagal'));
+
             $this->db->transCommit();
+            log_message('debug', 'Transaksi berhasil di-commit');
 
             return $this->response->setJSON([
                 'status' => 'success',
-                'message' => 'Booking berhasil dibuat',
+                'message' => 'Booking berhasil disimpan',
                 'kdbooking' => $kdbooking
             ]);
         } catch (\Exception $e) {
             $this->db->transRollback();
-
+            log_message('error', 'Exception saat menyimpan booking: ' . $e->getMessage() . ' at line ' . $e->getLine() . ' in ' . $e->getFile());
             return $this->response->setStatusCode(500)->setJSON([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
@@ -485,8 +601,8 @@ class BookingNewController extends BaseController
 
         // Validasi data
         $rules = [
-            'nama' => 'required|min_length[3]',
-            'nohp' => 'required|min_length[10]|is_unique[pelanggan.no_hp]',
+            'nama_lengkap' => 'required|min_length[3]',
+            'no_hp' => 'required|min_length[10]|is_unique[pelanggan.no_hp]',
             'email' => 'required|valid_email|is_unique[pelanggan.email]',
         ];
 
@@ -500,24 +616,31 @@ class BookingNewController extends BaseController
 
         // Persiapkan data
         $data = [
-            'nama_lengkap' => $this->request->getPost('nama'),
-            'no_hp' => $this->request->getPost('nohp'),
+            'nama_lengkap' => $this->request->getPost('nama_lengkap'),
+            'no_hp' => $this->request->getPost('no_hp'),
             'email' => $this->request->getPost('email'),
-            'alamat' => $this->request->getPost('alamat') ?? '',
+            'alamat' => $this->request->getPost('alamat'),
+            'created_at' => date('Y-m-d H:i:s')
         ];
 
         // Simpan data
         try {
-            $this->pelangganModel->save($data);
-            $id = $this->pelangganModel->getInsertID();
+            $this->pelangganModel->insert($data);
+            $insertId = $this->pelangganModel->getInsertID();
 
             return $this->response->setJSON([
                 'status' => 'success',
-                'message' => 'Pelanggan berhasil ditambahkan',
-                'id' => $id
+                'message' => 'Data pelanggan berhasil disimpan',
+                'data' => [
+                    'id' => $insertId,
+                    'nama' => $data['nama_lengkap'],
+                    'nohp' => $data['no_hp'],
+                    'email' => $data['email'],
+                    'alamat' => $data['alamat']
+                ]
             ]);
         } catch (\Exception $e) {
-            return $this->response->setStatusCode(500)->setJSON([
+            return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Gagal menyimpan data pelanggan: ' . $e->getMessage()
             ]);
@@ -1251,5 +1374,197 @@ class BookingNewController extends BaseController
         </div>
 <?php
         return ob_get_clean();
+    }
+
+    // Metode untuk mengecek slot waktu yang tersedia
+    public function checkAvailableTimeSlots()
+    {
+        $tanggal = $this->request->getPost('tanggal');
+        $durasi = $this->request->getPost('durasi');
+
+        if (!$tanggal) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Tanggal tidak boleh kosong'
+            ]);
+        }
+
+        // Jam operasional (default: 09:00 - 21:00)
+        $jamBuka = '09:00';
+        $jamTutup = '21:00';
+
+        // Konversi jam ke menit untuk perhitungan
+        list($bukajam, $bukamenit) = explode(':', $jamBuka);
+        list($tutupjam, $tutupmenit) = explode(':', $jamTutup);
+
+        $bukaInMinutes = ($bukajam * 60) + $bukamenit;
+        $tutupInMinutes = ($tutupjam * 60) + $tutupmenit;
+
+        // Hitung jumlah karyawan aktif
+        $karyawanModel = new \App\Models\KaryawanModel();
+        $totalKaryawan = $karyawanModel->where('status', 'aktif')->countAllResults();
+
+        // Ambil semua booking pada tanggal tersebut melalui detail_booking
+        // Perbaikan: Hanya pilih kolom yang ada dalam GROUP BY atau gunakan fungsi agregat
+        $bookings = $this->db->table('detail_booking db')
+            ->select('db.jamstart, COUNT(db.jamstart) as total_bookings')
+            ->join('booking b', 'b.kdbooking = db.kdbooking')
+            ->where('db.tgl', $tanggal)
+            ->where('db.status !=', '4') // 4 = Dibatalkan
+            ->groupBy('db.jamstart')
+            ->get()
+            ->getResultArray();
+
+        // Buat array untuk menyimpan status setiap slot waktu
+        $slots = [];
+
+        // Inisialisasi semua slot waktu sebagai tersedia
+        for ($time = $bukaInMinutes; $time < $tutupInMinutes; $time += 60) {
+            $hour = floor($time / 60);
+            $minute = $time % 60;
+            $timeSlot = sprintf('%02d:%02d', $hour, $minute);
+            $slots[$timeSlot] = 'available';
+        }
+
+        // Periksa apakah tanggal adalah hari ini
+        $isToday = date('Y-m-d') === $tanggal;
+        $currentHour = (int)date('H');
+        $currentMinute = (int)date('i');
+        $currentTimeInMinutes = ($currentHour * 60) + $currentMinute;
+
+        // Jika tanggal adalah hari ini, tandai slot waktu yang sudah lewat sebagai tidak tersedia
+        if ($isToday) {
+            foreach ($slots as $timeSlot => $status) {
+                list($slotHour, $slotMinute) = explode(':', $timeSlot);
+                $slotTimeInMinutes = ((int)$slotHour * 60) + (int)$slotMinute;
+
+                // Jika waktu slot sudah lewat (tambahkan buffer 5 menit)
+                if ($slotTimeInMinutes <= $currentTimeInMinutes + 5) {
+                    $slots[$timeSlot] = 'booked';
+                }
+            }
+        }
+
+        // Buat array untuk menyimpan jumlah booking per slot waktu
+        $bookingsPerSlot = [];
+        foreach ($bookings as $booking) {
+            $bookingsPerSlot[$booking['jamstart']] = (int)$booking['total_bookings'];
+        }
+
+        // Tandai slot waktu berdasarkan jumlah booking
+        foreach ($bookingsPerSlot as $time => $count) {
+            // Jika jumlah booking sama dengan atau melebihi jumlah karyawan
+            if ($count >= $totalKaryawan) {
+                $slots[$time] = 'booked';
+            } else if ($count > 0) {
+                // Jika ada booking tapi masih ada karyawan yang tersedia
+                $slots[$time] = 'partial';
+            }
+        }
+
+        // Periksa apakah slot waktu cukup untuk durasi yang diminta
+        if ($durasi > 60) {
+            // Untuk durasi lebih dari 1 jam, periksa apakah ada slot berurutan yang cukup
+            for ($time = $bukaInMinutes; $time <= $tutupInMinutes - $durasi; $time += 60) {
+                $hour = floor($time / 60);
+                $minute = $time % 60;
+                $timeSlot = sprintf('%02d:%02d', $hour, $minute);
+
+                // Periksa apakah slot waktu ini dan slot-slot berikutnya tersedia
+                $isAvailable = true;
+                for ($i = 0; $i < $durasi; $i += 60) {
+                    $checkHour = floor(($time + $i) / 60);
+                    $checkMinute = ($time + $i) % 60;
+                    $checkTimeSlot = sprintf('%02d:%02d', $checkHour, $checkMinute);
+
+                    if (isset($slots[$checkTimeSlot]) && $slots[$checkTimeSlot] === 'booked') {
+                        $isAvailable = false;
+                        break;
+                    }
+
+                    // Jika melebihi jam tutup
+                    if ($time + $i >= $tutupInMinutes) {
+                        $isAvailable = false;
+                        break;
+                    }
+                }
+
+                // Jika tidak tersedia, tandai sebagai disabled
+                if (!$isAvailable && $slots[$timeSlot] === 'available') {
+                    $slots[$timeSlot] = 'disabled';
+                }
+            }
+        }
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'slots' => $slots,
+            'totalKaryawan' => $totalKaryawan,
+            'isToday' => $isToday,
+            'currentTime' => date('H:i')
+        ]);
+    }
+
+    // Metode untuk mengecek karyawan yang tersedia
+    public function checkAvailableKaryawan()
+    {
+        $tanggal = $this->request->getPost('tanggal');
+        $jamMulai = $this->request->getPost('jamMulai');
+        $jamSelesai = $this->request->getPost('jamSelesai');
+
+        if (!$tanggal || !$jamMulai || !$jamSelesai) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Parameter tidak lengkap'
+            ]);
+        }
+
+        // Ambil semua karyawan aktif
+        $karyawanModel = new \App\Models\KaryawanModel();
+        $allKaryawan = $karyawanModel->where('status', 'aktif')->findAll();
+
+        if (empty($allKaryawan)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Tidak ada karyawan aktif',
+                'karyawan' => []
+            ]);
+        }
+
+        // Ambil semua booking pada tanggal dan jam tersebut
+        $bookings = $this->db->table('detail_booking db')
+            ->select('b.idkaryawan')
+            ->join('booking b', 'b.kdbooking = db.kdbooking')
+            ->where('db.tgl', $tanggal)
+            ->where('db.status !=', '4') // 4 = Dibatalkan
+            ->where('db.jamstart', $jamMulai)
+            ->get()
+            ->getResultArray();
+
+        // Kumpulkan ID karyawan yang sudah dibooking pada jam tersebut
+        $bookedKaryawanIds = [];
+        foreach ($bookings as $booking) {
+            if (!empty($booking['idkaryawan'])) {
+                $bookedKaryawanIds[] = $booking['idkaryawan'];
+            }
+        }
+
+        // Filter karyawan yang tersedia (tidak sedang dibooking)
+        $availableKaryawan = [];
+        foreach ($allKaryawan as $karyawan) {
+            if (!in_array($karyawan['idkaryawan'], $bookedKaryawanIds)) {
+                $availableKaryawan[] = $karyawan;
+            }
+        }
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'karyawan' => $availableKaryawan,
+            'debug' => [
+                'total_karyawan' => count($allKaryawan),
+                'booked_karyawan' => $bookedKaryawanIds,
+                'available_karyawan' => count($availableKaryawan)
+            ]
+        ]);
     }
 }

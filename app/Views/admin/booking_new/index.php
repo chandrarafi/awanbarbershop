@@ -458,6 +458,8 @@
                 data: function(d) {
                     d.status = currentStatus;
                     d.date_filter = dateFilter;
+                    // Tambahkan parameter untuk menggunakan grup berdasarkan kode booking
+                    d.group_by_kdbooking = true;
                     return d;
                 }
             },
@@ -479,7 +481,25 @@
                 {
                     data: 'tanggal_booking',
                     render: function(data, type, row) {
-                        const jamDetail = row.detail_jam ? ' <span class="badge bg-secondary text-white">' + row.detail_jam + '</span>' : '';
+                        let jamDetail = '';
+
+                        if (row.detail_jam) {
+                            // Jika ada beberapa waktu booking (dari GROUP_CONCAT)
+                            if (row.detail_jam.includes(',')) {
+                                jamDetail = `<div class="mt-1">
+                                    <span class="badge bg-secondary text-white">
+                                        <i class="bi bi-clock"></i> ${row.jumlah_paket} sesi
+                                    </span>
+                                </div>`;
+                            } else {
+                                jamDetail = `<div class="mt-1">
+                                    <span class="badge bg-secondary text-white">
+                                        <i class="bi bi-clock"></i> ${row.detail_jam}
+                                    </span>
+                                </div>`;
+                            }
+                        }
+
                         return '<i class="bi bi-calendar-date mr-1"></i> ' + data + jamDetail;
                     }
                 },
@@ -535,7 +555,12 @@
                 {
                     data: 'total_formatted',
                     render: function(data, type, row) {
-                        return '<span class="font-weight-medium">' + data + '</span>';
+                        // Tambahkan indikator jumlah paket jika ada lebih dari 1
+                        let paketInfo = '';
+                        if (row.jumlah_paket && row.jumlah_paket > 1) {
+                            paketInfo = '<div class="mt-1"><small class="badge bg-success text-white">' + row.jumlah_paket + ' paket</small></div>';
+                        }
+                        return '<span class="font-weight-medium">' + data + '</span>' + paketInfo;
                     }
                 },
                 {

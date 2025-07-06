@@ -13,7 +13,7 @@ class PembayaranModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['id', 'fakturbooking', 'total_bayar', 'grandtotal', 'metode', 'status', 'jenis', 'bukti', 'created_at', 'updated_at'];
+    protected $allowedFields    = ['id', 'fakturbooking', 'kdpembayaran', 'total_bayar', 'grandtotal', 'metode', 'status', 'jenis', 'bukti', 'created_at', 'updated_at'];
 
     // Dates
     protected $useTimestamps = true;
@@ -156,6 +156,42 @@ class PembayaranModel extends Model
         $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
 
         return $prefix . $newNumber;
+    }
+
+    /**
+     * Generate kode pembayaran
+     * Format: PAY-YYYYMMDD-XXXX (PAY-Tahun Bulan Tanggal-Nomor Urut 4 digit)
+     * 
+     * @return string
+     */
+    public function generatePaymentCode()
+    {
+        $prefix = 'PAY-' . date('Ymd') . '-';
+
+        try {
+            // Cari kode pembayaran terakhir dengan awalan yang sama
+            $query = $this->db->table($this->table)
+                ->like('kdpembayaran', $prefix, 'after')
+                ->orderBy('kdpembayaran', 'DESC')
+                ->limit(1);
+
+            $result = $query->get();
+
+            if ($result && $result->getNumRows() > 0) {
+                $lastPayment = $result->getRowArray();
+                // Ambil nomor urut dari kode pembayaran terakhir
+                $lastNumber = (int) substr($lastPayment['kdpembayaran'], -4);
+                $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+            } else {
+                $newNumber = '0001';
+            }
+
+            return $prefix . $newNumber;
+        } catch (\Exception $e) {
+            log_message('error', 'Error generating payment code: ' . $e->getMessage());
+            // Fallback jika terjadi error
+            return $prefix . '0001-' . uniqid();
+        }
     }
 
     /**

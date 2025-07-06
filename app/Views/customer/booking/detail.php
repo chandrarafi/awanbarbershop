@@ -411,8 +411,9 @@
                                 <div class="bg-gray-50 p-4 rounded-lg">
                                     <p class="text-sm text-gray-700">
                                         1. Harap datang 10 menit sebelum jadwal yang ditentukan.<br>
-                                        2. Pembatalan harus dilakukan minimal 2 jam sebelum jadwal.<br>
-                                        3. Sisa pembayaran dilakukan setelah layanan selesai.
+                                        2. Jika tidak datang maka dp akan hangus<br>
+                                        3. Pelanggan tidak dapat membatalkan booking<br>
+                                        4. Sisa pembayaran dilakukan setelah layanan selesai.
                                     </p>
                                 </div>
                             </div>
