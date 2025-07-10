@@ -43,7 +43,9 @@
                     <span>Pelanggan</span>
                 </a>
             </li>
-
+            <div class="sidebar-heading text-uppercase fw-bold text-muted px-4 mt-4 mb-2">
+                <span>Transaksi</span>
+            </div>
             <li class="nav-item">
                 <a class="nav-link <?= ($title == 'Kelola Booking' || $title == 'Tambah Booking Baru' || $title == 'Detail Booking') ? 'active' : '' ?>" href="<?= site_url('admin/booking') ?>">
                     <i class="bi bi-calendar-check"></i>
@@ -56,9 +58,11 @@
                     <span>Pengeluaran</span>
                 </a>
             </li>
-
+            <div class="sidebar-heading text-uppercase fw-bold text-muted px-4 mt-4 mb-2">
+                <span>Laporan</span>
+            </div>
             <li class="nav-item">
-                <a class="nav-link <?= ($title == 'Laporan' || $title == 'Laporan Karyawan') ? 'active' : '' ?>" href="<?= site_url('admin/reports') ?>">
+                <a class="nav-link <?= ($title == 'Laporan' || $title == 'Laporan Karyawan' || $title == 'Laporan Pembayaran' || $title == 'Laporan Pendapatan Bulanan' || $title == 'Laporan Pendapatan Pertahun' || $title == 'Laporan Pendapatan Tahunan') ? 'active' : '' ?>" href="<?= site_url('admin/reports') ?>">
                     <i class="bi bi-file-earmark-text"></i>
                     <span>Laporan</span>
                 </a>

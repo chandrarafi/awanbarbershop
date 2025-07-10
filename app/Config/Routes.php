@@ -161,18 +161,26 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
         $routes->get('pelanggan/print', 'Admin\ReportsController::printPelanggan');
         $routes->get('booking', 'Admin\ReportsController::booking');
         $routes->get('booking/print', 'Admin\ReportsController::printBooking');
+        $routes->get('booking/getData', 'Admin\ReportsController::getData');
         $routes->get('pembayaran', 'Admin\ReportsController::pembayaran');
         $routes->get('pembayaran/print', 'Admin\ReportsController::printPembayaran');
+        $routes->get('pembayaran/getData', 'Admin\ReportsController::getPembayaranData');
         $routes->get('pendapatan-bulanan', 'Admin\ReportsController::pendapatanBulanan');
         $routes->get('pendapatan-bulanan/print', 'Admin\ReportsController::printPendapatanBulanan');
+        $routes->get('pendapatan-bulanan/data', 'Admin\ReportsController::getPendapatanBulananData');
         $routes->get('pendapatan-tahunan', 'Admin\ReportsController::pendapatanTahunan');
         $routes->get('pendapatan-tahunan/print', 'Admin\ReportsController::printPendapatanTahunan');
+        $routes->get('pendapatan-tahunan/getData', 'Admin\ReportsController::getPendapatanTahunanData');
         $routes->get('pengeluaran', 'Admin\ReportsController::pengeluaran');
+        $routes->get('pengeluaran/data', 'Admin\ReportsController::getPengeluaranData');
         $routes->get('pengeluaran/print', 'Admin\ReportsController::printPengeluaran');
         $routes->get('laba-rugi', 'Admin\ReportsController::labaRugi');
         $routes->get('laba-rugi/print', 'Admin\ReportsController::printLabaRugi');
         $routes->get('laba-rugi-bulanan', 'Admin\ReportsController::labaRugiBulanan');
         $routes->get('laba-rugi-bulanan/print', 'Admin\ReportsController::printLabaRugiBulanan');
+        $routes->get('uang-masuk-keluar', 'Admin\ReportsController::uangMasukKeluar');
+        $routes->get('uang-masuk-keluar/data', 'Admin\ReportsController::getUangMasukKeluarData');
+        $routes->get('uang-masuk-keluar/print', 'Admin\ReportsController::printUangMasukKeluar');
     });
 });
 

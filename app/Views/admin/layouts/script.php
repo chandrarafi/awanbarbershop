@@ -75,12 +75,12 @@
                  type: 'GET',
                  dataType: 'json',
                  success: function(response) {
-                     console.log('Notifikasi response:', response); // Debug response
+                     //  console.log('Notifikasi response:', response); // Debug response
                      if (response && response.status === 'success') {
                          const notifications = response.data ? response.data.notifications : [];
                          const count = response.data ? response.data.count : 0;
-                         console.log('Notifikasi count:', count);
-                         console.log('Notifikasi data:', notifications);
+                         //  console.log('Notifikasi count:', count);
+                         //  console.log('Notifikasi data:', notifications);
 
                          renderNotifications(notifications, count);
                      } else {
@@ -125,12 +125,12 @@
              const notificationList = $('#notificationList');
              notificationList.empty();
 
-             console.log('Rendering notifications:', notifications); // Debug
+             //  console.log('Rendering notifications:', notifications); // Debug
 
              if (notifications && notifications.length > 0) {
                  // Tampilkan notifikasi
                  notifications.forEach(function(notification) {
-                     console.log('Processing notification:', notification); // Debug individual notification
+                     //  console.log('Processing notification:', notification); // Debug individual notification
 
                      let iconClass = 'bi-bell';
 
