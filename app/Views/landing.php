@@ -183,7 +183,7 @@
                             </div>
                             <div class="ml-4">
                                 <h4 class="text-lg font-semibold text-gray-900">Alamat</h4>
-                                <p class="mt-1 text-gray-600">Jl. Contoh No. 123, Kota, Provinsi</p>
+                                <p class="mt-1 text-gray-600">Jl. Dr. Moh. Hatta No.3kel, RT.01, Cupak Tangah, Kec. Pauh, Kota Padang, Sumatera Barat 25127, Provinsi</p>
                             </div>
                         </div>
                     </div>

@@ -104,7 +104,7 @@
         }
 
         .report-date {
-            text-align: right;
+            text-align: left;
             margin-bottom: 20px;
             font-size: 14px;
             color: #666;
@@ -267,7 +267,7 @@
                 <img src="<?= base_url('assets/images/logo.png') ?>" alt="Awan Barbershop" class="logo" onerror="this.src='https://via.placeholder.com/80x80?text=LOGO'">
                 <div class="header-text">
                     <h2><?= $nama_perusahaan ?? 'AWAN BARBERSHOP' ?></h2>
-                    <p><?= $alamat_perusahaan ?? 'Jl. Contoh No. 123, Kota' ?> | Telp: <?= $telepon ?? '081234567890' ?></p>
+                    <p><?= $alamat_perusahaan ?? 'Jl. Dr. Moh. Hatta No.3kel, RT.01, Cupak Tangah, Kec. Pauh, Kota Padang, Sumatera Barat 25127' ?> | Telp: <?= $telepon ?? '081234567890' ?></p>
                     <p>Email: <?= $email ?? 'info@awanbarbershop.com' ?> | Website: <?= $website ?? 'www.awanbarbershop.com' ?></p>
                 </div>
             </div>
@@ -275,7 +275,7 @@
 
         <div class="report-title"><?= $report_title ?? 'LAPORAN' ?></div>
         <div class="report-date">
-            Tanggal: <?= $tanggal ?? date('d F Y') ?>
+            <?= $tanggal_label ?? 'Semua' ?>
         </div>
 
         <!-- Konten laporan -->

@@ -5,8 +5,8 @@
 <!-- Page Header -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <div>
-        <h1 class="h3 mb-0 text-gray-800">Laporan Pendapatan Perbulan</h1>
-        <p class="mb-0 text-secondary">Laporan pendapatan per bulan</p>
+        <h1 class="h3 mb-0 text-gray-800">Laporan Uang Masuk dan Keluar</h1>
+        <p class="mb-0 text-secondary">Laporan keuangan bulanan</p>
     </div>
     <div>
         <button id="btnPrint" class="btn btn-primary btn-sm" style="display: none;">
@@ -25,7 +25,7 @@
             <div class="card-body">
                 <form id="filterForm">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-12 mb-3">
                             <label for="tahun" class="form-label">Tahun</label>
                             <select name="tahun" id="tahun" class="form-control">
                                 <option value="">- Pilih Tahun -</option>
@@ -36,24 +36,6 @@
                                         <option value="<?= $t['tahun'] ?>"><?= $t['tahun'] ?></option>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="bulan" class="form-label">Bulan</label>
-                            <select name="bulan" id="bulan" class="form-control">
-                                <option value="">- Pilih Bulan -</option>
-                                <option value="01">Januari</option>
-                                <option value="02">Februari</option>
-                                <option value="03">Maret</option>
-                                <option value="04">April</option>
-                                <option value="05">Mei</option>
-                                <option value="06">Juni</option>
-                                <option value="07">Juli</option>
-                                <option value="08">Agustus</option>
-                                <option value="09">September</option>
-                                <option value="10">Oktober</option>
-                                <option value="11">November</option>
-                                <option value="12">Desember</option>
                             </select>
                         </div>
                     </div>
@@ -78,8 +60,11 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalPendapatan">
-                            Total Pendapatan: Rp 0
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalKeseluruhan">
+                            Total: Rp 0
+                        </div>
+                        <div class="h6 mb-0 font-weight-bold" id="statusKeseluruhan">
+                            Status: -
                         </div>
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1" id="periodLabel">
                             -
@@ -96,18 +81,18 @@
     <div class="col-12">
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Data Pendapatan Bulanan</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Data Uang Masuk dan Keluar</h6>
                 <div class="loading-indicator" id="loadingIndicator" style="display: none;">
                     <i class="bi bi-hourglass-split"></i> Memuat data...
                 </div>
             </div>
             <div class="card-body">
                 <div class="alert alert-info" id="initialMessage">
-                    <i class="bi bi-info-circle me-2"></i> Silakan pilih tahun dan bulan terlebih dahulu untuk menampilkan data pendapatan bulanan.
+                    <i class="bi bi-info-circle me-2"></i> Silakan pilih tahun terlebih dahulu untuk menampilkan data keuangan.
                 </div>
 
                 <div class="alert alert-info" id="noDataMessage" style="display: none;">
-                    <i class="bi bi-info-circle me-2"></i> Tidak ada data pendapatan untuk periode yang dipilih.
+                    <i class="bi bi-info-circle me-2"></i> Tidak ada data keuangan untuk periode yang dipilih.
                 </div>
 
                 <div class="table-responsive" id="dataTableContainer" style="display: none;">
@@ -115,9 +100,10 @@
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
-                                <th>Tanggal</th>
-                                <th>Nama Paket</th>
-                                <th>Total</th>
+                                <th>Bulan</th>
+                                <th>Uang Masuk (UM)</th>
+                                <th>Uang Keluar (UK)</th>
+                                <th width="10%">Status</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -125,8 +111,10 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="3" class="text-end fw-bold">Total:</td>
-                                <td class="fw-bold" id="tableTotalPendapatan">Rp 0</td>
+                                <td colspan="2" class="text-end fw-bold">Total:</td>
+                                <td class="fw-bold" id="tableTotalUangMasuk">Rp 0</td>
+                                <td class="fw-bold" id="tableTotalUangKeluar">Rp 0</td>
+                                <td class="fw-bold text-center" id="tableStatusKeseluruhan">-</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -144,23 +132,20 @@
         let dataTable = null;
         let currentFilter = {
             tahun: '',
-            bulan: '',
             showAll: false
         };
 
         // Filter button click
         $('#btnFilter').on('click', function() {
             const tahun = $('#tahun').val();
-            const bulan = $('#bulan').val();
 
-            if (!tahun || !bulan) {
-                alert('Silakan pilih tahun dan bulan terlebih dahulu');
+            if (!tahun) {
+                alert('Silakan pilih tahun terlebih dahulu');
                 return;
             }
 
             currentFilter = {
                 tahun: tahun,
-                bulan: bulan,
                 showAll: false
             };
 
@@ -171,7 +156,6 @@
         $('#btnShowAll').on('click', function() {
             currentFilter = {
                 tahun: '',
-                bulan: '',
                 showAll: true
             };
 
@@ -180,10 +164,12 @@
 
         // Print button click
         $('#btnPrint').on('click', function() {
-            let printUrl = '<?= site_url('admin/reports/pendapatan-bulanan/print') ?>';
+            let printUrl = '<?= site_url('admin/reports/uang-masuk-keluar/print') ?>';
 
             if (!currentFilter.showAll) {
-                printUrl += '?tahun=' + currentFilter.tahun + '&bulan=' + currentFilter.bulan;
+                printUrl += '?tahun=' + currentFilter.tahun;
+            } else {
+                printUrl += '?show_all=true';
             }
 
             window.open(printUrl, '_blank');
@@ -204,14 +190,13 @@
             }
 
             // Build URL with parameters
-            let url = '<?= site_url('admin/reports/pendapatan-bulanan/data') ?>';
+            let url = '<?= site_url('admin/reports/uang-masuk-keluar/data') ?>';
             const params = [];
 
             if (currentFilter.showAll) {
                 params.push('show_all=true');
             } else {
                 params.push('tahun=' + currentFilter.tahun);
-                params.push('bulan=' + currentFilter.bulan);
             }
 
             if (params.length > 0) {
@@ -231,20 +216,30 @@
                             tableBody.empty();
 
                             $.each(response.data, function(index, item) {
+                                const statusClass = item.status === 'LABA' ? 'text-success' : 'text-danger';
+
                                 tableBody.append(`
-                                    <tr>
-                                        <td>${index + 1}</td>
-                                        <td>${item.tanggal}</td>
-                                        <td>${item.nama_paket}</td>
-                                        <td>${item.total_formatted}</td>
+                                    <tr data-bulan-kode="${item.bulan_kode}">
+                                        <td>${index + 1}</td>            
+                                        <td data-sort="${item.bulan_kode}">${item.bulan}</td>
+                                        <td class="text-end">${item.uang_masuk_formatted}</td>
+                                        <td class="text-end">${item.uang_keluar_formatted}</td>
+                                        <td class="text-center ${statusClass} fw-bold">${item.status}</td>
                                     </tr>
                                 `);
                             });
 
                             // Update summary
-                            $('#totalPendapatan').text('Total Pendapatan: ' + response.totalPendapatanFormatted);
-                            $('#tableTotalPendapatan').text(response.totalPendapatanFormatted);
+                            $('#totalKeseluruhan').text('Total: ' + response.totalKeseluruhanFormatted);
+
+                            const statusClass = response.statusKeseluruhan === 'LABA' ? 'text-success' : 'text-danger';
+                            $('#statusKeseluruhan').html(`Status: <span class="${statusClass}">${response.statusKeseluruhan}</span>`);
+
                             $('#periodLabel').text(response.periodeLabel);
+                            $('#tableTotalUangMasuk').text(response.totalUangMasukFormatted);
+                            $('#tableTotalUangKeluar').text(response.totalUangKeluarFormatted);
+                            $('#tableTotalKeseluruhan').text(response.totalKeseluruhanFormatted);
+                            $('#tableStatusKeseluruhan').html(`<span class="${statusClass}">${response.statusKeseluruhan}</span>`);
 
                             // Show data container and summary
                             $('#dataTableContainer').show();
@@ -256,6 +251,10 @@
                                 "order": [
                                     [1, 'asc']
                                 ],
+                                "columnDefs": [{
+                                    "type": "natural",
+                                    "targets": 1
+                                }],
                                 "pageLength": 25,
                                 "language": {
                                     "lengthMenu": "Tampilkan _MENU_ data per halaman",
