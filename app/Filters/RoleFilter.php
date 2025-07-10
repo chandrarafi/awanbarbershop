@@ -23,14 +23,27 @@ class RoleFilter implements FilterInterface
             return;
         }
 
-        // Jika role user tidak sesuai dengan yang diizinkan
-        if (!in_array($userRole, $arguments)) {
-            // Jika role adalah pimpinan, arahkan ke halaman reports
-            if ($userRole === 'pimpinan') {
-                return redirect()->to('admin/reports')->with('error', 'Anda hanya memiliki akses ke halaman laporan');
-            }
-            return redirect()->back()->with('error', 'Anda tidak memiliki akses ke halaman tersebut');
+        // Jika role user sudah sesuai dengan yang diizinkan, berikan akses
+        if (in_array($userRole, $arguments)) {
+            return;
         }
+
+        // Khusus untuk pimpinan
+        if ($userRole === 'pimpinan') {
+            // Dapatkan URI path saat ini
+            $segments = $request->uri->getSegments();
+
+            // Izinkan akses ke semua URL admin/reports/*
+            if (count($segments) >= 2 && $segments[0] === 'admin' && $segments[1] === 'reports') {
+                return;
+            }
+
+            // Redirect ke halaman laporan jika mencoba akses halaman lain
+            return redirect()->to('admin/reports')->with('error', 'Anda hanya memiliki akses ke halaman laporan');
+        }
+
+        // Untuk role lain yang tidak memiliki akses
+        return redirect()->back()->with('error', 'Anda tidak memiliki akses ke halaman tersebut');
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)

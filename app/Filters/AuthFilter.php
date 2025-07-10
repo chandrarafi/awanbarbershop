@@ -51,24 +51,15 @@ class AuthFilter implements FilterInterface
             if (session()->get('role') === 'pimpinan') {
                 // Arahkan ke halaman reports jika mencoba mengakses halaman lain
                 $current_path = uri_string();
-                $allowed_paths = [
-                    'admin/reports',
-                    'admin/reports/karyawan',
-                    'admin/reports/paket',
-                    'admin/reports/pelanggan',
-                    'admin/reports/booking',
-                    'admin/reports/pembayaran',
-                    'admin/reports/pendapatan-bulanan',
-                    'admin/reports/pendapatan-tahunan',
-                    'admin/reports/pengeluaran',
-                    'admin/reports/laba-rugi',
-                    'admin/reports/laba-rugi-bulanan',
-                    'auth/logout'
-                ];
 
-                if (!in_array($current_path, $allowed_paths)) {
-                    return redirect()->to('admin/reports');
+                // Izinkan akses ke halaman reports dan semua print routes
+                if (strpos($current_path, 'admin/reports') === 0 || strpos($current_path, 'auth/logout') === 0) {
+                    // Allow access to all reports paths and logout
+                    return;
                 }
+
+                // Redirect ke reports jika mencoba akses halaman lain
+                return redirect()->to('admin/reports');
             }
         }
     }
