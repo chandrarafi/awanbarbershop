@@ -103,8 +103,6 @@
                                     <th class="sortable" data-sort="pelanggan">Nama Pelanggan</th>
                                     <th class="sortable" data-sort="tanggal">Tanggal</th>
                                     <th class="sortable" data-sort="paket">Nama Paket</th>
-                                    <th class="sortable" data-sort="jenis">Jenis Paket</th>
-                                    <th class="sortable" data-sort="harga">Harga Paket</th>
                                     <th class="sortable" data-sort="total">Total Bayar</th>
                                 </tr>
                             </thead>
@@ -220,56 +218,49 @@
                         tableData = [];
                         console.log("Cleared tableData");
 
-                        // Periksa apakah response.html tersedia
-                        if (response.html) {
-                            console.log("Processing HTML response");
-                            // Jika response.html tersedia, kita perlu mengekstrak data dari HTML
-                            var tempDiv = $('<div>').html(response.html);
-                            var rows = tempDiv.find('tr');
+                        // Menyimpan booking yang sudah diproses untuk menghindari duplikat
+                        var processedBookings = {};
 
-                            if (rows.length > 0) {
-                                console.log("Found", rows.length, "rows in HTML");
-                                rows.each(function(index) {
-                                    var cells = $(this).find('td');
-                                    if (cells.length > 1) { // Pastikan bukan baris pesan "tidak ditemukan"
-                                        tableData.push({
-                                            no: $(cells[0]).text(),
-                                            kdbooking: $(cells[1]).text(),
-                                            pelanggan: $(cells[2]).text(),
-                                            tanggal: $(cells[3]).text(),
-                                            paket: $(cells[4]).text(),
-                                            jenis: $(cells[5]).text(),
-                                            harga: $(cells[6]).text(),
-                                            total: $(cells[7]).text()
-                                        });
-                                    }
-                                });
-                            }
-                        } else if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
                             console.log("Processing data array response with", response.data.length, "bookings");
-                            // Jika response.data tersedia
+
                             var no = 1;
                             response.data.forEach(function(booking) {
-                                if (booking.details && Array.isArray(booking.details)) {
-                                    console.log("Processing booking:", booking.kdbooking, "with", booking.details.length, "details");
-                                    booking.details.forEach(function(detail) {
-                                        tableData.push({
-                                            no: no++,
-                                            kdbooking: booking.kdbooking,
-                                            pelanggan: booking.nama_lengkap,
-                                            tanggal: formatDate(detail.tgl),
-                                            paket: detail.nama_paket,
-                                            jenis: detail.deskripsi,
-                                            harga: 'Rp ' + formatNumber(detail.harga),
-                                            total: 'Rp ' + formatNumber(booking.total)
-                                        });
-                                    });
-                                } else {
-                                    console.log("Booking has no details:", booking);
+                                // Skip jika booking sudah diproses sebelumnya
+                                if (processedBookings[booking.kdbooking]) {
+                                    return;
                                 }
+
+                                // Tandai booking ini sudah diproses
+                                processedBookings[booking.kdbooking] = true;
+
+                                // Gabungkan semua paket dalam booking ini
+                                var paketNames = [];
+                                if (booking.details && Array.isArray(booking.details)) {
+                                    booking.details.forEach(function(detail) {
+                                        // Gabungkan nama paket dengan deskripsi
+                                        var paketInfo = detail.nama_paket;
+                                        if (detail.deskripsi) {
+                                            paketInfo += " (" + detail.deskripsi + ")";
+                                        }
+                                        paketNames.push(paketInfo);
+                                    });
+                                }
+
+                                // Ambil tanggal dari detail pertama
+                                var tanggal = booking.details && booking.details.length > 0 ?
+                                    formatDate(booking.details[0].tgl) : '';
+
+                                // Tambahkan data ke tableData
+                                tableData.push({
+                                    no: no++,
+                                    kdbooking: booking.kdbooking,
+                                    pelanggan: booking.nama_lengkap,
+                                    tanggal: tanggal,
+                                    paket: paketNames.join(", "),
+                                    total: 'Rp ' + formatNumber(booking.total)
+                                });
                             });
-                        } else {
-                            console.log("No data found in response");
                         }
 
                         console.log("Final tableData:", tableData);
@@ -380,7 +371,7 @@
                                 // For numeric columns
                                 aVal = parseInt(String(aVal).replace(/[^\d]/g, '')) || 0;
                                 bVal = parseInt(String(bVal).replace(/[^\d]/g, '')) || 0;
-                            } else if (sortColumn === 'harga' || sortColumn === 'total') {
+                            } else if (sortColumn === 'total') {
                                 // For currency columns
                                 aVal = parseFloat(String(aVal).replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
                                 bVal = parseFloat(String(bVal).replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
@@ -443,7 +434,7 @@
 
                 if (filteredData.length === 0) {
                     console.log("No data to display");
-                    tbody.html('<tr><td colspan="8" class="text-center">Data booking tidak ditemukan. Silakan coba filter dengan kriteria berbeda.</td></tr>');
+                    tbody.html('<tr><td colspan="6" class="text-center">Data booking tidak ditemukan. Silakan coba filter dengan kriteria berbeda.</td></tr>');
                 } else {
                     console.log("Displaying data:", filteredData);
                     for (var i = 0; i < filteredData.length; i++) {
@@ -455,8 +446,6 @@
                             '<td>' + (item.pelanggan || '') + '</td>' +
                             '<td>' + (item.tanggal || '') + '</td>' +
                             '<td>' + (item.paket || '') + '</td>' +
-                            '<td>' + (item.jenis || '') + '</td>' +
-                            '<td>' + (item.harga || '') + '</td>' +
                             '<td>' + (item.total || '') + '</td>' +
                             '</tr>';
                         tbody.append(row);
@@ -466,7 +455,7 @@
                 console.log("Table rendered successfully");
             } catch (e) {
                 console.error('Error dalam renderTable:', e);
-                $('#bookingTable tbody').html('<tr><td colspan="8" class="text-center">Terjadi kesalahan saat memuat data. Silakan coba lagi.</td></tr>');
+                $('#bookingTable tbody').html('<tr><td colspan="6" class="text-center">Terjadi kesalahan saat memuat data. Silakan coba lagi.</td></tr>');
             }
         }
 
@@ -558,34 +547,6 @@
             $('#tableContent').hide();
             tableData = [];
         });
-
-        // Inisialisasi tabel dengan data awal
-        <?php if (!empty($_GET['start_date']) || !empty($_GET['end_date'])): ?>
-            console.log("Initializing with URL parameters");
-            // Ekstrak data dari HTML tabel yang sudah ada
-            $('#bookingTable tbody tr').each(function() {
-                var cells = $(this).find('td');
-                if (cells.length > 1) { // Pastikan bukan baris pesan "tidak ditemukan"
-                    tableData.push({
-                        no: $(cells[0]).text(),
-                        kdbooking: $(cells[1]).text(),
-                        pelanggan: $(cells[2]).text(),
-                        tanggal: $(cells[3]).text(),
-                        paket: $(cells[4]).text(),
-                        jenis: $(cells[5]).text(),
-                        harga: $(cells[6]).text(),
-                        total: $(cells[7]).text()
-                    });
-                }
-            });
-
-            console.log("Extracted tableData from HTML:", tableData);
-
-            // Render tabel awal
-            renderTable();
-        <?php else: ?>
-            console.log("No URL parameters, showing initial message");
-        <?php endif; ?>
 
         // Tambahkan event handler untuk tombol "Tampilkan Semua" yang akan memuat semua data
         $('#showAllBtn').on('click', function() {

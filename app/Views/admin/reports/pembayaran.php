@@ -125,8 +125,7 @@
                                     <th class="sortable" data-sort="fakturbooking">No Transaksi</th>
                                     <th class="sortable" data-sort="tanggal">Tanggal</th>
                                     <th class="sortable" data-sort="pelanggan">Nama Pelanggan</th>
-                                    <th class="sortable" data-sort="paket">Nama Paket</th>
-                                    <th class="sortable" data-sort="jenis">Jenis Paket</th>
+                                    <th class="sortable" data-sort="paket">Paket</th>
                                     <th class="sortable" data-sort="harga">Harga Paket</th>
                                     <th class="sortable" data-sort="total">Total Bayar</th>
                                     <th class="sortable" data-sort="metode">Metode Pembayaran</th>
@@ -289,10 +288,9 @@
                                             tanggal: $(cells[2]).text(),
                                             pelanggan: $(cells[3]).text(),
                                             paket: $(cells[4]).text(),
-                                            jenis: $(cells[5]).text(),
-                                            harga: $(cells[6]).text(),
-                                            total: $(cells[7]).text(),
-                                            metode: $(cells[8]).text()
+                                            harga: $(cells[5]).text(),
+                                            total: $(cells[6]).text(),
+                                            metode: $(cells[7]).text()
                                         });
                                     }
                                 });
@@ -301,28 +299,43 @@
                             console.log("Processing data array response with", response.data.length, "pembayaran");
                             // Jika response.data tersedia
                             var no = 1;
+
+                            // Menyimpan faktur yang sudah diproses untuk menghindari duplikat
+                            var processedFaktur = {};
+
                             response.data.forEach(function(p) {
-                                if (p.details && Array.isArray(p.details)) {
-                                    console.log("Processing pembayaran:", p.fakturbooking, "with", p.details.length, "details");
-                                    p.details.forEach(function(detail) {
-                                        tableData.push({
-                                            no: no++,
-                                            fakturbooking: p.fakturbooking,
-                                            tanggal: formatDate(p.created_at),
-                                            pelanggan: p.booking?.nama_lengkap || '-',
-                                            paket: detail.nama_paket,
-                                            jenis: detail.deskripsi,
-                                            harga: 'Rp ' + formatNumber(detail.harga),
-                                            total: 'Rp ' + formatNumber(p.total_bayar),
-                                            metode: p.metode ? p.metode.charAt(0).toUpperCase() + p.metode.slice(1) : '-'
-                                        });
-                                    });
-                                } else {
-                                    console.log("Pembayaran has no details:", p);
+                                // Skip jika faktur sudah diproses
+                                if (processedFaktur[p.fakturbooking]) {
+                                    return;
                                 }
+
+                                // Tandai faktur ini sudah diproses
+                                processedFaktur[p.fakturbooking] = true;
+
+                                // Gabungkan semua paket dalam booking ini
+                                var paketList = [];
+                                if (p.details && Array.isArray(p.details)) {
+                                    p.details.forEach(function(detail) {
+                                        // Gabungkan nama paket dengan deskripsi
+                                        var paketInfo = detail.nama_paket;
+                                        if (detail.deskripsi) {
+                                            paketInfo += " (" + detail.deskripsi + ")";
+                                        }
+                                        paketList.push(paketInfo);
+                                    });
+                                }
+
+                                tableData.push({
+                                    no: no++,
+                                    fakturbooking: p.fakturbooking,
+                                    tanggal: formatDate(p.created_at),
+                                    pelanggan: p.booking?.nama_lengkap || '-',
+                                    paket: paketList.join(", "),
+                                    harga: 'Rp ' + formatNumber(p.grandtotal || 0),
+                                    total: 'Rp ' + formatNumber(p.total_bayar),
+                                    metode: p.metode ? p.metode.charAt(0).toUpperCase() + p.metode.slice(1) : '-'
+                                });
                             });
-                        } else {
-                            console.log("No data found in response");
                         }
 
                         console.log("Final tableData:", tableData);
@@ -433,7 +446,7 @@
                                 // For numeric columns
                                 aVal = parseInt(String(aVal).replace(/[^\d]/g, '')) || 0;
                                 bVal = parseInt(String(bVal).replace(/[^\d]/g, '')) || 0;
-                            } else if (sortColumn === 'harga' || sortColumn === 'total') {
+                            } else if (sortColumn === 'total') {
                                 // For currency columns
                                 aVal = parseFloat(String(aVal).replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
                                 bVal = parseFloat(String(bVal).replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
@@ -497,7 +510,7 @@
 
                 if (filteredData.length === 0) {
                     console.log("No data to display");
-                    tbody.html('<tr><td colspan="9" class="text-center">Data pembayaran tidak ditemukan. Silakan coba filter dengan kriteria berbeda.</td></tr>');
+                    tbody.html('<tr><td colspan="8" class="text-center">Data pembayaran tidak ditemukan. Silakan coba filter dengan kriteria berbeda.</td></tr>');
                 } else {
                     console.log("Displaying data:", filteredData);
                     for (var i = 0; i < filteredData.length; i++) {
@@ -509,7 +522,6 @@
                             '<td>' + (item.tanggal || '') + '</td>' +
                             '<td>' + (item.pelanggan || '') + '</td>' +
                             '<td>' + (item.paket || '') + '</td>' +
-                            '<td>' + (item.jenis || '') + '</td>' +
                             '<td>' + (item.harga || '') + '</td>' +
                             '<td>' + (item.total || '') + '</td>' +
                             '<td>' + (item.metode || '') + '</td>' +
@@ -521,7 +533,7 @@
                 console.log("Table rendered successfully");
             } catch (e) {
                 console.error('Error dalam renderTable:', e);
-                $('#pembayaranTable tbody').html('<tr><td colspan="9" class="text-center">Terjadi kesalahan saat memuat data. Silakan coba lagi.</td></tr>');
+                $('#pembayaranTable tbody').html('<tr><td colspan="8" class="text-center">Terjadi kesalahan saat memuat data. Silakan coba lagi.</td></tr>');
             }
         }
 

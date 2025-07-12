@@ -404,8 +404,6 @@ class ReportsController extends BaseController
                     <th>Nama Pelanggan</th>
                     <th>Tanggal</th>
                     <th>Nama Paket</th>
-                    <th>Jenis Paket</th>
-                    <th class="text-center">Harga Paket</th>
                     <th class="text-center">Total Bayar</th>
                 </tr>
             </thead>
@@ -414,20 +412,41 @@ class ReportsController extends BaseController
         $no = 1;
         $totalBayar = 0;
 
+        // Track kode booking yang sudah diproses
+        $processedCodes = [];
+
         foreach ($bookingData as $booking) {
-            foreach ($booking['details'] as $detail) {
-                $content .= '
-                <tr>
-                    <td class="text-center">' . $no++ . '</td>
-                    <td>' . $booking['kdbooking'] . '</td>
-                    <td>' . $booking['nama_lengkap'] . '</td>
-                    <td>' . date('d/m/Y', strtotime($detail['tgl'])) . '</td>
-                    <td>' . $detail['nama_paket'] . '</td>
-                    <td>' . $detail['deskripsi'] . '</td>
-                    <td class="text-end">Rp ' . number_format($detail['harga'], 0, ',', '.') . '</td>
-                    <td class="text-end">Rp ' . number_format($booking['total'], 0, ',', '.') . '</td>
-                </tr>';
+            // Skip jika booking sudah diproses
+            if (in_array($booking['kdbooking'], $processedCodes)) {
+                continue;
             }
+
+            // Tambahkan ke daftar yang sudah diproses
+            $processedCodes[] = $booking['kdbooking'];
+
+            // Gabungkan semua jenis paket
+            $paketList = [];
+            foreach ($booking['details'] as $detail) {
+                $paketInfo = $detail['nama_paket'];
+                if (!empty($detail['deskripsi'])) {
+                    $paketInfo .= ' (' . $detail['deskripsi'] . ')';
+                }
+                $paketList[] = $paketInfo;
+            }
+
+            // Ambil tanggal dari detail pertama
+            $tanggal = date('d/m/Y', strtotime($booking['details'][0]['tgl']));
+
+            $content .= '
+            <tr>
+                <td class="text-center">' . $no++ . '</td>
+                <td>' . $booking['kdbooking'] . '</td>
+                <td>' . $booking['nama_lengkap'] . '</td>
+                <td>' . $tanggal . '</td>
+                <td>' . implode(", ", $paketList) . '</td>
+                <td class="text-end">Rp ' . number_format($booking['total'], 0, ',', '.') . '</td>
+            </tr>';
+
             // Tambahkan total booking sekali saja per booking
             $totalBayar += $booking['total'];
         }
@@ -436,7 +455,7 @@ class ReportsController extends BaseController
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="7" class="text-end fw-bold">Total Seluruh Booking:</td>
+                    <td colspan="5" class="text-end fw-bold">Total Seluruh Booking:</td>
                     <td class="text-end fw-bold">Rp ' . number_format($totalBayar, 0, ',', '.') . '</td>
                 </tr>
             </tfoot>
@@ -563,9 +582,8 @@ class ReportsController extends BaseController
                     <th>No Transaksi</th>
                     <th>Tanggal</th>
                     <th>Nama Pelanggan</th>
-                    <th>Nama Paket</th>
-                    <th>Jenis Paket</th>
-                    <th class="text-center">Harga Paket</th>
+                    <th>Paket</th>
+                    <th>Harga Paket</th>
                     <th class="text-center">Total Bayar</th>
                     <th>Metode Pembayaran</th>
                 </tr>
@@ -576,21 +594,29 @@ class ReportsController extends BaseController
         $totalBayar = 0;
 
         foreach ($pembayaranData as $p) {
+            // Gabungkan semua paket
+            $paketList = [];
             foreach ($p['details'] as $detail) {
-                $content .= '
-                <tr>
-                    <td class="text-center">' . $no++ . '</td>
-                    <td>' . $p['fakturbooking'] . '</td>
-                    <td>' . date('d/m/Y', strtotime($p['created_at'])) . '</td>
-                    <td>' . $p['booking']['nama_lengkap'] . '</td>
-                    <td>' . $detail['nama_paket'] . '</td>
-                    <td>' . $detail['deskripsi'] . '</td>
-                    <td class="text-end">Rp ' . number_format($detail['harga'], 0, ',', '.') . '</td>
-                    <td class="text-end">Rp ' . number_format($p['total_bayar'], 0, ',', '.') . '</td>
-                    <td>' . ucfirst($p['metode']) . '</td>
-                </tr>';
+                $paketInfo = $detail['nama_paket'];
+                if (!empty($detail['deskripsi'])) {
+                    $paketInfo .= ' (' . $detail['deskripsi'] . ')';
+                }
+                $paketList[] = $paketInfo;
             }
-            // Tambahkan total pembayaran sekali saja per pembayaran
+
+            $content .= '
+            <tr>
+                <td class="text-center">' . $no++ . '</td>
+                <td>' . $p['fakturbooking'] . '</td>
+                <td>' . date('d/m/Y', strtotime($p['created_at'])) . '</td>
+                <td>' . $p['booking']['nama_lengkap'] . '</td>
+                <td>' . implode(", ", $paketList) . '</td>
+                <td class="text-end">Rp ' . number_format($p['grandtotal'], 0, ',', '.') . '</td>
+                <td class="text-end">Rp ' . number_format($p['total_bayar'], 0, ',', '.') . '</td>
+                <td>' . ucfirst($p['metode']) . '</td>
+            </tr>';
+
+            // Tambahkan total pembayaran
             $totalBayar += $p['total_bayar'];
         }
 
@@ -598,7 +624,7 @@ class ReportsController extends BaseController
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="7" class="text-end fw-bold">Total Seluruh Pembayaran:</td>
+                    <td colspan="6" class="text-end fw-bold">Total Seluruh Pembayaran:</td>
                     <td class="text-end fw-bold">Rp ' . number_format($totalBayar, 0, ',', '.') . '</td>
                     <td></td>
                 </tr>
@@ -613,6 +639,9 @@ class ReportsController extends BaseController
 
     public function pendapatanBulanan()
     {
+        // Nonaktifkan cache untuk mendapatkan data terbaru
+        $this->db->query("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED");
+
         // Ambil daftar tahun untuk dropdown filter
         $queryTahun = $this->db->query(
             "SELECT DISTINCT YEAR(created_at) as tahun FROM pembayaran WHERE status = 'paid' ORDER BY tahun DESC"
@@ -632,26 +661,24 @@ class ReportsController extends BaseController
             $tahun = $this->request->getGet('tahun');
             $bulan = $this->request->getGet('bulan');
 
-            // Ambil data pembayaran per bulan
+            // Ambil data pembayaran per bulan dengan cache dinonaktifkan
             $query = $this->db->query(
                 "SELECT 
-                    DATE(p.created_at) as tanggal,
+                    DATE(db.tgl) as tanggal,
                     db.nama_paket,
-                    SUM(p.total_bayar) as total
+                    db.harga as harga_satuan,
+                    COUNT(db.iddetail) as jumlah,
+                    SUM(db.harga) as total
                 FROM 
-                    pembayaran p
-                JOIN 
-                    booking b ON p.fakturbooking = b.kdbooking
-                JOIN 
-                    detail_booking db ON b.kdbooking = db.kdbooking
+                    detail_booking db
                 WHERE 
-                    p.status = 'paid' 
-                    AND MONTH(p.created_at) = ?
-                    AND YEAR(p.created_at) = ?
+                    db.status != 4
+                    AND MONTH(db.tgl) = ?
+                    AND YEAR(db.tgl) = ?
                 GROUP BY 
-                    DATE(p.created_at), db.nama_paket
+                    DATE(db.tgl), db.nama_paket, db.harga
                 ORDER BY 
-                    DATE(p.created_at) ASC",
+                    DATE(db.tgl) ASC, db.nama_paket ASC",
                 [$bulan, $tahun]
             );
 
@@ -715,30 +742,30 @@ class ReportsController extends BaseController
             '12' => 'Desember'
         ];
 
-        // Buat query dasar
+        // Buat query dasar dengan cache dinonaktifkan
+        $this->db->query("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED");
+
         $sql = "SELECT 
-                DATE(p.created_at) as tanggal,
+                DATE(db.tgl) as tanggal,
                 db.nama_paket,
-                SUM(p.total_bayar) as total
+                db.harga as harga_satuan,
+                COUNT(db.iddetail) as jumlah,
+                SUM(db.harga) as total
             FROM 
-                pembayaran p
-            JOIN 
-                booking b ON p.fakturbooking = b.kdbooking
-            JOIN 
-                detail_booking db ON b.kdbooking = db.kdbooking
+                detail_booking db
             WHERE 
-                p.status = 'paid'";
+                db.status != 4";  // Status 4 adalah dibatalkan
 
         // Tambahkan filter bulan dan tahun jika tidak tampil semua
         if (!$showAll) {
-            $sql .= " AND MONTH(p.created_at) = '$bulan' AND YEAR(p.created_at) = '$tahun'";
+            $sql .= " AND MONTH(db.tgl) = '$bulan' AND YEAR(db.tgl) = '$tahun'";
         }
 
-        // Grup dan urutkan
+        // Grup dan urutkan berdasarkan tanggal dan nama paket
         $sql .= " GROUP BY 
-                DATE(p.created_at), db.nama_paket
+                DATE(db.tgl), db.nama_paket, db.harga
             ORDER BY 
-                DATE(p.created_at) DESC";
+                DATE(db.tgl) DESC, db.nama_paket ASC";
 
         // Batasi hasil jika tampil semua
         if ($showAll) {
@@ -756,6 +783,8 @@ class ReportsController extends BaseController
             $formattedData[] = [
                 'tanggal' => date('d/m/Y', strtotime($item['tanggal'])),
                 'nama_paket' => $item['nama_paket'],
+                'harga_satuan' => $item['harga_satuan'],
+                'jumlah' => $item['jumlah'],
                 'total' => $item['total'],
                 'total_formatted' => 'Rp ' . number_format($item['total'], 0, ',', '.')
             ];
@@ -777,29 +806,30 @@ class ReportsController extends BaseController
 
     public function printPendapatanBulanan()
     {
+        // Nonaktifkan cache untuk mendapatkan data terbaru
+        $this->db->query("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED");
+
         $tahun = $this->request->getGet('tahun') ?? date('Y');
         $bulan = $this->request->getGet('bulan') ?? date('m');
 
-        // Ambil data pembayaran per bulan
+        // Ambil data pembayaran per bulan dengan cache dinonaktifkan
         $query = $this->db->query(
             "SELECT 
-                DATE(p.created_at) as tanggal,
+                DATE(db.tgl) as tanggal,
                 db.nama_paket,
-                SUM(p.total_bayar) as total
+                db.harga as harga_satuan,
+                COUNT(db.iddetail) as jumlah,
+                SUM(db.harga) as total
             FROM 
-                pembayaran p
-            JOIN 
-                booking b ON p.fakturbooking = b.kdbooking
-            JOIN 
-                detail_booking db ON b.kdbooking = db.kdbooking
+                detail_booking db
             WHERE 
-                p.status = 'paid' 
-                AND MONTH(p.created_at) = ?
-                AND YEAR(p.created_at) = ?
+                db.status != 4
+                AND MONTH(db.tgl) = ?
+                AND YEAR(db.tgl) = ?
             GROUP BY 
-                DATE(p.created_at), db.nama_paket
+                DATE(db.tgl), db.nama_paket, db.harga
             ORDER BY 
-                DATE(p.created_at) ASC",
+                DATE(db.tgl) ASC, db.nama_paket ASC",
             [$bulan, $tahun]
         );
 
@@ -849,6 +879,8 @@ class ReportsController extends BaseController
                     <th class="text-center" width="5%">No</th>
                     <th>Tanggal</th>
                     <th>Nama Paket</th>
+                    <th class="text-center">Harga Satuan</th>
+                    <th class="text-center">Jumlah</th>
                     <th class="text-center">Total</th>
                 </tr>
             </thead>
@@ -862,6 +894,8 @@ class ReportsController extends BaseController
                 <td class="text-center">' . $no++ . '</td>
                 <td>' . date('d/m/Y', strtotime($item['tanggal'])) . '</td>
                 <td>' . $item['nama_paket'] . '</td>
+                <td class="text-end">Rp ' . number_format($item['harga_satuan'], 0, ',', '.') . '</td>
+                <td class="text-center">' . $item['jumlah'] . '</td>
                 <td class="text-end">Rp ' . number_format($item['total'], 0, ',', '.') . '</td>
             </tr>';
         }
@@ -870,7 +904,7 @@ class ReportsController extends BaseController
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="3" class="text-end fw-bold">Total Pendapatan:</td>
+                    <td colspan="5" class="text-end fw-bold">Total Pendapatan:</td>
                     <td class="text-end fw-bold">Rp ' . number_format($totalPendapatan, 0, ',', '.') . '</td>
                 </tr>
             </tfoot>
@@ -884,6 +918,9 @@ class ReportsController extends BaseController
 
     public function pendapatanTahunan()
     {
+        // Nonaktifkan cache untuk mendapatkan data terbaru
+        $this->db->query("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED");
+
         // Default nilai untuk data
         $pendapatanBulanan = [];
         $totalPendapatan = 0;
@@ -895,16 +932,16 @@ class ReportsController extends BaseController
             // Buat query dengan filter tahun
             $query = $this->db->query(
                 "SELECT 
-                    MONTH(created_at) as bulan,
-                    YEAR(created_at) as tahun,
-                    SUM(total_bayar) as total
+                    MONTH(p.created_at) as bulan,
+                    YEAR(p.created_at) as tahun,
+                    SUM(p.total_bayar) as total
                 FROM 
-                    pembayaran
+                    pembayaran p
                 WHERE 
-                    status = 'paid'
-                    AND YEAR(created_at) = ?
+                    p.status = 'paid'
+                    AND YEAR(p.created_at) = ?
                 GROUP BY 
-                    MONTH(created_at), YEAR(created_at)
+                    MONTH(p.created_at), YEAR(p.created_at)
                 ORDER BY 
                     tahun DESC, bulan ASC",
                 [$tahun]
@@ -913,15 +950,15 @@ class ReportsController extends BaseController
             // Query tanpa filter tahun
             $query = $this->db->query(
                 "SELECT 
-                    MONTH(created_at) as bulan,
-                    YEAR(created_at) as tahun,
-                    SUM(total_bayar) as total
+                    MONTH(p.created_at) as bulan,
+                    YEAR(p.created_at) as tahun,
+                    SUM(p.total_bayar) as total
                 FROM 
-                    pembayaran
+                    pembayaran p
                 WHERE 
-                    status = 'paid'
+                    p.status = 'paid'
                 GROUP BY 
-                    MONTH(created_at), YEAR(created_at)
+                    MONTH(p.created_at), YEAR(p.created_at)
                 ORDER BY 
                     tahun DESC, bulan ASC"
             );
@@ -953,6 +990,9 @@ class ReportsController extends BaseController
             ]);
         }
 
+        // Nonaktifkan cache untuk mendapatkan data terbaru
+        $this->db->query("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED");
+
         // Ambil parameter filter
         $tahun = $this->request->getGet('tahun');
 
@@ -966,24 +1006,24 @@ class ReportsController extends BaseController
             ]);
         }
 
-        // Buat query dasar
+        // Buat query dasar dengan cache dinonaktifkan
         $sql = "SELECT 
-                MONTH(created_at) as bulan,
-                YEAR(created_at) as tahun,
-                SUM(total_bayar) as total
+                MONTH(p.created_at) as bulan,
+                YEAR(p.created_at) as tahun,
+                SUM(p.total_bayar) as total
             FROM 
-                pembayaran
+                pembayaran p
             WHERE 
-                status = 'paid'";
+                p.status = 'paid'";
 
         // Tambahkan filter tahun jika ada
         if (!$showAll && $tahun) {
-            $sql .= " AND YEAR(created_at) = $tahun";
+            $sql .= " AND YEAR(p.created_at) = $tahun";
         }
 
         // Grup dan urutkan
         $sql .= " GROUP BY 
-                MONTH(created_at), YEAR(created_at)
+                MONTH(p.created_at), YEAR(p.created_at)
             ORDER BY 
                 tahun DESC, bulan ASC";
 
@@ -1017,27 +1057,30 @@ class ReportsController extends BaseController
 
     public function printPendapatanTahunan()
     {
+        // Nonaktifkan cache untuk mendapatkan data terbaru
+        $this->db->query("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED");
+
         // Ambil parameter filter
         $tahun = $this->request->getGet('tahun');
 
         // Buat query dasar
         $sql = "SELECT 
-                MONTH(created_at) as bulan,
-                YEAR(created_at) as tahun,
-                SUM(total_bayar) as total
+                MONTH(p.created_at) as bulan,
+                YEAR(p.created_at) as tahun,
+                SUM(p.total_bayar) as total
             FROM 
-                pembayaran
+                pembayaran p
             WHERE 
-                status = 'paid'";
+                p.status = 'paid'";
 
         // Tambahkan filter tahun jika ada
         if ($tahun) {
-            $sql .= " AND YEAR(created_at) = $tahun";
+            $sql .= " AND YEAR(p.created_at) = $tahun";
         }
 
         // Grup dan urutkan
         $sql .= " GROUP BY 
-                MONTH(created_at), YEAR(created_at)
+                MONTH(p.created_at), YEAR(p.created_at)
             ORDER BY 
                 tahun DESC, bulan ASC";
 
@@ -1146,6 +1189,9 @@ class ReportsController extends BaseController
                 'message' => 'Permintaan tidak valid'
             ]);
         }
+
+        // Nonaktifkan cache untuk mendapatkan data terbaru
+        $this->db->query("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED");
 
         // Ambil parameter filter
         $tahun = $this->request->getGet('tahun');
@@ -2103,29 +2149,49 @@ class ReportsController extends BaseController
             }
         }
 
+        // Track kode booking yang sudah diproses
+        $processedBookings = [];
+
         // Buat HTML untuk tabel
         $html = '';
         $no = 1;
 
         foreach ($bookingData as $booking) {
-            foreach ($booking['details'] as $detail) {
-                $html .= '<tr>';
-                $html .= '<td>' . $no++ . '</td>';
-                $html .= '<td>' . ($booking['kdbooking'] ?? '') . '</td>';
-                $html .= '<td>' . ($booking['nama_lengkap'] ?? '') . '</td>';
-                $html .= '<td>' . (isset($detail['tgl']) ? date('d/m/Y', strtotime($detail['tgl'])) : '') . '</td>';
-                $html .= '<td>' . ($detail['nama_paket'] ?? '') . '</td>';
-                $html .= '<td>' . ($detail['deskripsi'] ?? '') . '</td>';
-                $html .= '<td>Rp ' . number_format(($detail['harga'] ?? 0), 0, ',', '.') . '</td>';
-                $html .= '<td>Rp ' . number_format(($booking['total'] ?? 0), 0, ',', '.') . '</td>';
-                $html .= '</tr>';
-                $totalData++;
+            // Skip jika booking sudah diproses
+            if (isset($processedBookings[$booking['kdbooking']])) {
+                continue;
             }
+
+            // Tandai booking ini sudah diproses
+            $processedBookings[$booking['kdbooking']] = true;
+
+            // Gabungkan semua jenis paket
+            $paketList = [];
+            foreach ($booking['details'] as $detail) {
+                $paketInfo = $detail['nama_paket'];
+                if (!empty($detail['deskripsi'])) {
+                    $paketInfo .= ' (' . $detail['deskripsi'] . ')';
+                }
+                $paketList[] = $paketInfo;
+            }
+
+            // Ambil tanggal dari detail pertama
+            $tanggal = isset($booking['details'][0]['tgl']) ? date('d/m/Y', strtotime($booking['details'][0]['tgl'])) : '';
+
+            $html .= '<tr>';
+            $html .= '<td>' . $no++ . '</td>';
+            $html .= '<td>' . ($booking['kdbooking'] ?? '') . '</td>';
+            $html .= '<td>' . ($booking['nama_lengkap'] ?? '') . '</td>';
+            $html .= '<td>' . $tanggal . '</td>';
+            $html .= '<td>' . implode(", ", $paketList) . '</td>';
+            $html .= '<td>Rp ' . number_format(($booking['total'] ?? 0), 0, ',', '.') . '</td>';
+            $html .= '</tr>';
+            $totalData++;
         }
 
         // Jika tidak ada data
         if ($totalData === 0) {
-            $html = '<tr><td colspan="8" class="text-center">Tidak ada data yang ditemukan</td></tr>';
+            $html = '<tr><td colspan="6" class="text-center">Tidak ada data yang ditemukan</td></tr>';
         }
 
         // Siapkan pesan berdasarkan filter
@@ -2200,25 +2266,32 @@ class ReportsController extends BaseController
         $no = 1;
 
         foreach ($pembayaranData as $p) {
+            // Gabungkan semua paket
+            $paketList = [];
             foreach ($p['details'] as $detail) {
-                $html .= '<tr>';
-                $html .= '<td>' . $no++ . '</td>';
-                $html .= '<td>' . ($p['fakturbooking'] ?? '') . '</td>';
-                $html .= '<td>' . (isset($p['created_at']) ? date('d/m/Y', strtotime($p['created_at'])) : '') . '</td>';
-                $html .= '<td>' . ($p['booking']['nama_lengkap'] ?? '') . '</td>';
-                $html .= '<td>' . ($detail['nama_paket'] ?? '') . '</td>';
-                $html .= '<td>' . ($detail['deskripsi'] ?? '') . '</td>';
-                $html .= '<td>Rp ' . number_format(($detail['harga'] ?? 0), 0, ',', '.') . '</td>';
-                $html .= '<td>Rp ' . number_format(($p['total_bayar'] ?? 0), 0, ',', '.') . '</td>';
-                $html .= '<td>' . ucfirst($p['metode'] ?? '') . '</td>';
-                $html .= '</tr>';
-                $totalData++;
+                $paketInfo = $detail['nama_paket'];
+                if (!empty($detail['deskripsi'])) {
+                    $paketInfo .= ' (' . $detail['deskripsi'] . ')';
+                }
+                $paketList[] = $paketInfo;
             }
+
+            $html .= '<tr>';
+            $html .= '<td>' . $no++ . '</td>';
+            $html .= '<td>' . ($p['fakturbooking'] ?? '') . '</td>';
+            $html .= '<td>' . (isset($p['created_at']) ? date('d/m/Y', strtotime($p['created_at'])) : '') . '</td>';
+            $html .= '<td>' . ($p['booking']['nama_lengkap'] ?? '') . '</td>';
+            $html .= '<td>' . implode(", ", $paketList) . '</td>';
+            $html .= '<td class="text-end">Rp ' . number_format(($p['grandtotal'] ?? 0), 0, ',', '.') . '</td>';
+            $html .= '<td class="text-end">Rp ' . number_format(($p['total_bayar'] ?? 0), 0, ',', '.') . '</td>';
+            $html .= '<td>' . ucfirst($p['metode'] ?? '') . '</td>';
+            $html .= '</tr>';
+            $totalData++;
         }
 
         // Jika tidak ada data
         if ($totalData === 0) {
-            $html = '<tr><td colspan="9" class="text-center">Tidak ada data yang ditemukan</td></tr>';
+            $html = '<tr><td colspan="8" class="text-center">Tidak ada data yang ditemukan</td></tr>';
         }
 
         // Siapkan pesan berdasarkan filter
@@ -2580,7 +2653,7 @@ class ReportsController extends BaseController
 
         // Membuat konten tabel
         $content = '
-        <table class="table table-bordered">
+        <table class="table table-bordered"></table>
             <thead>
                 <tr>
                     <th class="text-center" width="5%">No</th>
