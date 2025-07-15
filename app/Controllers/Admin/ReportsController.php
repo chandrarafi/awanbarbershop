@@ -404,6 +404,7 @@ class ReportsController extends BaseController
                     <th>Nama Pelanggan</th>
                     <th>Tanggal</th>
                     <th>Nama Paket</th>
+                    <th class="text-center">Harga Paket</th>
                     <th class="text-center">Total Bayar</th>
                 </tr>
             </thead>
@@ -426,12 +427,15 @@ class ReportsController extends BaseController
 
             // Gabungkan semua jenis paket
             $paketList = [];
+            $totalHarga = 0;
             foreach ($booking['details'] as $detail) {
                 $paketInfo = $detail['nama_paket'];
                 if (!empty($detail['deskripsi'])) {
                     $paketInfo .= ' (' . $detail['deskripsi'] . ')';
                 }
                 $paketList[] = $paketInfo;
+                // Tambahkan harga dari setiap detail
+                $totalHarga += $detail['harga'] ?? 0;
             }
 
             // Ambil tanggal dari detail pertama
@@ -444,6 +448,7 @@ class ReportsController extends BaseController
                 <td>' . $booking['nama_lengkap'] . '</td>
                 <td>' . $tanggal . '</td>
                 <td>' . implode(", ", $paketList) . '</td>
+                <td class="text-end">Rp ' . number_format($totalHarga, 0, ',', '.') . '</td>
                 <td class="text-end">Rp ' . number_format($booking['total'], 0, ',', '.') . '</td>
             </tr>';
 
@@ -455,7 +460,7 @@ class ReportsController extends BaseController
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="5" class="text-end fw-bold">Total Seluruh Booking:</td>
+                    <td colspan="6" class="text-end fw-bold">Total Seluruh Booking:</td>
                     <td class="text-end fw-bold">Rp ' . number_format($totalBayar, 0, ',', '.') . '</td>
                 </tr>
             </tfoot>
@@ -871,6 +876,8 @@ class ReportsController extends BaseController
             'manager' => 'Pimpinan'
         ];
 
+        //tes coba
+
         // Membuat konten tabel
         $content = '
         <table class="table table-bordered">
@@ -879,8 +886,7 @@ class ReportsController extends BaseController
                     <th class="text-center" width="5%">No</th>
                     <th>Tanggal</th>
                     <th>Nama Paket</th>
-                    <th class="text-center">Harga Satuan</th>
-                    <th class="text-center">Jumlah</th>
+                   
                     <th class="text-center">Total</th>
                 </tr>
             </thead>
@@ -894,8 +900,7 @@ class ReportsController extends BaseController
                 <td class="text-center">' . $no++ . '</td>
                 <td>' . date('d/m/Y', strtotime($item['tanggal'])) . '</td>
                 <td>' . $item['nama_paket'] . '</td>
-                <td class="text-end">Rp ' . number_format($item['harga_satuan'], 0, ',', '.') . '</td>
-                <td class="text-center">' . $item['jumlah'] . '</td>
+               
                 <td class="text-end">Rp ' . number_format($item['total'], 0, ',', '.') . '</td>
             </tr>';
         }
@@ -904,7 +909,7 @@ class ReportsController extends BaseController
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="5" class="text-end fw-bold">Total Pendapatan:</td>
+                    <td colspan="3" class="text-end fw-bold">Total Pendapatan:</td>
                     <td class="text-end fw-bold">Rp ' . number_format($totalPendapatan, 0, ',', '.') . '</td>
                 </tr>
             </tfoot>
@@ -2167,12 +2172,15 @@ class ReportsController extends BaseController
 
             // Gabungkan semua jenis paket
             $paketList = [];
+            $totalHarga = 0;
             foreach ($booking['details'] as $detail) {
                 $paketInfo = $detail['nama_paket'];
                 if (!empty($detail['deskripsi'])) {
                     $paketInfo .= ' (' . $detail['deskripsi'] . ')';
                 }
                 $paketList[] = $paketInfo;
+                // Tambahkan harga dari setiap detail
+                $totalHarga += $detail['harga'] ?? 0;
             }
 
             // Ambil tanggal dari detail pertama
@@ -2184,6 +2192,7 @@ class ReportsController extends BaseController
             $html .= '<td>' . ($booking['nama_lengkap'] ?? '') . '</td>';
             $html .= '<td>' . $tanggal . '</td>';
             $html .= '<td>' . implode(", ", $paketList) . '</td>';
+            $html .= '<td>Rp ' . number_format($totalHarga, 0, ',', '.') . '</td>';
             $html .= '<td>Rp ' . number_format(($booking['total'] ?? 0), 0, ',', '.') . '</td>';
             $html .= '</tr>';
             $totalData++;
@@ -2191,7 +2200,7 @@ class ReportsController extends BaseController
 
         // Jika tidak ada data
         if ($totalData === 0) {
-            $html = '<tr><td colspan="6" class="text-center">Tidak ada data yang ditemukan</td></tr>';
+            $html = '<tr><td colspan="7" class="text-center">Tidak ada data yang ditemukan</td></tr>';
         }
 
         // Siapkan pesan berdasarkan filter
@@ -2653,7 +2662,7 @@ class ReportsController extends BaseController
 
         // Membuat konten tabel
         $content = '
-        <table class="table table-bordered"></table>
+        <table class="table table-bordered">
             <thead>
                 <tr>
                     <th class="text-center" width="5%">No</th>
