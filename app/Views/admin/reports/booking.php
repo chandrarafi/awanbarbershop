@@ -103,6 +103,7 @@
                                     <th class="sortable" data-sort="pelanggan">Nama Pelanggan</th>
                                     <th class="sortable" data-sort="tanggal">Tanggal</th>
                                     <th class="sortable" data-sort="paket">Nama Paket</th>
+                                    <th class="sortable" data-sort="harga">Harga Paket</th>
                                     <th class="sortable" data-sort="total">Total Bayar</th>
                                 </tr>
                             </thead>
@@ -251,6 +252,14 @@
                                 var tanggal = booking.details && booking.details.length > 0 ?
                                     formatDate(booking.details[0].tgl) : '';
 
+                                // Hitung total harga dari detail booking
+                                var totalHarga = 0;
+                                if (booking.details && Array.isArray(booking.details)) {
+                                    booking.details.forEach(function(detail) {
+                                        totalHarga += parseFloat(detail.harga || 0);
+                                    });
+                                }
+
                                 // Tambahkan data ke tableData
                                 tableData.push({
                                     no: no++,
@@ -258,6 +267,7 @@
                                     pelanggan: booking.nama_lengkap,
                                     tanggal: tanggal,
                                     paket: paketNames.join(", "),
+                                    harga: 'Rp ' + formatNumber(totalHarga),
                                     total: 'Rp ' + formatNumber(booking.total)
                                 });
                             });
@@ -434,7 +444,7 @@
 
                 if (filteredData.length === 0) {
                     console.log("No data to display");
-                    tbody.html('<tr><td colspan="6" class="text-center">Data booking tidak ditemukan. Silakan coba filter dengan kriteria berbeda.</td></tr>');
+                    tbody.html('<tr><td colspan="7" class="text-center">Data booking tidak ditemukan. Silakan coba filter dengan kriteria berbeda.</td></tr>');
                 } else {
                     console.log("Displaying data:", filteredData);
                     for (var i = 0; i < filteredData.length; i++) {
@@ -446,6 +456,7 @@
                             '<td>' + (item.pelanggan || '') + '</td>' +
                             '<td>' + (item.tanggal || '') + '</td>' +
                             '<td>' + (item.paket || '') + '</td>' +
+                            '<td>' + (item.harga || '') + '</td>' +
                             '<td>' + (item.total || '') + '</td>' +
                             '</tr>';
                         tbody.append(row);
@@ -455,7 +466,7 @@
                 console.log("Table rendered successfully");
             } catch (e) {
                 console.error('Error dalam renderTable:', e);
-                $('#bookingTable tbody').html('<tr><td colspan="6" class="text-center">Terjadi kesalahan saat memuat data. Silakan coba lagi.</td></tr>');
+                $('#bookingTable tbody').html('<tr><td colspan="7" class="text-center">Terjadi kesalahan saat memuat data. Silakan coba lagi.</td></tr>');
             }
         }
 
