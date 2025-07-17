@@ -29,13 +29,13 @@
                             <label for="tahun" class="form-label">Tahun</label>
                             <select name="tahun" id="tahun" class="form-control">
                                 <option value="">- Pilih Tahun -</option>
-                                <?php if (empty($daftarTahun)): ?>
-                                    <option value="<?= date('Y') ?>"><?= date('Y') ?></option>
-                                <?php else: ?>
-                                    <?php foreach ($daftarTahun as $t): ?>
-                                        <option value="<?= $t['tahun'] ?>"><?= $t['tahun'] ?></option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                                <?php
+                                $tahunSekarang = date('Y');
+                                for ($i = 0; $i < 5; $i++) {
+                                    $tahun = $tahunSekarang - $i;
+                                    echo '<option value="' . $tahun . '">' . $tahun . '</option>';
+                                }
+                                ?>
                             </select>
                         </div>
                     </div>
@@ -103,7 +103,6 @@
                                 <th>Bulan</th>
                                 <th>Uang Masuk (UM)</th>
                                 <th>Uang Keluar (UK)</th>
-                                <th width="10%">Status</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -114,7 +113,10 @@
                                 <td colspan="2" class="text-end fw-bold">Total:</td>
                                 <td class="fw-bold" id="tableTotalUangMasuk">Rp 0</td>
                                 <td class="fw-bold" id="tableTotalUangKeluar">Rp 0</td>
-                                <td class="fw-bold text-center" id="tableStatusKeseluruhan">-</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="text-end fw-bold">Status:</td>
+                                <td colspan="2" class="fw-bold text-center" id="tableStatusKeseluruhan">-</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -224,7 +226,6 @@
                                         <td data-sort="${item.bulan_kode}">${item.bulan}</td>
                                         <td class="text-end">${item.uang_masuk_formatted}</td>
                                         <td class="text-end">${item.uang_keluar_formatted}</td>
-                                        <td class="text-center ${statusClass} fw-bold">${item.status}</td>
                                     </tr>
                                 `);
                             });
