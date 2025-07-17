@@ -418,7 +418,6 @@ class ReportsController extends BaseController
                     <th class="text-center" width="5%">No</th>
                     <th>Kode Booking</th>
                     <th>Nama Pelanggan</th>
-                    <th>Tanggal</th>
                     <th>Nama Paket</th>
                     <th class="text-center">Harga Paket</th>
                     <th class="text-center">Total Bayar</th>
@@ -462,7 +461,6 @@ class ReportsController extends BaseController
                 <td class="text-center">' . $no++ . '</td>
                 <td>' . $booking['kdbooking'] . '</td>
                 <td>' . $booking['nama_lengkap'] . '</td>
-                <td>' . $tanggal . '</td>
                 <td>' . implode(", ", $paketList) . '</td>
                 <td class="text-end">Rp ' . number_format($totalHarga, 0, ',', '.') . '</td>
                 <td class="text-end">Rp ' . number_format($booking['total'], 0, ',', '.') . '</td>
@@ -476,7 +474,7 @@ class ReportsController extends BaseController
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="6" class="text-end fw-bold">Total Seluruh Booking:</td>
+                    <td colspan="5" class="text-end fw-bold">Total Seluruh Booking:</td>
                     <td class="text-end fw-bold">Rp ' . number_format($totalBayar, 0, ',', '.') . '</td>
                 </tr>
             </tfoot>
@@ -2696,7 +2694,6 @@ class ReportsController extends BaseController
                     <th>Bulan</th>
                     <th class="text-center">Uang Masuk (UM)</th>
                     <th class="text-center">Uang Keluar (UK)</th>
-                    <th class="text-center">Status</th>
                 </tr>
             </thead>
             <tbody>';
@@ -2710,8 +2707,7 @@ class ReportsController extends BaseController
                 <td>' . $data['bulan'] . '</td>
                 <td class="text-end">Rp ' . number_format($data['uang_masuk'], 0, ',', '.') . '</td>
                 <td class="text-end">Rp ' . number_format($data['uang_keluar'], 0, ',', '.') . '</td>
-                <td class="text-center fw-bold ' . ($data['status'] == 'LABA' ? 'text-success' : 'text-danger') . '">' . $data['status'] . '</td>
-                </tr>';
+            </tr>';
         }
 
         $content .= '
@@ -2721,9 +2717,11 @@ class ReportsController extends BaseController
                     <td colspan="2" class="text-end fw-bold">Total :</td>
                     <td class="text-end fw-bold">Rp ' . number_format($totalUangMasuk, 0, ',', '.') . '</td>
                     <td class="text-end fw-bold">Rp ' . number_format($totalUangKeluar, 0, ',', '.') . '</td>
-                    <td class="text-center fw-bold ' . ($statusKeseluruhan == 'LABA' ? 'text-success' : 'text-danger') . '">' . $statusKeseluruhan . '</td>
                 </tr>
-              
+                <tr>
+                    <td colspan="2" class="text-end fw-bold">Status :</td>
+                    <td colspan="2" class="text-center fw-bold ' . ($statusKeseluruhan == 'LABA' ? 'text-success' : 'text-danger') . '">' . $statusKeseluruhan . '</td>
+                </tr>
             </tfoot>
         </table>';
 

@@ -22,41 +22,27 @@
     </div>
     <div class="card-body">
         <form id="filterForm">
-            <div class="row mb-3">
-                <div class="col-lg-4 col-md-6 mb-3 mb-md-0">
+            <div class="row mb-2">
+                <div class="col-lg-6 col-md-8 mb-3 mb-md-0">
                     <div class="form-group">
-                        <label for="singleDate">Tanggal Tunggal</label>
-                        <input type="date" class="form-control" id="singleDate" name="single_date" value="<?= isset($_GET['single_date']) ? $_GET['single_date'] : '' ?>">
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-3 mb-md-0">
-                    <div class="form-group">
-                        <label for="startDate">Tanggal Awal</label>
-                        <input type="date" class="form-control" id="startDate" name="start_date" value="<?= isset($_GET['start_date']) ? $_GET['start_date'] : '' ?>">
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="form-group">
-                        <label for="endDate">Tanggal Akhir</label>
-                        <input type="date" class="form-control" id="endDate" name="end_date" value="<?= isset($_GET['end_date']) ? $_GET['end_date'] : '' ?>">
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="btn-group w-100 d-flex flex-wrap justify-content-center justify-content-sm-start">
-                        <button type="button" id="filterBtn" class="btn btn-primary m-1">
-                            <i class="bi bi-filter me-1"></i> Filter
-                        </button>
-                        <button type="button" id="resetBtn" class="btn btn-secondary m-1">
-                            <i class="bi bi-x-circle me-1"></i> Reset
-                        </button>
-                        <button type="button" id="todayBtn" class="btn btn-success m-1">
-                            <i class="bi bi-calendar-check me-1"></i> Hari Ini
-                        </button>
-                        <button type="button" id="showAllBtn" class="btn btn-info m-1">
-                            <i class="bi bi-list me-1"></i> Tampilkan Semua
-                        </button>
+                        <label for="singleDate">Tanggal</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" id="singleDate" name="single_date" value="<?= isset($_GET['single_date']) ? $_GET['single_date'] : '' ?>">
+                            <button type="button" id="filterBtn" class="btn btn-primary">
+                                <i class="bi bi-filter me-1"></i> Filter
+                            </button>
+                            <button type="button" id="resetBtn" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-1"></i> Reset
+                            </button>
+                            <!--
+                            <button type="button" id="todayBtn" class="btn btn-success">
+                                <i class="bi bi-calendar-check me-1"></i> Hari Ini
+                            </button>
+                            <button type="button" id="showAllBtn" class="btn btn-info">
+                                <i class="bi bi-list me-1"></i> Tampilkan Semua
+                            </button>
+                            -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -118,7 +104,7 @@
                                     <th width="5%" class="sortable" data-sort="no">No</th>
                                     <th class="sortable" data-sort="kdbooking">Kode Booking</th>
                                     <th class="sortable" data-sort="pelanggan">Nama Pelanggan</th>
-                                    <th class="sortable" data-sort="tanggal">Tanggal</th>
+                                    <!-- <th class="sortable" data-sort="tanggal">Tanggal</th> -->
                                     <th class="sortable" data-sort="paket">Nama Paket</th>
                                     <th class="sortable" data-sort="harga">Harga Paket</th>
                                     <th class="sortable" data-sort="total">Total Bayar</th>
@@ -284,7 +270,7 @@
                                     no: no++,
                                     kdbooking: booking.kdbooking,
                                     pelanggan: booking.nama_lengkap,
-                                    tanggal: tanggal,
+                                    // tanggal: tanggal,
                                     paket: paketNames.join(", "),
                                     harga: 'Rp ' + formatNumber(totalHarga),
                                     total: 'Rp ' + formatNumber(booking.total)
@@ -473,7 +459,7 @@
                             '<td>' + (item.no || '') + '</td>' +
                             '<td>' + (item.kdbooking || '') + '</td>' +
                             '<td>' + (item.pelanggan || '') + '</td>' +
-                            '<td>' + (item.tanggal || '') + '</td>' +
+                            // '<td>' + (item.tanggal || '') + '</td>' +
                             '<td>' + (item.paket || '') + '</td>' +
                             '<td>' + (item.harga || '') + '</td>' +
                             '<td>' + (item.total || '') + '</td>' +
