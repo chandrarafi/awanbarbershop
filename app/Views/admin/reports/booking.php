@@ -4,12 +4,12 @@
 
 <!-- Page Header -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <div>
+    <div class="mb-3 mb-sm-0">
         <h1 class="h3 mb-0 text-gray-800">Laporan Booking</h1>
         <p class="mb-0 text-secondary">Laporan data booking lengkap</p>
     </div>
     <div>
-        <a href="<?= site_url('admin/reports/booking/print') ?>" id="printBtn" target="_blank" class="btn btn-primary btn-sm">
+        <a href="<?= site_url('admin/reports/booking/print') ?>" id="printBtn" target="_blank" class="btn btn-primary btn-sm w-100">
             <i class="bi bi-printer me-1"></i> Cetak
         </a>
     </div>
@@ -22,24 +22,41 @@
     </div>
     <div class="card-body">
         <form id="filterForm">
-            <div class="row">
-                <div class="col-md-4">
+            <div class="row mb-3">
+                <div class="col-lg-4 col-md-6 mb-3 mb-md-0">
+                    <div class="form-group">
+                        <label for="singleDate">Tanggal Tunggal</label>
+                        <input type="date" class="form-control" id="singleDate" name="single_date" value="<?= isset($_GET['single_date']) ? $_GET['single_date'] : '' ?>">
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3 mb-md-0">
                     <div class="form-group">
                         <label for="startDate">Tanggal Awal</label>
                         <input type="date" class="form-control" id="startDate" name="start_date" value="<?= isset($_GET['start_date']) ? $_GET['start_date'] : '' ?>">
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-lg-4 col-md-6">
                     <div class="form-group">
                         <label for="endDate">Tanggal Akhir</label>
                         <input type="date" class="form-control" id="endDate" name="end_date" value="<?= isset($_GET['end_date']) ? $_GET['end_date'] : '' ?>">
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="form-group" style="margin-top: 32px;">
-                        <button type="button" id="filterBtn" class="btn btn-primary">Filter</button>
-                        <button type="button" id="resetBtn" class="btn btn-secondary">Reset</button>
-                        <button type="button" id="showAllBtn" class="btn btn-info">Tampilkan Semua</button>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="btn-group w-100 d-flex flex-wrap justify-content-center justify-content-sm-start">
+                        <button type="button" id="filterBtn" class="btn btn-primary m-1">
+                            <i class="bi bi-filter me-1"></i> Filter
+                        </button>
+                        <button type="button" id="resetBtn" class="btn btn-secondary m-1">
+                            <i class="bi bi-x-circle me-1"></i> Reset
+                        </button>
+                        <button type="button" id="todayBtn" class="btn btn-success m-1">
+                            <i class="bi bi-calendar-check me-1"></i> Hari Ini
+                        </button>
+                        <button type="button" id="showAllBtn" class="btn btn-info m-1">
+                            <i class="bi bi-list me-1"></i> Tampilkan Semua
+                        </button>
                     </div>
                 </div>
             </div>
@@ -73,7 +90,7 @@
                 <div id="tableContent" style="display: none;">
                     <!-- Pencarian Sederhana -->
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-6 mb-3 mb-md-0">
                             <div class="input-group">
                                 <input type="text" id="searchInput" class="form-control" placeholder="Cari data...">
                                 <button class="btn btn-outline-secondary" type="button" id="searchBtn">
@@ -81,8 +98,8 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <div class="d-flex justify-content-end">
+                        <div class="col-md-6 text-md-end">
+                            <div class="d-flex justify-content-start justify-content-md-end">
                                 <select id="entriesPerPage" class="form-select form-select-sm me-2" style="width: auto; display: none;">
                                     <option value="10">10 entri</option>
                                     <option value="25">25 entri</option>
@@ -95,8 +112,8 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table table-bordered" id="bookingTable" width="100%" cellspacing="0">
-                            <thead>
+                        <table class="table table-bordered table-hover" id="bookingTable" width="100%" cellspacing="0">
+                            <thead class="table-light">
                                 <tr>
                                     <th width="5%" class="sortable" data-sort="no">No</th>
                                     <th class="sortable" data-sort="kdbooking">Kode Booking</th>
@@ -145,21 +162,22 @@
         var urlParams = new URLSearchParams(window.location.search);
         var startDateParam = urlParams.get('start_date');
         var endDateParam = urlParams.get('end_date');
+        var singleDateParam = urlParams.get('single_date');
 
-        console.log("URL parameters:", startDateParam, endDateParam);
+        console.log("URL parameters:", startDateParam, endDateParam, singleDateParam);
 
         // Jika ada parameter, gunakan untuk filter
-        if (startDateParam || endDateParam) {
+        if (startDateParam || endDateParam || singleDateParam) {
             console.log("Loading data with URL parameters");
-            loadBookingData(startDateParam, endDateParam);
+            loadBookingData(startDateParam, endDateParam, singleDateParam);
         } else {
             // Jika tidak ada parameter dan tidak ada data yang ditampilkan, muat semua data
-            <?php if (empty($_GET['start_date']) && empty($_GET['end_date']) && empty($bookings)): ?>
+            <?php if (empty($_GET['start_date']) && empty($_GET['end_date']) && empty($_GET['single_date']) && empty($bookings)): ?>
                 console.log("No data displayed yet, showing initial message");
                 // Tidak perlu memuat data, tampilkan pesan instruksi
             <?php else: ?>
                 console.log("Loading all data on initial page load");
-                loadBookingData('', '');
+                loadBookingData('', '', '');
             <?php endif; ?>
         }
 
@@ -196,9 +214,9 @@
         });
 
         // Fungsi untuk memuat data booking dengan AJAX
-        function loadBookingData(startDate, endDate) {
+        function loadBookingData(startDate, endDate, singleDate) {
             $('#loadingIndicator').removeClass('d-none');
-            console.log("Loading booking data with startDate:", startDate, "endDate:", endDate);
+            console.log("Loading booking data with startDate:", startDate, "endDate:", endDate, "singleDate:", singleDate);
 
             // Reset tableData
             tableData = [];
@@ -208,7 +226,8 @@
                 type: 'GET',
                 data: {
                     start_date: startDate,
-                    end_date: endDate
+                    end_date: endDate,
+                    single_date: singleDate
                 },
                 dataType: 'json',
                 success: function(response) {
@@ -282,7 +301,7 @@
                         showAlert('success', response.message);
 
                         // Perbarui URL cetak
-                        updatePrintUrl(startDate, endDate);
+                        updatePrintUrl(startDate, endDate, singleDate);
 
                         // Tampilkan konten tabel dan sembunyikan pesan instruksi
                         if (tableData.length > 0) {
@@ -485,7 +504,7 @@
         }
 
         // Fungsi untuk memperbarui URL cetak
-        function updatePrintUrl(startDate, endDate) {
+        function updatePrintUrl(startDate, endDate, singleDate) {
             var printUrl = '<?= site_url('admin/reports/booking/print') ?>';
             var params = [];
 
@@ -495,6 +514,10 @@
 
             if (endDate) {
                 params.push('end_date=' + endDate);
+            }
+
+            if (singleDate) {
+                params.push('single_date=' + singleDate);
             }
 
             if (params.length > 0) {
@@ -538,14 +561,21 @@
         $('#filterBtn').on('click', function() {
             var startDate = $('#startDate').val();
             var endDate = $('#endDate').val();
-            console.log("Filter button clicked with dates:", startDate, endDate);
+            var singleDate = $('#singleDate').val();
+            console.log("Filter button clicked with dates:", startDate, endDate, singleDate);
 
-            if (!startDate && !endDate) {
-                alert('Silakan pilih setidaknya satu tanggal untuk filter');
+            if (!startDate && !endDate && !singleDate) {
+                alert('Silakan pilih setidaknya satu jenis tanggal untuk filter');
                 return;
             }
 
-            loadBookingData(startDate, endDate);
+            // Validasi tanggal range
+            if (startDate && endDate && startDate > endDate) {
+                alert('Tanggal awal tidak boleh lebih besar dari tanggal akhir!');
+                return;
+            }
+
+            loadBookingData(startDate, endDate, singleDate);
         });
 
         // Event listener untuk tombol reset
@@ -553,6 +583,7 @@
             console.log("Reset button clicked");
             $('#startDate').val('');
             $('#endDate').val('');
+            $('#singleDate').val(''); // Reset single date
             // Tidak perlu memuat data, hanya reset form
             $('#instructionMessage').show();
             $('#tableContent').hide();
@@ -564,13 +595,61 @@
             console.log("Show All button clicked");
             $('#startDate').val('');
             $('#endDate').val('');
-            loadBookingData('', '');
+            $('#singleDate').val(''); // Reset single date
+            loadBookingData('', '', '');
+        });
+
+        // Event handler untuk tombol "Hari Ini"
+        $('#todayBtn').on('click', function() {
+            console.log("Today button clicked");
+            var today = new Date();
+            var formattedToday = formatDate2(today);
+
+            // Reset semua filter dan set single date ke hari ini
+            $('#startDate').val('');
+            $('#endDate').val('');
+            $('#singleDate').val(formattedToday);
+
+            // Load data untuk hari ini
+            loadBookingData('', '', formattedToday);
+        });
+
+        // Fungsi untuk memformat tanggal ke format YYYY-MM-DD untuk input date
+        function formatDate2(date) {
+            var d = new Date(date),
+                month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+
+            if (month.length < 2)
+                month = '0' + month;
+            if (day.length < 2)
+                day = '0' + day;
+
+            return [year, month, day].join('-');
+        }
+
+        // Event listener untuk input-input tanggal agar saling eksklusif
+        $('#singleDate').on('change', function() {
+            if ($(this).val()) {
+                // Jika tanggal tunggal diisi, kosongkan rentang tanggal
+                $('#startDate').val('');
+                $('#endDate').val('');
+            }
+        });
+
+        $('#startDate, #endDate').on('change', function() {
+            if ($('#startDate').val() || $('#endDate').val()) {
+                // Jika salah satu rentang tanggal diisi, kosongkan tanggal tunggal
+                $('#singleDate').val('');
+            }
         });
 
         // Event handler untuk tombol print
         $('#printBtn').on('click', function(e) {
             var startDate = $('#startDate').val();
             var endDate = $('#endDate').val();
+            var singleDate = $('#singleDate').val();
 
             // Validasi tanggal
             if (startDate && endDate && startDate > endDate) {
@@ -580,7 +659,7 @@
             }
 
             // Update URL sebelum dibuka di tab baru
-            updatePrintUrl(startDate, endDate);
+            updatePrintUrl(startDate, endDate, singleDate);
         });
     });
 </script>
@@ -601,6 +680,45 @@
         top: 50%;
         transform: translateY(-50%);
         font-size: 10px;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .btn-group .btn {
+            width: 100%;
+            margin: 0.25rem 0;
+        }
+
+        table.table th,
+        table.table td {
+            font-size: 0.85rem;
+        }
+
+        .table-responsive {
+            border: 0;
+            margin-bottom: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .card-header h6 {
+            font-size: 0.9rem;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+        }
+
+        table.table th,
+        table.table td {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.25rem;
+        }
     }
 </style>
 <?= $this->endSection() ?>

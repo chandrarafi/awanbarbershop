@@ -266,12 +266,13 @@ class ReportsController extends BaseController
         // Get filter parameters
         $startDate = $this->request->getGet('start_date');
         $endDate = $this->request->getGet('end_date');
+        $singleDate = $this->request->getGet('single_date');
 
         // Inisialisasi array kosong untuk data booking
         $bookingData = [];
 
         // Hanya proses data jika filter telah dipilih
-        if ($startDate || $endDate) {
+        if ($startDate || $endDate || $singleDate) {
             // Get all bookings first
             $bookings = $this->bookingModel->getBookingWithPelanggan();
 
@@ -281,17 +282,24 @@ class ReportsController extends BaseController
                     $booking['details'] = $details;
 
                     // Apply date filtering if parameters exist
-                    if ($startDate || $endDate) {
+                    if ($startDate || $endDate || $singleDate) {
                         $filteredDetails = [];
                         foreach ($details as $detail) {
                             $detailDate = date('Y-m-d', strtotime($detail['tgl']));
 
                             $includeDetail = true;
-                            if ($startDate && $detailDate < $startDate) {
+                            // Filter untuk single_date
+                            if ($singleDate && $detailDate != $singleDate) {
                                 $includeDetail = false;
                             }
-                            if ($endDate && $detailDate > $endDate) {
-                                $includeDetail = false;
+                            // Filter untuk rentang tanggal jika single_date tidak digunakan
+                            else if (!$singleDate) {
+                                if ($startDate && $detailDate < $startDate) {
+                                    $includeDetail = false;
+                                }
+                                if ($endDate && $detailDate > $endDate) {
+                                    $includeDetail = false;
+                                }
                             }
 
                             if ($includeDetail) {
@@ -304,9 +312,6 @@ class ReportsController extends BaseController
                             $booking['details'] = $filteredDetails;
                             $bookingData[] = $booking;
                         }
-                    } else {
-                        // No date filter, include all
-                        $bookingData[] = $booking;
                     }
                 }
             }
@@ -316,7 +321,8 @@ class ReportsController extends BaseController
             'title' => 'Laporan Booking',
             'bookings' => $bookingData,
             'startDate' => $startDate,
-            'endDate' => $endDate
+            'endDate' => $endDate,
+            'singleDate' => $singleDate
         ];
         return view('admin/reports/booking', $data);
     }
@@ -326,6 +332,7 @@ class ReportsController extends BaseController
         // Get filter parameters
         $startDate = $this->request->getGet('start_date');
         $endDate = $this->request->getGet('end_date');
+        $singleDate = $this->request->getGet('single_date');
 
         // Get all bookings first
         $bookings = $this->bookingModel->getBookingWithPelanggan();
@@ -335,17 +342,24 @@ class ReportsController extends BaseController
             $details = $this->detailBookingModel->getDetailsByBookingCode($booking['kdbooking']);
             if (!empty($details)) {
                 // Apply date filtering if parameters exist
-                if ($startDate || $endDate) {
+                if ($startDate || $endDate || $singleDate) {
                     $filteredDetails = [];
                     foreach ($details as $detail) {
                         $detailDate = date('Y-m-d', strtotime($detail['tgl']));
 
                         $includeDetail = true;
-                        if ($startDate && $detailDate < $startDate) {
+                        // Filter untuk single_date
+                        if ($singleDate && $detailDate != $singleDate) {
                             $includeDetail = false;
                         }
-                        if ($endDate && $detailDate > $endDate) {
-                            $includeDetail = false;
+                        // Filter untuk rentang tanggal jika single_date tidak digunakan
+                        else if (!$singleDate) {
+                            if ($startDate && $detailDate < $startDate) {
+                                $includeDetail = false;
+                            }
+                            if ($endDate && $detailDate > $endDate) {
+                                $includeDetail = false;
+                            }
                         }
 
                         if ($includeDetail) {
@@ -371,7 +385,9 @@ class ReportsController extends BaseController
 
         // Persiapkan teks tanggal untuk report berdasarkan parameter filter
         $tanggalLabel = '';
-        if ($startDate && $endDate) {
+        if ($singleDate) {
+            $tanggalLabel = 'Tanggal: ' . date('d/m/Y', strtotime($singleDate));
+        } elseif ($startDate && $endDate) {
             $tanggalLabel = 'Tanggal: ' . date('d/m/Y', strtotime($startDate)) . ' - ' . date('d/m/Y', strtotime($endDate));
         } elseif ($startDate) {
             $tanggalLabel = 'Dari Tanggal: ' . date('d/m/Y', strtotime($startDate));
@@ -2113,6 +2129,7 @@ class ReportsController extends BaseController
         // Ambil parameter filter
         $startDate = $this->request->getGet('start_date');
         $endDate = $this->request->getGet('end_date');
+        $singleDate = $this->request->getGet('single_date');
 
         // Get all bookings first
         $bookings = $this->bookingModel->getBookingWithPelanggan();
@@ -2123,17 +2140,24 @@ class ReportsController extends BaseController
             $details = $this->detailBookingModel->getDetailsByBookingCode($booking['kdbooking']);
             if (!empty($details)) {
                 // Apply date filtering if parameters exist
-                if ($startDate || $endDate) {
+                if ($startDate || $endDate || $singleDate) {
                     $filteredDetails = [];
                     foreach ($details as $detail) {
                         $detailDate = date('Y-m-d', strtotime($detail['tgl']));
 
                         $includeDetail = true;
-                        if ($startDate && $detailDate < $startDate) {
+                        // Filter untuk single_date
+                        if ($singleDate && $detailDate != $singleDate) {
                             $includeDetail = false;
                         }
-                        if ($endDate && $detailDate > $endDate) {
-                            $includeDetail = false;
+                        // Filter untuk rentang tanggal jika single_date tidak digunakan
+                        else if (!$singleDate) {
+                            if ($startDate && $detailDate < $startDate) {
+                                $includeDetail = false;
+                            }
+                            if ($endDate && $detailDate > $endDate) {
+                                $includeDetail = false;
+                            }
                         }
 
                         if ($includeDetail) {
@@ -2205,7 +2229,9 @@ class ReportsController extends BaseController
 
         // Siapkan pesan berdasarkan filter
         $pesan = 'Data berhasil dimuat';
-        if ($startDate && $endDate) {
+        if ($singleDate) {
+            $pesan = 'Data booking tanggal ' . date('d/m/Y', strtotime($singleDate)) . ' berhasil dimuat';
+        } elseif ($startDate && $endDate) {
             $pesan = 'Data booking periode ' . date('d/m/Y', strtotime($startDate)) . ' - ' .
                 date('d/m/Y', strtotime($endDate)) . ' berhasil dimuat';
         } elseif ($startDate) {
@@ -2223,7 +2249,8 @@ class ReportsController extends BaseController
             'data' => $bookingData, // Tambahkan data mentah
             'total' => $totalData,
             'start_date' => $startDate,
-            'end_date' => $endDate
+            'end_date' => $endDate,
+            'single_date' => $singleDate
         ]);
     }
 
