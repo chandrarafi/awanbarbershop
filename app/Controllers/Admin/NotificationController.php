@@ -157,6 +157,13 @@ class NotificationController extends BaseController
             return redirect()->to(site_url('admin/booking/show/' . $notification['reference_id']));
         }
 
+        if ($notification['type'] === 'pembayaran_baru') {
+            return redirect()->to(site_url('admin/booking/show/' . $notification['reference_id']));
+        }
+
+        if ($notification['type'] === 'booking_baru') {
+            return redirect()->to(site_url('admin/booking/show/' . $notification['reference_id']));
+        }
         // Default redirect ke dashboard jika tipe notifikasi tidak dikenali
         return redirect()->to(site_url('admin/dashboard'));
     }
