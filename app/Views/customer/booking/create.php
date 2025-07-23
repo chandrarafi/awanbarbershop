@@ -934,7 +934,7 @@
                 $('#timeSlotContainer').fadeIn(500);
 
                 // Reset semua slot waktu
-                $('.time-slot').removeClass('active bg-green-500 text-white booked bg-red-200 text-gray-500 disabled');
+                $('.time-slot').removeClass('active bg-green-500 text-white booked bg-red-200 text-gray-500 disabled bg-gray-200 text-gray-400 cursor-not-allowed');
                 $('.time-slot').removeAttr('title');
                 $('.time-slot').removeClass('cursor-not-allowed').addClass('cursor-pointer');
 
@@ -949,13 +949,15 @@
                 // Jika tanggal yang dipilih adalah hari ini, nonaktifkan slot waktu yang sudah lewat
                 if (todayStr === selectedDateStr) {
                     const currentHour = today.getHours();
+                    const currentMinute = today.getMinutes();
 
                     // Nonaktifkan semua slot waktu yang sudah lewat
                     $('.time-slot').each(function() {
                         const slotTime = $(this).data('time');
-                        const slotHour = parseInt(slotTime.split(':')[0]);
+                        const [slotHour, slotMinute] = slotTime.split(':').map(Number);
 
-                        if (slotHour <= currentHour) {
+                        // Jika jam slot lebih kecil dari jam sekarang, atau jam sama tapi menit slot lebih kecil dari menit sekarang
+                        if (slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute)) {
                             $(this).addClass('disabled bg-gray-200 text-gray-400 cursor-not-allowed');
                             $(this).attr('title', 'Waktu sudah lewat');
                         }
@@ -1019,6 +1021,27 @@
                 .removeAttr('disabled')
                 .data('karyawan', []);
 
+            // Periksa kembali jam yang sudah lewat jika tanggal adalah hari ini
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+
+            if (tanggal === todayStr) {
+                const currentHour = today.getHours();
+                const currentMinute = today.getMinutes();
+
+                // Nonaktifkan semua slot waktu yang sudah lewat
+                $('.time-slot').each(function() {
+                    const slotTime = $(this).data('time');
+                    const [slotHour, slotMinute] = slotTime.split(':').map(Number);
+
+                    // Jika jam slot lebih kecil dari jam sekarang, atau jam sama tapi menit slot lebih kecil dari menit sekarang
+                    if (slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute)) {
+                        $(this).addClass('disabled bg-gray-200 text-gray-400 cursor-not-allowed');
+                        $(this).attr('title', 'Waktu sudah lewat');
+                    }
+                });
+            }
+
             // Ambil durasi total dari paket yang dipilih
             const durasiTotal = $('#durasi_total').val() || 60;
 
@@ -1052,13 +1075,16 @@
                         response.data.forEach(function(slot) {
                             const $slot = $(`.time-slot[data-time="${slot.time}"]`);
 
-                            if (slot.status === 'available') {
-                                $slot.data('karyawan', slot.availableKaryawan);
-                                $slot.data('endTime', slot.endTime);
-                            } else {
-                                $slot.addClass('bg-red-200 text-red-800 border-red-300 cursor-not-allowed')
-                                    .removeClass('border-gray-200 hover:border-indigo-300 cursor-pointer')
-                                    .attr('disabled', true);
+                            // Jangan override slot yang sudah dinonaktifkan karena waktu sudah lewat
+                            if (!$slot.hasClass('disabled')) {
+                                if (slot.status === 'available') {
+                                    $slot.data('karyawan', slot.availableKaryawan);
+                                    $slot.data('endTime', slot.endTime);
+                                } else {
+                                    $slot.addClass('bg-red-200 text-red-800 border-red-300 cursor-not-allowed')
+                                        .removeClass('border-gray-200 hover:border-indigo-300 cursor-pointer')
+                                        .attr('disabled', true);
+                                }
                             }
                         });
                     } else {
