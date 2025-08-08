@@ -39,24 +39,24 @@ class Paket extends ResourceController
         $search = trim($request->getGet('search')['value'] ?? '');
         $order = $request->getGet('order') ?? [];
 
-        // Query dasar dengan index hints untuk optimasi
+
         $builder = $this->db->table('paket USE INDEX (PRIMARY)');
 
-        // Total records (cache result)
+
         $totalRecords = $this->db->table('paket')->countAllResults();
 
-        // Pencarian yang dioptimalkan
+
         if (!empty($search)) {
             $searchValue = $this->db->escapeLikeString($search);
 
             $builder->groupStart();
 
-            // Gunakan OR LIKE untuk pencarian lebih cepat
+
             $builder->orLike('idpaket', $searchValue, 'both', null, true)
                 ->orLike('namapaket', $searchValue, 'both', null, true)
                 ->orLike('deskripsi', $searchValue, 'both', null, true);
 
-            // Jika input adalah angka atau format rupiah
+
             if (preg_match('/^[Rp\s.,]*(\d+)/', $search, $matches)) {
                 $numericSearch = $matches[1];
                 $builder->orWhere('harga', $numericSearch);
@@ -65,22 +65,22 @@ class Paket extends ResourceController
             $builder->groupEnd();
         }
 
-        // Hitung total filtered records
+
         $totalFiltered = $builder->countAllResults(false);
 
-        // Pengurutan yang dioptimalkan
+
         $columns = ['idpaket', 'namapaket', 'deskripsi', 'harga'];
         $orderColumn = isset($order[0]['column']) ? (int) $order[0]['column'] : 1;
         $orderDir = isset($order[0]['dir']) ? strtoupper($order[0]['dir']) : 'ASC';
         $orderField = $columns[$orderColumn - 1] ?? 'idpaket';
 
-        // Ambil data dengan limit
+
         $results = $builder->orderBy($orderField, $orderDir)
             ->limit($length, $start)
             ->get()
             ->getResultArray();
 
-        // Format data
+
         $data = array_map(function ($row) {
             return [
                 'idpaket' => $row['idpaket'],
@@ -167,19 +167,19 @@ class Paket extends ResourceController
             $insertId = $this->paketModel->getInsertID();
 
             if ($image && $image->isValid()) {
-            $uploadResult = $this->paketModel->uploadImage($image);
+                $uploadResult = $this->paketModel->uploadImage($image);
 
-            if (!$uploadResult['status']) {
+                if (!$uploadResult['status']) {
                     $this->paketModel->delete($insertId);
 
-                return $this->response->setStatusCode(400)->setJSON([
-                    'status' => 'error',
-                    'message' => $uploadResult['error']
-                ]);
-            }
+                    return $this->response->setStatusCode(400)->setJSON([
+                        'status' => 'error',
+                        'message' => $uploadResult['error']
+                    ]);
+                }
 
                 $this->paketModel->update($insertId, ['image' => $uploadResult['filename']]);
-        }
+            }
 
             return $this->response->setJSON([
                 'status' => 'success',
@@ -219,11 +219,11 @@ class Paket extends ResourceController
             ]);
         }
 
-        // Handle file upload
+
         $image = $this->request->getFile('gambar');
 
         if ($image && $image->isValid()) {
-            // Upload dan validasi gambar menggunakan model
+
             $uploadResult = $this->paketModel->uploadImage($image);
 
             if (!$uploadResult['status']) {
@@ -233,7 +233,7 @@ class Paket extends ResourceController
                 ]);
             }
 
-            // Hapus gambar lama
+
             if (!empty($existingPaket['image'])) {
                 $this->paketModel->deleteImage($existingPaket['image']);
             }
@@ -260,7 +260,7 @@ class Paket extends ResourceController
         $paket = $this->paketModel->find($id);
 
         if ($paket) {
-            // Hapus gambar jika ada
+
             if (!empty($paket['image'])) {
                 $this->paketModel->deleteImage($paket['image']);
             }

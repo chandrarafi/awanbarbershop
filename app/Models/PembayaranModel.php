@@ -15,13 +15,13 @@ class PembayaranModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = ['id', 'fakturbooking', 'kdpembayaran', 'total_bayar', 'grandtotal', 'metode', 'status', 'jenis', 'bukti', 'created_at', 'updated_at'];
 
-    // Dates
+
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    // Validation
+
     protected $validationRules      = [];
     protected $validationMessages   = [];
     protected $skipValidation       = false;
@@ -84,7 +84,7 @@ class PembayaranModel extends Model
      */
     public function update($id = null, $data = null): bool
     {
-        // Jika hanya mengupdate status, lepaskan validasi untuk field lainnya
+
         if (is_array($data) && count($data) === 1 && isset($data['status'])) {
             $this->skipValidation(true);
         }
@@ -101,7 +101,7 @@ class PembayaranModel extends Model
      */
     public function updateStatus($id, string $status): bool
     {
-        // Validasi status
+
         $validStatus = ['pending', 'paid', 'cancelled', 'failed'];
         if (!in_array($status, $validStatus)) {
             return false;
@@ -120,7 +120,7 @@ class PembayaranModel extends Model
      */
     public function updateStatusByBookingCode(string $fakturbooking, string $status): bool
     {
-        // Validasi status
+
         $validStatus = ['pending', 'paid', 'cancelled', 'failed'];
         if (!in_array($status, $validStatus)) {
             return false;
@@ -142,7 +142,7 @@ class PembayaranModel extends Model
     {
         $prefix = 'INV-' . date('Ymd') . '-';
 
-        // Cari nomor faktur terakhir dengan awalan yang sama
+
         $lastInvoice = $this->like('fakturbooking', $prefix, 'after')
             ->orderBy('fakturbooking', 'DESC')
             ->first();
@@ -151,7 +151,7 @@ class PembayaranModel extends Model
             return $prefix . '0001';
         }
 
-        // Ambil nomor urut dari faktur terakhir
+
         $lastNumber = (int) substr($lastInvoice['fakturbooking'], -4);
         $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
 
@@ -169,7 +169,7 @@ class PembayaranModel extends Model
         $prefix = 'PAY-' . date('Ymd') . '-';
 
         try {
-            // Cari kode pembayaran terakhir dengan awalan yang sama
+
             $query = $this->db->table($this->table)
                 ->like('kdpembayaran', $prefix, 'after')
                 ->orderBy('kdpembayaran', 'DESC')
@@ -179,7 +179,7 @@ class PembayaranModel extends Model
 
             if ($result && $result->getNumRows() > 0) {
                 $lastPayment = $result->getRowArray();
-                // Ambil nomor urut dari kode pembayaran terakhir
+
                 $lastNumber = (int) substr($lastPayment['kdpembayaran'], -4);
                 $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
             } else {
@@ -189,7 +189,7 @@ class PembayaranModel extends Model
             return $prefix . $newNumber;
         } catch (\Exception $e) {
             log_message('error', 'Error generating payment code: ' . $e->getMessage());
-            // Fallback jika terjadi error
+
             return $prefix . '0001-' . uniqid();
         }
     }

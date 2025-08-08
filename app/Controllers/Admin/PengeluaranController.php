@@ -69,7 +69,7 @@ class PengeluaranController extends BaseController
 
     public function store()
     {
-        // Validasi input
+
         $rules = [
             'tgl' => 'required',
             'keterangan' => 'permit_empty|max_length[255]',
@@ -80,7 +80,7 @@ class PengeluaranController extends BaseController
             return $this->fail($this->validator->getErrors());
         }
 
-        // Simpan data
+
         $data = [
             'tgl' => $this->request->getVar('tgl'),
             'keterangan' => $this->request->getVar('keterangan'),
@@ -111,7 +111,7 @@ class PengeluaranController extends BaseController
             return $this->failNotFound('Data pengeluaran tidak ditemukan');
         }
 
-        // Validasi input
+
         $rules = [
             'tgl' => 'required',
             'keterangan' => 'permit_empty|max_length[255]',
@@ -122,7 +122,7 @@ class PengeluaranController extends BaseController
             return $this->fail($this->validator->getErrors());
         }
 
-        // Update data
+
         $data = [
             'tgl' => $this->request->getVar('tgl'),
             'keterangan' => $this->request->getVar('keterangan'),

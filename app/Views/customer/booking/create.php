@@ -60,12 +60,12 @@
     </div>
 </div>
 
-<div class="py-16">
+<div class="py-12 sm:py-16">
     <div class="max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12" data-aos="fade-up">
-            <h1 class="text-3xl md:text-4xl font-bold gradient-text">Form Booking</h1>
-            <p class="text-gray-300 mt-3">Silahkan isi form booking untuk mendapatkan layanan terbaik kami</p>
-            <div class="w-20 h-1 bg-gradient-to-r from-[#E74C3C] to-[#F1C40F] mx-auto mt-4 rounded-full"></div>
+        <div class="text-center mb-8 sm:mb-12" data-aos="fade-up">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">Form Booking</h1>
+            <p class="text-gray-300 mt-3 text-sm sm:text-base px-4 sm:px-0">Silahkan isi form booking untuk mendapatkan layanan terbaik kami</p>
+            <div class="w-16 sm:w-20 h-1 bg-gradient-to-r from-[#E74C3C] to-[#F1C40F] mx-auto mt-4 rounded-full"></div>
         </div>
 
         <?php if (!$isProfileComplete): ?>
@@ -89,82 +89,82 @@
         <?php endif; ?>
 
         <!-- Informasi Batas Waktu Pembayaran -->
-        <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-lg border border-amber-200 shadow-sm mb-6">
-            <div class="flex items-center">
-                <div class="bg-amber-100 rounded-full p-2 mr-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-3 sm:p-4 rounded-lg border border-amber-200 shadow-sm mb-4 sm:mb-6">
+            <div class="flex items-start sm:items-center">
+                <div class="bg-amber-100 rounded-full p-2 mr-3 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
                 <div>
-                    <h3 class="font-medium text-gray-800">Perhatian: Batas Waktu Pembayaran</h3>
-                    <p class="text-sm text-gray-600 mt-1">Setelah booking berhasil dibuat, Anda memiliki waktu <span class="font-semibold">5 menit</span> untuk menyelesaikan pembayaran. Jika melewati batas waktu, booking akan otomatis dibatalkan.</p>
+                    <h3 class="font-medium text-gray-800 text-sm sm:text-base">Perhatian: Batas Waktu Pembayaran</h3>
+                    <p class="text-xs sm:text-sm text-gray-600 mt-1">Setelah booking berhasil dibuat, Anda memiliki waktu <span class="font-semibold">5 menit</span> untuk menyelesaikan pembayaran. Jika melewati batas waktu, booking akan otomatis dibatalkan.</p>
                 </div>
             </div>
         </div>
 
-        <div class="form-card rounded-xl shadow-xl p-6 md:p-8 animated-border" data-aos="zoom-in" data-aos-delay="200">
-            <div id="booking-alert" class="hidden mb-6 p-4 rounded-lg shadow-sm border"></div>
+        <div class="form-card rounded-xl shadow-xl p-4 sm:p-6 md:p-8 animated-border" data-aos="zoom-in" data-aos-delay="200">
+            <div id="booking-alert" class="hidden mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg shadow-sm border"></div>
 
-            <form id="bookingForm" class="space-y-6" enctype="multipart/form-data">
+            <form id="bookingForm" class="space-y-4 sm:space-y-6" enctype="multipart/form-data">
                 <!-- Data Pelanggan -->
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm form-section">
-                    <div class="flex items-center mb-4">
+                <div class="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 shadow-sm form-section">
+                    <div class="flex items-center mb-3 sm:mb-4">
                         <div class="rounded-full bg-orange-50 p-2 mr-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#E74C3C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-[#E74C3C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                         </div>
-                        <h2 class="text-xl font-semibold text-gray-800">Data Pelanggan</h2>
+                        <h2 class="text-lg sm:text-xl font-semibold text-gray-800">Data Pelanggan</h2>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div>
-                            <label class="block mb-1 text-gray-700 font-medium">Nama</label>
-                            <input type="text" class="bg-white border border-gray-300 rounded-lg w-full p-3 focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all" value="<?= $pelanggan['nama_lengkap'] ?>" readonly>
+                            <label class="block mb-1 text-gray-700 font-medium text-sm sm:text-base">Nama</label>
+                            <input type="text" class="bg-white border border-gray-300 rounded-lg w-full p-2 sm:p-3 focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all text-sm sm:text-base" value="<?= $pelanggan['nama_lengkap'] ?>" readonly>
                         </div>
                         <div>
-                            <label class="block mb-1 text-gray-700 font-medium">No. HP</label>
-                            <input type="text" class="bg-white border border-gray-300 rounded-lg w-full p-3 focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all" value="<?= $pelanggan['no_hp'] ?>" readonly>
+                            <label class="block mb-1 text-gray-700 font-medium text-sm sm:text-base">No. HP</label>
+                            <input type="text" class="bg-white border border-gray-300 rounded-lg w-full p-2 sm:p-3 focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all text-sm sm:text-base" value="<?= $pelanggan['no_hp'] ?>" readonly>
                         </div>
                     </div>
                 </div>
 
                 <!-- Data Booking -->
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm form-section">
-                    <div class="flex items-center mb-4">
+                <div class="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 shadow-sm form-section">
+                    <div class="flex items-center mb-3 sm:mb-4">
                         <div class="rounded-full bg-blue-50 p-2 mr-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                         </div>
-                        <h2 class="text-xl font-semibold text-gray-800">Informasi Layanan</h2>
+                        <h2 class="text-lg sm:text-xl font-semibold text-gray-800">Informasi Layanan</h2>
                     </div>
 
-                    <div class="space-y-5">
+                    <div class="space-y-4 sm:space-y-5">
                         <?php if ($selectedPaket): ?>
                             <!-- Jika paket sudah dipilih dari landing page -->
                             <div>
-                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-start">
-                                    <div class="flex-shrink-0 mr-4">
+                                <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200 flex flex-col sm:flex-row items-start">
+                                    <div class="flex-shrink-0 mb-3 sm:mb-0 sm:mr-4">
                                         <?php if (!empty($selectedPaket['gambar'])): ?>
-                                            <img src="<?= base_url('uploads/paket/' . $selectedPaket['gambar']) ?>" alt="<?= $selectedPaket['namapaket'] ?>" class="w-20 h-20 object-cover rounded-lg shadow-sm">
+                                            <img src="<?= base_url('uploads/paket/' . $selectedPaket['gambar']) ?>" alt="<?= $selectedPaket['namapaket'] ?>" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shadow-sm">
                                         <?php elseif (!empty($selectedPaket['image'])): ?>
-                                            <img src="<?= base_url('uploads/paket/' . $selectedPaket['image']) ?>" alt="<?= $selectedPaket['namapaket'] ?>" class="w-20 h-20 object-cover rounded-lg shadow-sm">
+                                            <img src="<?= base_url('uploads/paket/' . $selectedPaket['image']) ?>" alt="<?= $selectedPaket['namapaket'] ?>" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shadow-sm">
                                         <?php else: ?>
-                                            <div class="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 sm:h-10 sm:w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                 </svg>
                                             </div>
                                         <?php endif; ?>
                                     </div>
                                     <div class="flex-grow">
-                                        <h3 class="font-semibold text-lg text-gray-800"><?= $selectedPaket['namapaket'] ?></h3>
-                                        <p class="text-gray-600 text-sm mb-2"><?= $selectedPaket['deskripsi'] ?? 'Tidak ada deskripsi' ?></p>
-                                        <p class="font-bold text-indigo-600">Rp. <?= number_format($selectedPaket['harga'], 0, ',', '.') ?></p>
+                                        <h3 class="font-semibold text-base sm:text-lg text-gray-800"><?= $selectedPaket['namapaket'] ?></h3>
+                                        <p class="text-gray-600 text-xs sm:text-sm mb-2"><?= $selectedPaket['deskripsi'] ?? 'Tidak ada deskripsi' ?></p>
+                                        <p class="font-bold text-indigo-600 text-sm sm:text-base">Rp. <?= number_format($selectedPaket['harga'], 0, ',', '.') ?></p>
                                         <div class="mt-2">
-                                            <button type="button" id="addMorePaket" class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <button type="button" id="addMorePaket" class="text-xs sm:text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                                 </svg>
                                                 Tambah Paket Lain
@@ -178,13 +178,13 @@
                             <!-- Jika paket belum dipilih, tampilkan pilihan paket -->
                             <div>
                                 <div id="paketContainer">
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                                         <?php foreach ($paketList as $paket): ?>
                                             <div class="paket-card border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                                                 data-id="<?= $paket['idpaket'] ?>"
                                                 data-harga="<?= $paket['harga'] ?>"
                                                 data-durasi="<?= $paket['durasi'] ?? 60 ?>">
-                                                <div class="relative h-40 bg-gray-100">
+                                                <div class="relative h-32 sm:h-40 bg-gray-100">
                                                     <?php if (!empty($paket['gambar'])): ?>
                                                         <img src="<?= base_url('uploads/paket/' . $paket['gambar']) ?>" alt="<?= $paket['namapaket'] ?>"
                                                             class="w-full h-full object-cover">
@@ -198,17 +198,17 @@
                                                             </svg>
                                                         </div>
                                                     <?php endif; ?>
-                                                    <div class="absolute bottom-0 right-0 bg-gradient-to-l from-indigo-600 to-indigo-500 text-white px-3 py-1 text-sm font-medium">
+                                                    <div class="absolute bottom-0 right-0 bg-gradient-to-l from-indigo-600 to-indigo-500 text-white px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium">
                                                         <?= $paket['durasi'] ?? 60 ?> menit
                                                     </div>
                                                 </div>
-                                                <div class="p-4">
-                                                    <h3 class="font-semibold text-gray-800 mb-1"><?= $paket['namapaket'] ?></h3>
-                                                    <p class="text-sm text-gray-600 line-clamp-2 mb-2"><?= $paket['deskripsi'] ?? 'Tidak ada deskripsi' ?></p>
+                                                <div class="p-3 sm:p-4">
+                                                    <h3 class="font-semibold text-gray-800 mb-1 text-sm sm:text-base"><?= $paket['namapaket'] ?></h3>
+                                                    <p class="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-2"><?= $paket['deskripsi'] ?? 'Tidak ada deskripsi' ?></p>
                                                     <div class="flex justify-between items-center">
-                                                        <span class="text-indigo-600 font-bold">Rp. <?= number_format($paket['harga'], 0, ',', '.') ?></span>
+                                                        <span class="text-indigo-600 font-bold text-sm sm:text-base">Rp. <?= number_format($paket['harga'], 0, ',', '.') ?></span>
                                                         <button type="button" class="add-paket-btn bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-full p-1">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                                             </svg>
                                                         </button>
@@ -224,11 +224,11 @@
                         <?php endif; ?>
 
                         <div>
-                            <label for="tanggal_booking" class="block mb-2 text-gray-700 font-medium">Pilih Tanggal</label>
+                            <label for="tanggal_booking" class="block mb-2 text-gray-700 font-medium text-sm sm:text-base">Pilih Tanggal</label>
                             <div class="relative">
-                                <input type="date" id="tanggal_booking" name="tanggal_booking" class="bg-white border border-gray-300 rounded-lg w-full p-3 focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all" min="<?= date('Y-m-d') ?>" required>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <input type="date" id="tanggal_booking" name="tanggal_booking" class="bg-white border border-gray-300 rounded-lg w-full p-2 sm:p-3 focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all text-sm sm:text-base" min="<?= date('Y-m-d') ?>" required>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-3 pointer-events-none text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>

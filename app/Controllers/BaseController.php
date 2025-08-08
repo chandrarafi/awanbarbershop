@@ -41,7 +41,7 @@ abstract class BaseController extends Controller
      * Be sure to declare properties for any property fetch you initialized.
      * The creation of dynamic property is deprecated in PHP 8.2.
      */
-    // protected $session;
+
 
     /**
      * Database connection
@@ -55,14 +55,14 @@ abstract class BaseController extends Controller
      */
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        // Do Not Edit This Line
+
         parent::initController($request, $response, $logger);
 
-        // Preload any models, libraries, etc, here.
 
-        // E.g.: $this->session = service('session');
 
-        // Initialize database
+
+
+
         $this->db = \Config\Database::connect();
     }
 
@@ -79,7 +79,7 @@ abstract class BaseController extends Controller
             $notificationModel = new \App\Models\NotificationModel();
             $pelangganModel = new \App\Models\PelangganModel();
 
-            // Ambil semua booking yang belum dibayar dan sudah expired
+
             $expiredBookings = $bookingModel->where('jenispembayaran', 'Belum Bayar')
                 ->where('status', 'pending')
                 ->where('expired_at <', date('Y-m-d H:i:s'))
@@ -96,28 +96,28 @@ abstract class BaseController extends Controller
             foreach ($expiredBookings as $booking) {
                 log_message('debug', 'BaseController: Auto cleaning expired booking: ' . $booking['kdbooking']);
 
-                // Update status booking menjadi expired
+
                 $bookingModel->update($booking['kdbooking'], [
                     'status' => 'expired'
                 ]);
 
-                // Ambil detail booking
+
                 $details = $detailBookingModel->where('kdbooking', $booking['kdbooking'])->findAll();
 
-                // Update status detail booking dan bebaskan karyawan
+
                 foreach ($details as $detail) {
-                    // Update status detail booking menjadi dibatalkan
+
                     $detailBookingModel->update($detail['iddetail'], [
                         'status' => '0' // 0 = Dibatalkan/Expired
                     ]);
 
-                    // Log informasi karyawan yang dibebaskan
+
                     if (!empty($detail['idkaryawan'])) {
                         log_message('info', 'BaseController: Membebaskan karyawan ID: ' . $detail['idkaryawan'] . ' dari booking: ' . $booking['kdbooking']);
                     }
                 }
 
-                // Buat notifikasi untuk admin tentang booking yang expired
+
                 $pelanggan = $pelangganModel->find($booking['idpelanggan']);
                 if ($pelanggan) {
                     $notificationModel->createNotification(

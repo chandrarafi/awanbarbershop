@@ -350,6 +350,63 @@
         .btn-add {
             margin-left: auto;
         }
+
+        /* Responsive sizing for filter flags (chips) */
+        .status-filters {
+            padding: 8px;
+        }
+
+        .status-filters .d-flex {
+            gap: 6px;
+        }
+
+        .filter-status {
+            padding: 7px 12px;
+            font-size: 13px;
+            border-radius: 9999px;
+            margin-right: 0;
+            /* gap handles spacing */
+        }
+
+        .filter-status i {
+            font-size: .95rem;
+            margin-right: 6px;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .card-title {
+            font-size: 18px;
+        }
+
+        .btn-add {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .status-filters {
+            padding: 8px;
+        }
+
+        .status-filters .d-flex {
+            gap: 6px;
+        }
+
+        .filter-status {
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 9999px;
+        }
+
+        .filter-status i {
+            font-size: .9rem;
+            margin-right: 4px;
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 4px 8px;
+        }
     }
 </style>
 <?= $this->endSection() ?>

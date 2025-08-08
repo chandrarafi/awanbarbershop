@@ -27,13 +27,13 @@ class DetailBookingModel extends Model
         'idkaryawan'
     ];
 
-    // Dates
+
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    // Validation
+
     protected $validationRules      = [];
     protected $validationMessages   = [];
     protected $skipValidation       = true; // Menonaktifkan validasi untuk menghindari masalah placeholder
@@ -123,7 +123,7 @@ class DetailBookingModel extends Model
     {
         $prefix = 'DTL-' . date('Ymd') . '-';
 
-        // Cari ID detail terakhir dengan awalan yang sama
+
         $lastDetail = $this->like('iddetail', $prefix, 'after')
             ->orderBy('iddetail', 'DESC')
             ->first();
@@ -132,7 +132,7 @@ class DetailBookingModel extends Model
             return $prefix . '0001';
         }
 
-        // Ambil nomor urut dari ID detail terakhir
+
         $lastNumber = (int) substr($lastDetail['iddetail'], -4);
         $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
 
@@ -191,7 +191,7 @@ class DetailBookingModel extends Model
             ->where("(jamstart < '$jamend' AND jamend > '$jamstart')")
             ->groupEnd();
 
-        // Jika sedang edit, kecualikan data yang sedang diedit
+
         if ($iddetail !== null) {
             $builder->where('iddetail !=', $iddetail);
         }
@@ -241,12 +241,12 @@ class DetailBookingModel extends Model
      */
     public function save($data): bool
     {
-        // Jika sedang update, nonaktifkan validasi untuk menghindari masalah placeholder
+
         if (!empty($data['iddetail']) && $this->find($data['iddetail'])) {
             $this->skipValidation(true);
         }
 
-        // Jika ini adalah data baru, pastikan iddetail unik secara manual
+
         if (!empty($data['iddetail'])) {
             $existing = $this->find($data['iddetail']);
             if ($existing) {

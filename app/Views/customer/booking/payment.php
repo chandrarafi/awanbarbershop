@@ -219,38 +219,38 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="py-16">
+<div class="py-12 sm:py-16">
     <div class="max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12" data-aos="fade-up">
-            <h1 class="text-3xl md:text-4xl font-bold gradient-text">Pembayaran Booking</h1>
-            <p class="text-gray-300 mt-3">Silakan lakukan pembayaran untuk menyelesaikan proses booking Anda</p>
-            <div class="w-20 h-1 bg-gradient-to-r from-[#E74C3C] to-[#F1C40F] mx-auto mt-4 rounded-full"></div>
+        <div class="text-center mb-8 sm:mb-12" data-aos="fade-up">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">Pembayaran Booking</h1>
+            <p class="text-gray-300 mt-3 text-sm sm:text-base px-4 sm:px-0">Silakan lakukan pembayaran untuk menyelesaikan proses booking Anda</p>
+            <div class="w-16 sm:w-20 h-1 bg-gradient-to-r from-[#E74C3C] to-[#F1C40F] mx-auto mt-4 rounded-full"></div>
         </div>
 
-        <div class="form-card rounded-xl shadow-xl p-6 md:p-8 animated-border" data-aos="zoom-in" data-aos-delay="200">
+        <div class="form-card rounded-xl shadow-xl p-4 sm:p-6 md:p-8 animated-border" data-aos="zoom-in" data-aos-delay="200">
             <!-- Detail Booking Card -->
-            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm form-section mb-6 hover:shadow-md transition-all duration-300">
-                <div class="flex items-center mb-5">
+            <div class="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 shadow-sm form-section mb-4 sm:mb-6 hover:shadow-md transition-all duration-300">
+                <div class="flex items-center mb-4 sm:mb-5">
                     <div class="rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 p-2 mr-3 shadow-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                     </div>
-                    <h2 class="text-xl font-semibold text-gray-800">Detail Booking</h2>
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-800">Detail Booking</h2>
                 </div>
 
-                <div class="space-y-4">
-                    <div class="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3 hover:bg-gray-50 px-2 rounded transition-all">
-                        <div class="w-full md:w-1/3 font-medium text-gray-600">Kode Booking</div>
-                        <div class="w-full md:w-2/3 text-gray-800 font-semibold"><?= $booking['kdbooking'] ?></div>
+                <div class="space-y-3 sm:space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center border-b border-gray-200 pb-2 sm:pb-3 hover:bg-gray-50 px-2 rounded transition-all">
+                        <div class="w-full sm:w-1/3 font-medium text-gray-600 text-sm sm:text-base mb-1 sm:mb-0">Kode Booking</div>
+                        <div class="w-full sm:w-2/3 text-gray-800 font-semibold text-sm sm:text-base"><?= $booking['kdbooking'] ?></div>
                     </div>
-                    <div class="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3 hover:bg-gray-50 px-2 rounded transition-all">
-                        <div class="w-full md:w-1/3 font-medium text-gray-600">Tanggal Booking</div>
-                        <div class="w-full md:w-2/3 text-gray-800"><?= date('d F Y', strtotime($booking['tanggal_booking'])) ?></div>
+                    <div class="flex flex-col sm:flex-row sm:items-center border-b border-gray-200 pb-2 sm:pb-3 hover:bg-gray-50 px-2 rounded transition-all">
+                        <div class="w-full sm:w-1/3 font-medium text-gray-600 text-sm sm:text-base mb-1 sm:mb-0">Tanggal Booking</div>
+                        <div class="w-full sm:w-2/3 text-gray-800 text-sm sm:text-base"><?= date('d F Y', strtotime($booking['tanggal_booking'])) ?></div>
                     </div>
-                    <div class="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3 hover:bg-gray-50 px-2 rounded transition-all">
-                        <div class="w-full md:w-1/3 font-medium text-gray-600">Jam</div>
-                        <div class="w-full md:w-2/3 text-gray-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center border-b border-gray-200 pb-2 sm:pb-3 hover:bg-gray-50 px-2 rounded transition-all">
+                        <div class="w-full sm:w-1/3 font-medium text-gray-600 text-sm sm:text-base mb-1 sm:mb-0">Jam</div>
+                        <div class="w-full sm:w-2/3 text-gray-800 text-sm sm:text-base">
                             <?php if (!empty($details)): ?>
                                 <?php foreach ($details as $index => $detail): ?>
                                     <?= $detail['jamstart'] . ' - ' . $detail['jamend'] ?>
@@ -263,9 +263,9 @@
                             <?php endif; ?>
                         </div>
                     </div>
-                    <div class="flex flex-col md:flex-row md:items-center border-b border-gray-200 pb-3 hover:bg-gray-50 px-2 rounded transition-all">
-                        <div class="w-full md:w-1/3 font-medium text-gray-600">Paket</div>
-                        <div class="w-full md:w-2/3 text-gray-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center border-b border-gray-200 pb-2 sm:pb-3 hover:bg-gray-50 px-2 rounded transition-all">
+                        <div class="w-full sm:w-1/3 font-medium text-gray-600 text-sm sm:text-base mb-1 sm:mb-0">Paket</div>
+                        <div class="w-full sm:w-2/3 text-gray-800 text-sm sm:text-base">
                             <?php if (!empty($details)): ?>
                                 <?php foreach ($details as $index => $detail): ?>
                                     <?= $detail['nama_paket'] ?>
@@ -278,42 +278,42 @@
                             <?php endif; ?>
                         </div>
                     </div>
-                    <div class="flex flex-col md:flex-row md:items-center hover:bg-gray-50 px-2 py-2 rounded transition-all">
-                        <div class="w-full md:w-1/3 font-medium text-gray-600">Total</div>
-                        <div class="w-full md:w-2/3 text-gray-800 font-bold text-lg">Rp <?= number_format($booking['total'] ?? 0, 0, ',', '.') ?></div>
+                    <div class="flex flex-col sm:flex-row sm:items-center hover:bg-gray-50 px-2 py-2 rounded transition-all">
+                        <div class="w-full sm:w-1/3 font-medium text-gray-600 text-sm sm:text-base mb-1 sm:mb-0">Total</div>
+                        <div class="w-full sm:w-2/3 text-gray-800 font-bold text-base sm:text-lg">Rp <?= number_format($booking['total'] ?? 0, 0, ',', '.') ?></div>
                     </div>
                 </div>
             </div>
 
             <!-- Form Pembayaran Card -->
-            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm form-section hover:shadow-md transition-all duration-300">
-                <div class="flex items-center mb-5">
+            <div class="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 shadow-sm form-section hover:shadow-md transition-all duration-300">
+                <div class="flex items-center mb-4 sm:mb-5">
                     <div class="rounded-full bg-gradient-to-r from-[#E74C3C] to-[#F1C40F] p-2 mr-3 shadow-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2" />
                         </svg>
                     </div>
-                    <h2 class="text-xl font-semibold text-gray-800">Form Pembayaran</h2>
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-800">Form Pembayaran</h2>
                 </div>
 
-                <form id="paymentForm" action="<?= site_url('customer/booking/savePayment') ?>" method="post" enctype="multipart/form-data" class="space-y-6">
+                <form id="paymentForm" action="<?= site_url('customer/booking/savePayment') ?>" method="post" enctype="multipart/form-data" class="space-y-4 sm:space-y-6">
                     <input type="hidden" name="kdbooking" value="<?= $booking['kdbooking'] ?>">
 
                     <!-- Jenis Pembayaran -->
-                    <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 hover:shadow-sm transition-all">
-                        <label for="jenispembayaran" class="block mb-2 text-gray-700 font-medium">Jenis Pembayaran</label>
+                    <div class="bg-gray-50 p-4 sm:p-5 rounded-lg border border-gray-200 hover:shadow-sm transition-all">
+                        <label for="jenispembayaran" class="block mb-2 text-gray-700 font-medium text-sm sm:text-base">Jenis Pembayaran</label>
                         <div class="relative">
-                            <select id="jenispembayaran" name="jenis_pembayaran" class="bg-white border border-gray-300 rounded-lg w-full p-3 appearance-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all" required>
+                            <select id="jenispembayaran" name="jenis_pembayaran" class="bg-white border border-gray-300 rounded-lg w-full p-2 sm:p-3 appearance-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all text-sm sm:text-base" required>
                                 <option value="DP">DP (50%)</option>
                                 <option value="Lunas">Lunas</option>
                             </select>
                             <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                 </svg>
                             </div>
                         </div>
-                        <p class="mt-2 text-sm text-gray-500">DP minimal 50% dari total pembayaran</p>
+                        <p class="mt-2 text-xs sm:text-sm text-gray-500">DP minimal 50% dari total pembayaran</p>
                     </div>
 
                     <!-- Jumlah DP -->
@@ -389,61 +389,61 @@
                     </div>
 
                     <!-- Countdown Timer -->
-                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-lg border border-amber-200 shadow-sm hover:shadow-md transition-all mb-5">
+                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-4 sm:p-5 rounded-lg border border-amber-200 shadow-sm hover:shadow-md transition-all mb-4 sm:mb-5">
                         <div class="flex items-center mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <h3 class="text-md font-medium text-gray-800">Batas Waktu Pembayaran</h3>
+                            <h3 class="text-sm sm:text-base font-medium text-gray-800">Batas Waktu Pembayaran</h3>
                         </div>
                         <div class="flex flex-col items-center">
-                            <div class="countdown-container flex justify-center items-center space-x-3 my-2">
+                            <div class="countdown-container flex justify-center items-center space-x-2 sm:space-x-3 my-2">
                                 <div class="flex flex-col items-center">
-                                    <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-2xl font-bold py-2 px-3 rounded-lg shadow-lg min-w-[60px] text-center" id="hours">00</div>
+                                    <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-lg sm:text-2xl font-bold py-1 sm:py-2 px-2 sm:px-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[60px] text-center" id="hours">00</div>
                                     <span class="text-xs text-gray-500 mt-1">JAM</span>
                                 </div>
-                                <div class="text-xl font-bold text-amber-500">:</div>
+                                <div class="text-lg sm:text-xl font-bold text-amber-500">:</div>
                                 <div class="flex flex-col items-center">
-                                    <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-2xl font-bold py-2 px-3 rounded-lg shadow-lg min-w-[60px] text-center" id="minutes">00</div>
+                                    <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-lg sm:text-2xl font-bold py-1 sm:py-2 px-2 sm:px-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[60px] text-center" id="minutes">00</div>
                                     <span class="text-xs text-gray-500 mt-1">MENIT</span>
                                 </div>
-                                <div class="text-xl font-bold text-amber-500">:</div>
+                                <div class="text-lg sm:text-xl font-bold text-amber-500">:</div>
                                 <div class="flex flex-col items-center">
-                                    <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-2xl font-bold py-2 px-3 rounded-lg shadow-lg min-w-[60px] text-center" id="seconds">00</div>
+                                    <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-lg sm:text-2xl font-bold py-1 sm:py-2 px-2 sm:px-3 rounded-lg shadow-lg min-w-[40px] sm:min-w-[60px] text-center" id="seconds">00</div>
                                     <span class="text-xs text-gray-500 mt-1">DETIK</span>
                                 </div>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2.5 mt-3 mb-2">
                                 <div class="bg-gradient-to-r from-amber-500 to-orange-500 h-2.5 rounded-full" id="progress-bar" style="width: 100%"></div>
                             </div>
-                            <p class="text-sm text-gray-600 text-center mt-2">Segera lakukan pembayaran sebelum batas waktu berakhir atau booking akan otomatis dibatalkan.</p>
+                            <p class="text-xs sm:text-sm text-gray-600 text-center mt-2 px-2 sm:px-0">Segera lakukan pembayaran sebelum batas waktu berakhir atau booking akan otomatis dibatalkan.</p>
                         </div>
                     </div>
 
                     <!-- Upload Bukti -->
-                    <div id="buktiContainer" class="bg-gray-50 p-5 rounded-lg border border-gray-200 hover:shadow-sm transition-all">
-                        <label for="bukti_pembayaran" class="block mb-2 text-gray-700 font-medium">Upload Bukti Pembayaran</label>
+                    <div id="buktiContainer" class="bg-gray-50 p-4 sm:p-5 rounded-lg border border-gray-200 hover:shadow-sm transition-all">
+                        <label for="bukti_pembayaran" class="block mb-2 text-gray-700 font-medium text-sm sm:text-base">Upload Bukti Pembayaran</label>
 
-                        <div class="flex flex-col md:flex-row gap-4">
-                            <div class="w-full md:w-2/3">
+                        <div class="flex flex-col lg:flex-row gap-4">
+                            <div class="w-full lg:w-2/3">
                                 <div class="relative">
                                     <input type="file" id="bukti_pembayaran" name="bukti_pembayaran" accept="image/*" class="hidden" required>
-                                    <label for="bukti_pembayaran" class="flex items-center justify-center w-full px-4 py-3 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-all">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <label for="bukti_pembayaran" class="flex items-center justify-center w-full px-3 sm:px-4 py-2 sm:py-3 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-all">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                         </svg>
-                                        <span id="file-name" class="text-gray-500">Pilih file bukti pembayaran</span>
+                                        <span id="file-name" class="text-gray-500 text-sm sm:text-base">Pilih file bukti pembayaran</span>
                                     </label>
                                 </div>
-                                <p class="mt-2 text-sm text-gray-500">Format: JPG, PNG, JPEG. Maks 2MB</p>
+                                <p class="mt-2 text-xs sm:text-sm text-gray-500">Format: JPG, PNG, JPEG. Maks 2MB</p>
                             </div>
-                            <div class="w-full md:w-1/3">
+                            <div class="w-full lg:w-1/3">
                                 <div id="image-preview-container" class="hidden relative">
-                                    <div id="image-preview" class="h-32 bg-gray-100 rounded-lg border border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+                                    <div id="image-preview" class="h-24 sm:h-32 bg-gray-100 rounded-lg border border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
                                         <img id="preview-img" src="#" alt="Preview" class="max-h-full max-w-full object-contain">
                                     </div>
-                                    <button type="button" id="remove-image" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-all">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <button type="button" id="remove-image" class="absolute top-1 right-1 sm:top-2 sm:right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-all">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
@@ -453,20 +453,22 @@
                     </div>
 
                     <!-- Tombol -->
-                    <div class="flex flex-col sm:flex-row gap-3 pt-6">
-                        <button type="submit" id="submitBtn" class="bg-gradient-to-r from-[#E74C3C] to-[#F1C40F] hover:from-[#F1C40F] hover:to-[#E74C3C] text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E74C3C] shadow-md">
+                    <div class="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-6">
+                        <button type="submit" id="submitBtn" class="bg-gradient-to-r from-[#E74C3C] to-[#F1C40F] hover:from-[#F1C40F] hover:to-[#E74C3C] text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E74C3C] shadow-md text-sm sm:text-base">
                             <div class="flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Konfirmasi Pembayaran
+                                <span class="hidden sm:inline">Konfirmasi Pembayaran</span>
+                                <span class="sm:hidden">Konfirmasi</span>
                             </div>
                         </button>
-                        <a href="<?= site_url('customer/booking') ?>" class="text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <a href="<?= site_url('customer/booking') ?>" class="text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 flex items-center justify-center text-sm sm:text-base">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                             </svg>
-                            Kembali ke Daftar Booking
+                            <span class="hidden sm:inline">Kembali ke Daftar Booking</span>
+                            <span class="sm:hidden">Kembali</span>
                         </a>
                     </div>
                 </form>

@@ -37,13 +37,13 @@ class Karyawan extends BaseController
         $search = trim($request->getGet('search')['value'] ?? '');
         $order = $request->getGet('order') ?? [];
 
-        // Query dasar dengan index hints untuk optimasi
+
         $builder = $this->db->table('karyawan USE INDEX (PRIMARY)');
 
-        // Total records (cache result)
+
         $totalRecords = $this->db->table('karyawan')->countAllResults();
 
-        // Pencarian yang dioptimalkan
+
         if (!empty($search)) {
             $searchValue = $this->db->escapeLikeString($search);
 
@@ -55,16 +55,16 @@ class Karyawan extends BaseController
                 ->groupEnd();
         }
 
-        // Hitung total filtered records
+
         $totalFiltered = $builder->countAllResults(false);
 
-        // Pengurutan yang dioptimalkan
+
         $columns = ['idkaryawan', 'namakaryawan', 'alamat', 'nohp'];
         $orderColumn = isset($order[0]['column']) ? (int) $order[0]['column'] : 1;
         $orderDir = isset($order[0]['dir']) ? strtoupper($order[0]['dir']) : 'ASC';
         $orderField = $columns[$orderColumn - 1] ?? 'idkaryawan';
 
-        // Ambil data dengan limit
+
         $results = $builder->orderBy($orderField, $orderDir)
             ->limit($length, $start)
             ->get()

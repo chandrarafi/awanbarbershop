@@ -15,7 +15,7 @@ class Cron extends Controller
      */
     public function checkExpiredBookings()
     {
-        // Kunci API sederhana untuk keamanan
+
         $apiKey = $this->request->getGet('key');
         if ($apiKey !== 'awanbarbershop_secret_key') {
             return $this->response->setStatusCode(403)->setJSON([
@@ -30,10 +30,10 @@ class Cron extends Controller
         $pelangganModel = new PelangganModel();
         $db = \Config\Database::connect();
 
-        // Log start
+
         log_message('info', 'Cron: Memeriksa booking yang expired...');
 
-        // Ambil semua booking yang belum dibayar dan sudah expired
+
         $currentTime = date('Y-m-d H:i:s');
         $expiredBookings = $bookingModel->builder()
             ->where('jenispembayaran', 'Belum Bayar')
@@ -69,13 +69,13 @@ class Cron extends Controller
                 log_message('info', 'Cron: Memproses booking: ' . $booking['kdbooking']);
                 log_message('debug', 'Cron: Detail booking: ' . json_encode($booking));
 
-                // Double check expired time (untuk keamanan)
+
                 if (strtotime($booking['expired_at']) > time()) {
                     log_message('warning', 'Cron: Booking ' . $booking['kdbooking'] . ' belum expired. Waktu expired: ' . $booking['expired_at'] . ', Waktu sekarang: ' . $currentTime);
                     continue;
                 }
 
-                // Update status booking menjadi expired
+
                 $updated = $bookingModel->update($booking['kdbooking'], [
                     'status' => 'expired'
                 ]);
@@ -85,22 +85,22 @@ class Cron extends Controller
                     continue;
                 }
 
-                // Ambil detail booking
+
                 $details = $detailBookingModel->where('kdbooking', $booking['kdbooking'])->findAll();
 
-                // Update status detail booking
+
                 foreach ($details as $detail) {
                     $detailBookingModel->update($detail['iddetail'], [
                         'status' => '0' // 0 = Dibatalkan/Expired
                     ]);
 
-                    // Log informasi karyawan yang dibebaskan
+
                     if (!empty($detail['idkaryawan'])) {
                         log_message('info', 'Cron: Membebaskan karyawan ID: ' . $detail['idkaryawan'] . ' dari booking: ' . $booking['kdbooking']);
                     }
                 }
 
-                // Buat notifikasi untuk admin
+
                 $pelanggan = $pelangganModel->find($booking['idpelanggan']);
                 if ($pelanggan) {
                     $notificationModel->createNotification(
@@ -145,7 +145,7 @@ class Cron extends Controller
      */
     public function forceExpireBooking($kdbooking = null)
     {
-        // Kunci API sederhana untuk keamanan
+
         $apiKey = $this->request->getGet('key');
         if ($apiKey !== 'awanbarbershop_secret_key') {
             return $this->response->setStatusCode(403)->setJSON([
@@ -167,7 +167,7 @@ class Cron extends Controller
         $pelangganModel = new PelangganModel();
         $db = \Config\Database::connect();
 
-        // Ambil data booking
+
         $booking = $bookingModel->find($kdbooking);
 
         if (!$booking) {
@@ -180,7 +180,7 @@ class Cron extends Controller
         $db->transBegin();
 
         try {
-            // Update status booking menjadi expired
+
             $updated = $bookingModel->update($kdbooking, [
                 'status' => 'expired'
             ]);
@@ -193,17 +193,17 @@ class Cron extends Controller
                 ]);
             }
 
-            // Ambil detail booking
+
             $details = $detailBookingModel->where('kdbooking', $kdbooking)->findAll();
 
-            // Update status detail booking
+
             foreach ($details as $detail) {
                 $detailBookingModel->update($detail['iddetail'], [
                     'status' => '0' // 0 = Dibatalkan/Expired
                 ]);
             }
 
-            // Buat notifikasi untuk admin
+
             $pelanggan = $pelangganModel->find($booking['idpelanggan']);
             if ($pelanggan) {
                 $notificationModel->createNotification(
@@ -237,7 +237,7 @@ class Cron extends Controller
      */
     public function checkBookingStatus($kdbooking = null)
     {
-        // Kunci API sederhana untuk keamanan
+
         $apiKey = $this->request->getGet('key');
         if ($apiKey !== 'awanbarbershop_secret_key') {
             return $this->response->setStatusCode(403)->setJSON([
@@ -256,7 +256,7 @@ class Cron extends Controller
         $bookingModel = new BookingModel();
         $detailBookingModel = new DetailBookingModel();
 
-        // Ambil data booking
+
         $booking = $bookingModel->find($kdbooking);
 
         if (!$booking) {
@@ -266,7 +266,7 @@ class Cron extends Controller
             ]);
         }
 
-        // Debug info
+
         $debug = [
             'kdbooking' => $kdbooking,
             'status' => $booking['status'],
@@ -276,19 +276,19 @@ class Cron extends Controller
             'is_expired' => !empty($booking['expired_at']) && strtotime($booking['expired_at']) < time()
         ];
 
-        // Jika booking dalam status pending dan sudah melewati waktu expired
+
         $needsUpdate = $booking['status'] == 'pending' &&
             $booking['jenispembayaran'] == 'Belum Bayar' &&
             !empty($booking['expired_at']) &&
             strtotime($booking['expired_at']) < time();
 
         if ($needsUpdate) {
-            // Update status booking menjadi expired
+
             $bookingModel->update($kdbooking, [
                 'status' => 'expired'
             ]);
 
-            // Update status detail booking
+
             $details = $detailBookingModel->where('kdbooking', $kdbooking)->findAll();
             foreach ($details as $detail) {
                 $detailBookingModel->update($detail['iddetail'], [
@@ -319,7 +319,7 @@ class Cron extends Controller
      */
     public function listPendingBookings()
     {
-        // Kunci API sederhana untuk keamanan
+
         $apiKey = $this->request->getGet('key');
         if ($apiKey !== 'awanbarbershop_secret_key') {
             return $this->response->setStatusCode(403)->setJSON([
@@ -330,7 +330,7 @@ class Cron extends Controller
 
         $bookingModel = new BookingModel();
 
-        // Ambil semua booking yang masih pending
+
         $pendingBookings = $bookingModel->where('status', 'pending')
             ->findAll();
 

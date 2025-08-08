@@ -23,7 +23,7 @@ class NotificationModel extends Model
         'updated_at'
     ];
 
-    // Dates
+
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
     protected $createdField  = 'created_at';
@@ -63,10 +63,10 @@ class NotificationModel extends Model
      */
     public function createBookingNotification($kdbooking, $customerName, $idPelanggan = null)
     {
-        // Nama konstan untuk jenis notifikasi booking baru
+
         $type = 'booking_baru';
 
-        // Judul dan pesan yang informatif
+
         $title = 'Booking Baru';
         $message = "Booking baru oleh {$customerName} dengan kode {$kdbooking}";
 
@@ -84,10 +84,10 @@ class NotificationModel extends Model
     {
         $builder = $this->builder();
 
-        // Filter by unread status
+
         $builder->where('is_read', 0);
 
-        // Filter by idpelanggan if provided, otherwise get general notifications (idpelanggan is null)
+
         if ($idPelanggan !== null) {
             $builder->groupStart()
                 ->where('idpelanggan', $idPelanggan)
@@ -95,16 +95,16 @@ class NotificationModel extends Model
                 ->groupEnd();
         }
 
-        // Order by created_at desc and limit results
+
         $builder->orderBy('created_at', 'DESC')
             ->limit($limit);
 
-        // Log the generated SQL query for debugging
+
         log_message('debug', 'Notification query: ' . $builder->getCompiledSelect());
 
         $result = $builder->get()->getResultArray();
 
-        // Log the result
+
         log_message('debug', 'Notification result count: ' . count($result));
 
         return $result;
@@ -120,10 +120,10 @@ class NotificationModel extends Model
     {
         $builder = $this->builder();
 
-        // Filter by unread status
+
         $builder->where('is_read', 0);
 
-        // Filter by idpelanggan if provided, otherwise count general notifications (idpelanggan is null)
+
         if ($idPelanggan !== null) {
             $builder->groupStart()
                 ->where('idpelanggan', $idPelanggan)

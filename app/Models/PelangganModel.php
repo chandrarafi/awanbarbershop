@@ -108,7 +108,7 @@ class PelangganModel extends Model
 
     public function save($data): bool
     {
-        // Jika ini adalah update, modifikasi aturan is_unique
+
         if (!empty($data['id'])) {
             $this->validationRules['idpelanggan']['rules'] = 'required|max_length[10]|is_unique[pelanggan.idpelanggan,id,' . $data['id'] . ']';
         }
@@ -126,17 +126,17 @@ class PelangganModel extends Model
 
     public function getPelangganDatatable($start, $length, $search)
     {
-        // Konversi ke integer
+
         $start = (int) $start;
         $length = (int) $length;
 
         $builder = $this->select('pelanggan.*, users.username, users.email')
             ->join('users', 'users.id = pelanggan.user_id', 'left');
 
-        // Total data
+
         $total = $builder->countAllResults(false);
 
-        // Filter pencarian
+
         if ($search) {
             $builder->groupStart()
                 ->like('pelanggan.idpelanggan', $search)
@@ -147,10 +147,10 @@ class PelangganModel extends Model
                 ->groupEnd();
         }
 
-        // Total data setelah filter
+
         $filtered = $builder->countAllResults(false);
 
-        // Get data dengan limit
+
         $data = $builder->orderBy('pelanggan.id', 'DESC')
             ->limit($length, $start)
             ->get()

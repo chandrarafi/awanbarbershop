@@ -23,7 +23,7 @@ class CustomerAuth extends BaseController
 
     public function index()
     {
-        // Jika sudah login, redirect ke halaman pelanggan
+
         if (session()->get('logged_in')) {
             return redirect()->to(site_url());
         }
@@ -41,16 +41,16 @@ class CustomerAuth extends BaseController
         $email = $this->request->getPost('email');
         $username = $this->request->getPost('username');
 
-        // Cek apakah email sudah terdaftar
+
         $existingUser = $this->userModel->where('email', $email)->first();
 
         if ($existingUser) {
             if ($existingUser['status'] === 'inactive') {
-                // Jika user sudah ada tapi inactive, kirim OTP baru
+
                 $otp = $this->otpModel->generateOTP($existingUser['id']);
                 send_otp_email($email, $otp);
 
-                // Set session untuk verifikasi
+
                 session()->set('temp_user_id', $existingUser['id']);
 
                 return $this->response->setJSON([
@@ -66,7 +66,7 @@ class CustomerAuth extends BaseController
             }
         }
 
-        // Cek username
+
         $existingUsername = $this->userModel->where('username', $username)->first();
         if ($existingUsername) {
             return $this->response->setJSON([
@@ -126,11 +126,11 @@ class CustomerAuth extends BaseController
         $this->userModel->insert($userData);
         $userId = $this->userModel->getInsertID();
 
-        // Generate dan kirim OTP
+
         $otp = $this->otpModel->generateOTP($userId);
         send_otp_email($userData['email'], $otp);
 
-        // Set session untuk verifikasi
+
         session()->set('temp_user_id', $userId);
 
         return $this->response->setJSON([
@@ -162,16 +162,16 @@ class CustomerAuth extends BaseController
 
         if ($this->otpModel->verifyOTP($userId, $otp)) {
             try {
-                // Aktifkan user
+
                 $this->userModel->update($userId, ['status' => 'active']);
 
-                // Ambil data user
+
                 $user = $this->userModel->find($userId);
 
-                // Generate ID Pelanggan
+
                 $idpelanggan = $this->pelangganModel->generateId();
 
-                // Buat data pelanggan baru
+
                 $pelangganData = [
                     'idpelanggan' => $idpelanggan,
                     'user_id' => $userId,
@@ -182,14 +182,14 @@ class CustomerAuth extends BaseController
                     'tanggal_lahir' => null
                 ];
 
-                // Skip validasi untuk insert awal
+
                 $this->pelangganModel->skipValidation(true);
 
                 if (!$this->pelangganModel->insert($pelangganData)) {
                     throw new \Exception('Gagal membuat data pelanggan');
                 }
 
-                // Hapus session temporary
+
                 session()->remove('temp_user_id');
 
                 return $this->response->setJSON([
@@ -230,7 +230,7 @@ class CustomerAuth extends BaseController
             ]);
         }
 
-        // Generate dan kirim OTP baru
+
         $otp = $this->otpModel->generateOTP($userId);
         send_otp_email($user['email'], $otp);
 
@@ -253,7 +253,7 @@ class CustomerAuth extends BaseController
 
         if ($user) {
             if ($user['status'] !== 'active') {
-                // Set session untuk verifikasi ulang
+
                 session()->set('temp_user_id', $user['id']);
                 return $this->response->setJSON([
                     'status' => 'pending_verification',
@@ -263,12 +263,12 @@ class CustomerAuth extends BaseController
             }
 
             if (password_verify($password, $user['password'])) {
-                // Update last login
+
                 $this->userModel->update($user['id'], [
                     'last_login' => date('Y-m-d H:i:s')
                 ]);
 
-                // Set session
+
                 $sessionData = [
                     'user_id' => $user['id'],
                     'username' => $user['username'],
@@ -283,7 +283,7 @@ class CustomerAuth extends BaseController
                     $this->setRememberMeCookie($user['id']);
                 }
 
-                // Cek apakah pelanggan sudah melengkapi profil
+
                 $pelanggan = $this->pelangganModel->where('user_id', $user['id'])->first();
                 $redirect = $pelanggan ? site_url() : site_url('customer/complete-profile');
 
@@ -303,13 +303,13 @@ class CustomerAuth extends BaseController
 
     public function logout()
     {
-        // Hapus remember me cookie
+
         if (get_cookie('remember_token')) {
             delete_cookie('remember_token');
             delete_cookie('user_id');
         }
 
-        // Destroy session
+
         session()->destroy();
 
         return redirect()->to('customer/login')->with('message', 'Anda telah berhasil logout');
@@ -319,16 +319,16 @@ class CustomerAuth extends BaseController
     {
         $token = bin2hex(random_bytes(32));
 
-        // Simpan token di database
+
         $this->userModel->update($userId, [
             'remember_token' => $token
         ]);
 
-        // Set cookies yang akan expired dalam 30 hari
+
         $expires = 30 * 24 * 60 * 60; // 30 hari
         $secure = isset($_SERVER['HTTPS']); // Set secure hanya jika HTTPS
 
-        // Set cookie untuk remember token
+
         set_cookie(
             'remember_token',
             $token,
@@ -340,7 +340,7 @@ class CustomerAuth extends BaseController
             true  // httponly
         );
 
-        // Set cookie untuk user ID
+
         set_cookie(
             'user_id',
             $userId,
