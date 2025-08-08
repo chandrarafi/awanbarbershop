@@ -65,21 +65,21 @@ class Booking extends BaseController
         $order = $request->getGet('order') ?? [];
         $filterStatus = $request->getGet('status'); // Filter berdasarkan status
 
-        // Query dasar dengan joins untuk data lengkap
+
         $builder = $this->db->table('booking b')
             ->select('b.*, p.nama_lengkap, p.no_hp, k.namakaryawan')
             ->join('pelanggan p', 'p.idpelanggan = b.idpelanggan', 'left')
             ->join('karyawan k', 'k.idkaryawan = b.idkaryawan', 'left');
 
-        // Total records (cache result)
+
         $totalRecords = $this->db->table('booking')->countAllResults();
 
-        // Filter berdasarkan status
+
         if (!empty($filterStatus)) {
             $builder->where('b.status', $filterStatus);
         }
 
-        // Pencarian yang dioptimalkan
+
         if (!empty($search)) {
             $searchValue = $this->db->escapeLikeString($search);
 
@@ -91,24 +91,24 @@ class Booking extends BaseController
                 ->groupEnd();
         }
 
-        // Hitung total filtered records
+
         $totalFiltered = $builder->countAllResults(false);
 
-        // Pengurutan
+
         $columns = ['b.kdbooking', 'p.nama_lengkap', 'b.tanggal_booking', 'b.status', 'b.jenispembayaran', 'k.namakaryawan'];
         $orderColumn = isset($order[0]['column']) ? (int) $order[0]['column'] : 0;
         $orderDir = isset($order[0]['dir']) ? strtoupper($order[0]['dir']) : 'DESC';
         $orderField = $columns[$orderColumn] ?? 'b.created_at';
 
-        // Ambil data dengan limit
+
         $results = $builder->orderBy($orderField, $orderDir)
             ->limit($length, $start)
             ->get()
             ->getResultArray();
 
-        // Format data
+
         $data = array_map(function ($row) {
-            // Dapatkan status yang lebih user-friendly
+
             $statusText = $this->getStatusText($row['status']);
 
             return [
@@ -156,10 +156,10 @@ class Booking extends BaseController
         try {
             $data = $this->request->getPost();
 
-            // Generate kode booking baru
+
             $kdbooking = $this->bookingModel->generateBookingCode();
 
-            // Persiapkan data booking
+
             $bookingData = [
                 'kdbooking' => $kdbooking,
                 'idpelanggan' => $data['idpelanggan'],
@@ -171,7 +171,7 @@ class Booking extends BaseController
                 'idkaryawan' => $data['idkaryawan'] ?? null,
             ];
 
-            // Simpan data booking
+
             if (!$this->bookingModel->save($bookingData)) {
                 $this->db->transRollback();
                 return $this->response->setStatusCode(400)->setJSON([
@@ -181,7 +181,7 @@ class Booking extends BaseController
                 ]);
             }
 
-            // Dapatkan data paket
+
             $paketModel = new PaketModel();
             $paket = $paketModel->find($data['idpaket']);
 
@@ -193,7 +193,7 @@ class Booking extends BaseController
                 ]);
             }
 
-            // Simpan detail booking
+
             $detailData = [
                 'iddetail' => $this->detailBookingModel->generateDetailId(),
                 'tgl' => $data['tanggal_booking'],
@@ -217,7 +217,7 @@ class Booking extends BaseController
                 ]);
             }
 
-            // Jika ada pembayaran DP atau lunas
+
             if ($data['jenispembayaran'] != '' && $data['jumlahbayar'] > 0) {
                 $pembayaranData = [
                     'fakturbooking' => $kdbooking,
@@ -316,7 +316,7 @@ class Booking extends BaseController
         try {
             $data = $this->request->getPost();
 
-            // Update data booking
+
             $bookingData = [
                 'kdbooking' => $id,
                 'tanggal_booking' => $data['tanggal_booking'] ?? $booking['tanggal_booking'],
@@ -336,11 +336,11 @@ class Booking extends BaseController
                 ]);
             }
 
-            // Update detail booking jika ada
+
             if (isset($data['detail_id']) && !empty($data['detail_id'])) {
                 $detailId = $data['detail_id'];
 
-                // Dapatkan data paket jika ada perubahan
+
                 $paketModel = new PaketModel();
                 $paket = null;
 
@@ -369,7 +369,7 @@ class Booking extends BaseController
                         'idkaryawan' => $data['idkaryawan'] ?? $detail['idkaryawan'],
                     ];
 
-                    // Update data paket jika ada perubahan
+
                     if ($paket) {
                         $detailData['idpaket'] = $paket['kdpaket'];
                         $detailData['nama_paket'] = $paket['namapaket'];
@@ -388,7 +388,7 @@ class Booking extends BaseController
                 }
             }
 
-            // Update pembayaran jika ada
+
             if (
                 isset($data['tambah_pembayaran']) && $data['tambah_pembayaran'] == '1' &&
                 isset($data['jumlah_bayar_tambahan']) && $data['jumlah_bayar_tambahan'] > 0
@@ -411,7 +411,7 @@ class Booking extends BaseController
                     ]);
                 }
 
-                // Update jumlah bayar di booking
+
                 $totalBayar = $booking['jumlahbayar'] + $data['jumlah_bayar_tambahan'];
                 $this->bookingModel->update($id, ['jumlahbayar' => $totalBayar]);
             }
@@ -453,10 +453,10 @@ class Booking extends BaseController
             ]);
         }
 
-        // Update status booking
+
         $this->bookingModel->update($kdbooking, ['status' => $status]);
 
-        // Update status detail booking
+
         $detailStatus = '1'; // Default: Pending
 
         switch ($status) {
@@ -495,17 +495,17 @@ class Booking extends BaseController
         $this->db->transBegin();
 
         try {
-            // Hapus detail booking terlebih dahulu
+
             $this->db->table('detail_booking')
                 ->where('kdbooking', $id)
                 ->delete();
 
-            // Hapus data pembayaran
+
             $this->db->table('pembayaran')
                 ->where('fakturbooking', $id)
                 ->delete();
 
-            // Hapus data booking
+
             if (!$this->bookingModel->delete($id)) {
                 $this->db->transRollback();
                 return $this->response->setStatusCode(400)->setJSON([
@@ -535,10 +535,10 @@ class Booking extends BaseController
         $keyword = $this->request->getGet('term');
 
         if (empty($keyword)) {
-            // Jika tidak ada keyword, ambil 20 pelanggan terbaru
+
             $pelanggan = $this->pelangganModel->orderBy('created_at', 'DESC')->findAll(20);
         } else {
-            // Jika ada keyword, cari berdasarkan nama atau nomor HP
+
             $pelanggan = $this->pelangganModel->like('nama_lengkap', $keyword)
                 ->orLike('no_hp', $keyword)
                 ->findAll(10);

@@ -21,18 +21,18 @@ class NotificationController extends BaseController
      */
     public function getUnreadNotifications()
     {
-        // Untuk admin, kita tidak perlu filter berdasarkan idpelanggan
-        // Semua notifikasi akan ditampilkan (yang idpelanggan=null atau semua idpelanggan)
+
+
         $notifications = $this->notificationModel->getUnreadNotifications(null, 10);
         $count = $this->notificationModel->countUnreadNotifications(null);
 
-        // Debug
+
         log_message('debug', 'Notifications count: ' . $count);
         log_message('debug', 'Notifications data: ' . json_encode($notifications));
 
-        // Format waktu notifikasi lebih user-friendly
+
         foreach ($notifications as &$notification) {
-            // Pastikan semua field yang diperlukan ada
+
             if (!isset($notification['title'])) {
                 $notification['title'] = 'Notifikasi';
             }
@@ -68,7 +68,7 @@ class NotificationController extends BaseController
             }
         }
 
-        // Debug setelah format
+
         log_message('debug', 'Formatted notifications: ' . json_encode($notifications));
 
         return $this->response->setJSON([
@@ -125,7 +125,7 @@ class NotificationController extends BaseController
             ]);
         }
 
-        // Untuk admin, kita tidak perlu filter berdasarkan idpelanggan
+
         $success = $this->notificationModel->markAllAsRead(null);
 
         return $this->response->setJSON([
@@ -142,17 +142,17 @@ class NotificationController extends BaseController
      */
     public function viewDetail($id)
     {
-        // Ambil data notifikasi
+
         $notification = $this->notificationModel->find($id);
 
         if (!$notification) {
             return redirect()->back()->with('error', 'Notifikasi tidak ditemukan');
         }
 
-        // Tandai notifikasi sebagai sudah dibaca
+
         $this->notificationModel->markAsRead($id);
 
-        // Redirect ke halaman yang sesuai berdasarkan jenis notifikasi
+
         if ($notification['type'] === 'booking_baru') {
             return redirect()->to(site_url('admin/booking/show/' . $notification['reference_id']));
         }
@@ -164,7 +164,7 @@ class NotificationController extends BaseController
         if ($notification['type'] === 'booking_baru') {
             return redirect()->to(site_url('admin/booking/show/' . $notification['reference_id']));
         }
-        // Default redirect ke dashboard jika tipe notifikasi tidak dikenali
+
         return redirect()->to(site_url('admin/dashboard'));
     }
 
@@ -173,7 +173,7 @@ class NotificationController extends BaseController
      */
     public function createTest()
     {
-        // Buat notifikasi test
+
         $result = $this->notificationModel->createNotification(
             'booking_baru',
             'Test Notifikasi Admin',
@@ -193,7 +193,7 @@ class NotificationController extends BaseController
      */
     public function viewAll()
     {
-        // Ambil semua notifikasi
+
         $builder = $this->notificationModel->builder();
         $notifications = $builder->get()->getResultArray();
 
@@ -209,14 +209,14 @@ class NotificationController extends BaseController
      */
     public function allNotifications()
     {
-        // Ambil semua notifikasi
+
         $builder = $this->notificationModel->builder();
         $builder->orderBy('created_at', 'DESC');
         $notifications = $builder->get()->getResultArray();
 
-        // Format waktu notifikasi
+
         foreach ($notifications as &$notification) {
-            // Pastikan semua field yang diperlukan ada
+
             if (!isset($notification['title'])) {
                 $notification['title'] = 'Notifikasi';
             }

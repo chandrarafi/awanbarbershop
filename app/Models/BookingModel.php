@@ -27,13 +27,13 @@ class BookingModel extends Model
         'expired_at'
     ];
 
-    // Dates
+
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    // Validation
+
     protected $validationRules      = [];
     protected $validationMessages   = [];
     protected $skipValidation       = false;
@@ -95,7 +95,7 @@ class BookingModel extends Model
     {
         $prefix = 'BK-' . date('Ymd') . '-';
 
-        // Cari kode booking terakhir dengan awalan yang sama
+
         $lastBooking = $this->like('kdbooking', $prefix, 'after')
             ->orderBy('kdbooking', 'DESC')
             ->first();
@@ -104,7 +104,7 @@ class BookingModel extends Model
             return $prefix . '0001';
         }
 
-        // Ambil nomor urut dari kode booking terakhir
+
         $lastNumber = (int) substr($lastBooking['kdbooking'], -4);
         $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
 
@@ -119,12 +119,12 @@ class BookingModel extends Model
      */
     public function save($data): bool
     {
-        // Jika sedang update, nonaktifkan validasi untuk menghindari masalah placeholder
+
         if (!empty($data['kdbooking']) && $this->find($data['kdbooking'])) {
             $this->skipValidation(true);
         }
 
-        // Jika ini adalah data baru, pastikan kdbooking unik secara manual
+
         if (empty($data['id']) && !empty($data['kdbooking'])) {
             $existing = $this->find($data['kdbooking']);
             if ($existing) {

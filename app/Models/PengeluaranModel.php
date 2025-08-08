@@ -14,13 +14,13 @@ class PengeluaranModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = ['idpengeluaran', 'tgl', 'keterangan', 'jumlah'];
 
-    // Dates
+
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    // Validation
+
     protected $validationRules      = [
         'tgl'        => 'required',
         'jumlah'     => 'required|numeric',
@@ -29,7 +29,7 @@ class PengeluaranModel extends Model
     protected $skipValidation       = false;
     protected $cleanValidationRules = true;
 
-    // Callbacks
+
     protected $allowCallbacks = true;
     protected $beforeInsert   = ['generateID'];
     protected $beforeUpdate   = [];

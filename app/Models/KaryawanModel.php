@@ -70,13 +70,13 @@ class KaryawanModel extends Model
                     'required' => 'Nomor HP harus diisi'
                 ]
             ],
-            // 'status' => [
-            //     'rules' => 'required|in_list[aktif,nonaktif]',
-            //     'errors' => [
-            //         'required' => 'Status harus diisi',
-            //         'in_list' => 'Status harus aktif atau nonaktif'
-            //     ]
-            // ],
+
+
+
+
+
+
+
         ];
     }
 
@@ -101,7 +101,7 @@ class KaryawanModel extends Model
 
     public function save($data): bool
     {
-        // Jika ini adalah update, modifikasi aturan is_unique
+
         if (!empty($data['idkaryawan'])) {
             $this->validationRules['idkaryawan']['rules'] = 'required|max_length[10]|is_unique[karyawan.idkaryawan,idkaryawan,' . $data['idkaryawan'] . ']';
         }
@@ -120,14 +120,14 @@ class KaryawanModel extends Model
     {
         $db = \Config\Database::connect();
 
-        // Subquery untuk mendapatkan ID karyawan yang sudah memiliki booking di waktu yang sama
+
         $subQuery = $db->table('detail_booking')
             ->select('idkaryawan')
             ->where('tgl', $tanggal)
             ->where('jamstart', $jamstart)
             ->where('status !=', '4'); // 4 = Dibatalkan
 
-        // Query utama untuk mendapatkan karyawan yang aktif dan tidak memiliki booking di waktu tersebut
+
         return $this->where('status', 'aktif')
             ->whereNotIn('idkaryawan', $subQuery)
             ->findAll();

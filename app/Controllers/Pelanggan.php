@@ -65,15 +65,15 @@ class Pelanggan extends BaseController
         $search = trim($request->getGet('search')['value'] ?? '');
         $order = $request->getGet('order') ?? [];
 
-        // Query dasar dengan join ke users
+
         $builder = $this->db->table('pelanggan p')
             ->select('p.*, u.username, u.email')
             ->join('users u', 'u.id = p.user_id', 'left');
 
-        // Total records (cache result)
+
         $totalRecords = $builder->countAllResults(false);
 
-        // Pencarian yang dioptimalkan
+
         if (!empty($search)) {
             $searchValue = $this->db->escapeLikeString($search);
 
@@ -88,16 +88,16 @@ class Pelanggan extends BaseController
                 ->groupEnd();
         }
 
-        // Hitung total filtered records
+
         $totalFiltered = $builder->countAllResults(false);
 
-        // Pengurutan yang dioptimalkan
+
         $columns = ['p.idpelanggan', 'p.nama_lengkap', 'p.jeniskelamin', 'p.no_hp', 'p.alamat', 'u.username', 'u.email'];
         $orderColumn = isset($order[0]['column']) ? (int) $order[0]['column'] : 1;
         $orderDir = isset($order[0]['dir']) ? strtoupper($order[0]['dir']) : 'ASC';
         $orderField = $columns[$orderColumn - 1] ?? 'p.idpelanggan';
 
-        // Ambil data dengan limit
+
         $results = $builder->orderBy($orderField, $orderDir)
             ->limit($length, $start)
             ->get()
@@ -123,7 +123,7 @@ class Pelanggan extends BaseController
             $userId = null;
             $createUser = $this->request->getPost('createUser');
 
-            // Buat akun user jika diminta
+
             if ($createUser === 'on' || $createUser === '1' || $createUser === 'true') {
                 $userData = [
                     'email' => $this->request->getPost('email'),
@@ -144,7 +144,7 @@ class Pelanggan extends BaseController
                 $userId = $this->userModel->getInsertID();
             }
 
-            // Data pelanggan
+
             $pelangganData = [
                 'idpelanggan' => $this->request->getPost('idpelanggan'),
                 'user_id' => $userId,
@@ -198,9 +198,9 @@ class Pelanggan extends BaseController
             $userId = $pelanggan['user_id'];
             $createUser = $this->request->getPost('createUser');
 
-            // Buat atau update user
+
             if (($createUser === 'on' || $createUser === '1' || $createUser === 'true') && empty($pelanggan['user_id'])) {
-                // Buat user baru
+
                 $userData = [
                     'email' => $this->request->getPost('email'),
                     'username' => $this->request->getPost('username'),
@@ -219,10 +219,10 @@ class Pelanggan extends BaseController
 
                 $userId = $this->userModel->getInsertID();
             } elseif (!empty($pelanggan['user_id'])) {
-                // Update data user yang ada
+
                 $updateData = ['name' => $this->request->getPost('nama_lengkap')];
 
-                // Update password jika diisi
+
                 if ($this->request->getPost('password')) {
                     $updateData['password'] = $this->request->getPost('password');
                 }
@@ -235,7 +235,7 @@ class Pelanggan extends BaseController
                 }
             }
 
-            // Update data pelanggan
+
             $pelangganData = [
                 'user_id' => $userId,
                 'nama_lengkap' => $this->request->getPost('nama_lengkap'),
@@ -285,7 +285,7 @@ class Pelanggan extends BaseController
         $this->db->transBegin();
 
         try {
-            // Hapus data pelanggan terlebih dahulu
+
             if (!$this->pelangganModel->delete($id)) {
                 return $this->response->setJSON([
                     'status' => 'error',
@@ -293,7 +293,7 @@ class Pelanggan extends BaseController
                 ]);
             }
 
-            // Jika pelanggan memiliki user account, hapus juga user-nya
+
             if (!empty($pelanggan['user_id'])) {
                 if (!$this->userModel->delete($pelanggan['user_id'])) {
                     return $this->response->setJSON([
@@ -319,7 +319,7 @@ class Pelanggan extends BaseController
         }
     }
 
-    // Method untuk menampilkan halaman profil pelanggan
+
     public function profile()
     {
         if (!session()->get('logged_in') || session()->get('role') !== 'pelanggan') {
@@ -328,17 +328,17 @@ class Pelanggan extends BaseController
 
         $userId = session()->get('user_id');
 
-        // Ambil data user terlebih dahulu
+
         $user = $this->userModel->find($userId);
 
         if (!$user) {
             return redirect()->to('customer/login')->with('error', 'Data user tidak ditemukan');
         }
 
-        // Cek apakah user sudah memiliki data pelanggan
+
         $pelanggan = $this->pelangganModel->where('user_id', $userId)->first();
 
-        // Jika data pelanggan belum ada, tampilkan data dari user saja
+
         if (!$pelanggan) {
             $pelanggan = [
                 'idpelanggan' => $this->pelangganModel->generateId(),
@@ -352,7 +352,7 @@ class Pelanggan extends BaseController
                 'username' => $user['username']
             ];
         } else {
-            // Jika data pelanggan sudah ada, gabungkan dengan data user
+
             $pelanggan['email'] = $user['email'];
             $pelanggan['username'] = $user['username'];
         }
@@ -360,10 +360,10 @@ class Pelanggan extends BaseController
         return view('pelanggan/profile', ['pelanggan' => $pelanggan]);
     }
 
-    // Method untuk memperbarui profil pelanggan
+
     public function updateProfile()
     {
-        // Verifikasi CSRF token untuk AJAX request
+
         if ($this->request->isAJAX() && !$this->validateCSRFToken()) {
             return $this->response->setJSON([
                 'status' => 'error',
@@ -371,7 +371,7 @@ class Pelanggan extends BaseController
             ]);
         }
 
-        // Cek apakah user sudah login
+
         if (!session()->get('logged_in') || session()->get('role') !== 'pelanggan') {
             if ($this->request->isAJAX()) {
                 return $this->response->setJSON([
@@ -384,7 +384,7 @@ class Pelanggan extends BaseController
 
         $userId = session()->get('user_id');
 
-        // Ambil data user terlebih dahulu
+
         $user = $this->userModel->find($userId);
 
         if (!$user) {
@@ -397,7 +397,7 @@ class Pelanggan extends BaseController
             return redirect()->to('customer/login')->with('error', 'Data user tidak ditemukan');
         }
 
-        // Validasi input
+
         $rules = [
             'nama_lengkap' => [
                 'rules' => 'required|min_length[3]',
@@ -425,7 +425,7 @@ class Pelanggan extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        // Data untuk update
+
         $userData = [
             'name' => $this->request->getPost('nama_lengkap')
         ];
@@ -442,25 +442,25 @@ class Pelanggan extends BaseController
         $this->db->transBegin();
 
         try {
-            // Update data user
+
             if (!$this->userModel->update($userId, $userData)) {
                 throw new \Exception('Gagal memperbarui data user');
             }
 
-            // Cek apakah user sudah memiliki data pelanggan
+
             $pelanggan = $this->pelangganModel->where('user_id', $userId)->first();
 
-            // Matikan validasi untuk proses ini karena kita sudah melakukan validasi manual
+
             $this->pelangganModel->skipValidation(true);
 
             if (!$pelanggan) {
-                // Jika belum ada data pelanggan, buat baru
+
                 $pelangganData['idpelanggan'] = $this->pelangganModel->generateId();
                 if (!$this->pelangganModel->insert($pelangganData)) {
                     throw new \Exception('Gagal menyimpan data pelanggan: ' . json_encode($this->pelangganModel->errors()));
                 }
             } else {
-                // Jika sudah ada, update data pelanggan
+
                 if (!$this->pelangganModel->update($pelanggan['id'], $pelangganData)) {
                     throw new \Exception('Gagal memperbarui data pelanggan: ' . json_encode($this->pelangganModel->errors()));
                 }
@@ -488,7 +488,7 @@ class Pelanggan extends BaseController
         }
     }
 
-    // Helper method untuk validasi CSRF token
+
     private function validateCSRFToken()
     {
         $csrf = csrf_hash();

@@ -14,13 +14,13 @@ class Auth extends BaseController
     {
         $this->userModel = new UserModel();
         $this->otpModel = new OtpModel();
-        // Load helper cookie
+
         helper(['cookie', 'email']);
     }
 
     public function index()
     {
-        // Jika sudah login, redirect ke dashboard
+
         if (session()->get('logged_in')) {
             return redirect()->to(session()->get('redirect_url') ?? 'admin');
         }
@@ -61,11 +61,11 @@ class Auth extends BaseController
         $this->userModel->insert($userData);
         $userId = $this->userModel->getInsertID();
 
-        // Generate dan kirim OTP
+
         $otp = $this->otpModel->generateOTP($userId);
         send_otp_email($userData['email'], $otp);
 
-        // Set session untuk verifikasi
+
         session()->set('temp_user_id', $userId);
 
         return $this->response->setJSON([
@@ -96,10 +96,10 @@ class Auth extends BaseController
         }
 
         if ($this->otpModel->verifyOTP($userId, $otp)) {
-            // Aktifkan user
+
             $this->userModel->update($userId, ['status' => 'active']);
 
-            // Hapus session temporary
+
             session()->remove('temp_user_id');
 
             return $this->response->setJSON([
@@ -133,7 +133,7 @@ class Auth extends BaseController
             ]);
         }
 
-        // Generate dan kirim OTP baru
+
         $otp = $this->otpModel->generateOTP($userId);
         send_otp_email($user['email'], $otp);
 
@@ -156,7 +156,7 @@ class Auth extends BaseController
         if ($user) {
             if ($user['status'] !== 'active') {
                 if ($user['role'] === 'pelanggan') {
-                    // Set session untuk verifikasi ulang
+
                     session()->set('temp_user_id', $user['id']);
                     return $this->response->setJSON([
                         'status' => 'pending_verification',
@@ -171,12 +171,12 @@ class Auth extends BaseController
             }
 
             if (password_verify($password, $user['password'])) {
-                // Update last login
+
                 $this->userModel->update($user['id'], [
                     'last_login' => date('Y-m-d H:i:s')
                 ]);
 
-                // Set session
+
                 $sessionData = [
                     'user_id' => $user['id'],
                     'username' => $user['username'],
@@ -208,13 +208,13 @@ class Auth extends BaseController
 
     public function logout()
     {
-        // Hapus remember me cookie
+
         if (get_cookie('remember_token')) {
             delete_cookie('remember_token');
             delete_cookie('user_id');
         }
 
-        // Destroy session
+
         session()->destroy();
 
         return redirect()->to('auth')->with('message', 'Anda telah berhasil logout');
@@ -224,16 +224,16 @@ class Auth extends BaseController
     {
         $token = bin2hex(random_bytes(32));
 
-        // Simpan token di database
+
         $this->userModel->update($userId, [
             'remember_token' => $token
         ]);
 
-        // Set cookies yang akan expired dalam 30 hari
+
         $expires = 30 * 24 * 60 * 60; // 30 hari
         $secure = isset($_SERVER['HTTPS']); // Set secure hanya jika HTTPS
 
-        // Set cookie untuk remember token
+
         set_cookie(
             'remember_token',
             $token,
@@ -245,7 +245,7 @@ class Auth extends BaseController
             true  // httponly
         );
 
-        // Set cookie untuk user ID
+
         set_cookie(
             'user_id',
             $userId,

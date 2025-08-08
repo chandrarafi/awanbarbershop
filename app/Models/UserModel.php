@@ -15,19 +15,19 @@ class UserModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = ['username', 'email', 'password', 'role', 'name', 'status', 'last_login'];
 
-    // Dates
+
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    // Validation
+
     protected $validationRules = [];
     protected $validationMessages = [];
     protected $skipValidation       = false;
     protected $cleanValidationRules = true;
 
-    // Callbacks
+
     protected $allowCallbacks = true;
     protected $beforeInsert   = ['hashPassword'];
     protected $beforeUpdate   = ['hashPassword'];
@@ -93,11 +93,11 @@ class UserModel extends Model
 
     public function save($data): bool
     {
-        // Jika ini adalah update, ubah validasi password menjadi opsional
+
         if (!empty($data['id'])) {
             $this->validationRules['password']['rules'] = 'permit_empty|min_length[6]';
 
-            // Jika hanya update last_login, skip validasi lainnya
+
             if (count($data) === 2 && isset($data['id']) && isset($data['last_login'])) {
                 $this->validationRules = [
                     'last_login' => 'permit_empty|valid_date'

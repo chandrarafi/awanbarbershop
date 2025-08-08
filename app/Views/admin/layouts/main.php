@@ -14,23 +14,23 @@
 <body>
     <?= $this->renderSection('modal') ?>
 
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <?= $this->include('admin/layouts/sidebar') ?>
+
     <!-- Main Content -->
     <div class="main-content">
         <!-- Topbar -->
         <?= $this->include('admin/layouts/topbar') ?>
 
-
         <!-- Page Content -->
         <div class="container-fluid animate__animated animate__fadeIn">
             <?= $this->renderSection('content') ?>
-
         </div>
     </div>
+
     <?= $this->include('admin/layouts/script') ?>
-
-
-
     <?= $this->renderSection('scripts') ?>
 </body>
 

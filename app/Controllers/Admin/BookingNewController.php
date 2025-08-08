@@ -35,7 +35,7 @@ class BookingNewController extends BaseController
 
     public function index()
     {
-        // Periksa dan perbarui status booking yang expired
+
         $this->checkExpiredBookings();
 
         $title = 'Kelola Booking';
@@ -74,15 +74,15 @@ class BookingNewController extends BaseController
         $filterStatus = $request->getGet('status'); // Filter berdasarkan status
         $dateFilter = $request->getGet('date_filter'); // Filter berdasarkan tanggal
 
-        // Parameter untuk mengelompokkan berdasarkan kode booking
+
         $groupByKdbooking = false;
         if ($request->getGet('group_by_kdbooking')) {
             $groupByKdbooking = ($request->getGet('group_by_kdbooking') === 'true');
         }
 
-        // Query dasar dengan joins untuk data lengkap dan informasi waktu booking dari detail_booking
+
         if ($groupByKdbooking) {
-            // Query untuk mengelompokkan booking berdasarkan kode booking
+
             $builder = $this->db->table('booking b')
                 ->select('b.*, p.nama_lengkap, p.no_hp, k.namakaryawan, 
                           (SELECT COUNT(*) FROM detail_booking WHERE kdbooking = b.kdbooking) as jumlah_paket,
@@ -92,7 +92,7 @@ class BookingNewController extends BaseController
                 ->groupBy('b.kdbooking')
                 ->orderBy('b.created_at', 'DESC');
         } else {
-            // Query dasar dengan joins untuk data lengkap dan informasi waktu booking dari detail_booking
+
             $builder = $this->db->table('booking b')
                 ->select('b.*, p.nama_lengkap, p.no_hp, k.namakaryawan, db.jamstart, db.jamend')
                 ->join('pelanggan p', 'p.idpelanggan = b.idpelanggan', 'left')
@@ -101,21 +101,21 @@ class BookingNewController extends BaseController
                 ->orderBy('b.created_at', 'DESC');
         }
 
-        // Total records (cache result)
+
         $totalRecords = $this->db->table('booking')->countAllResults();
 
-        // Filter berdasarkan status
+
         if (!empty($filterStatus)) {
             $builder->where('b.status', $filterStatus);
         }
 
-        // Filter berdasarkan tanggal (hari ini)
+
         if ($dateFilter === 'today') {
             $today = date('Y-m-d');
             $builder->where('b.tanggal_booking', $today);
         }
 
-        // Pencarian yang dioptimalkan
+
         if (!empty($search)) {
             $searchValue = $this->db->escapeLikeString($search);
 
@@ -127,27 +127,27 @@ class BookingNewController extends BaseController
                 ->groupEnd();
         }
 
-        // Hitung total filtered records
+
         $totalFiltered = $builder->countAllResults(false);
 
-        // Pengurutan
+
         $columns = ['b.kdbooking', 'p.nama_lengkap', 'b.tanggal_booking', 'b.status', 'b.jenispembayaran', 'k.namakaryawan'];
         $orderColumn = isset($order[0]['column']) ? (int) $order[0]['column'] : 0;
         $orderDir = isset($order[0]['dir']) ? strtoupper($order[0]['dir']) : 'DESC';
         $orderField = $columns[$orderColumn] ?? 'b.created_at';
 
-        // Ambil data dengan limit
+
         $results = $builder->orderBy($orderField, $orderDir)
             ->limit($length, $start)
             ->get()
             ->getResultArray();
 
-        // Format data
+
         $data = array_map(function ($row) {
-            // Dapatkan status yang lebih user-friendly
+
             $statusText = $this->getStatusText($row['status']);
 
-            // Format detail jam jika menggunakan pengelompokan
+
             $detailJam = null;
             if (isset($row['jam_detail'])) {
                 $detailJam = $row['jam_detail'];
@@ -203,14 +203,14 @@ class BookingNewController extends BaseController
         try {
             $data = $this->request->getPost();
 
-            // Log data yang diterima untuk debugging
+
             log_message('debug', 'Data POST yang diterima: ' . json_encode($data));
 
-            // Generate kode booking baru
+
             $kdbooking = $this->bookingModel->generateBookingCode();
             log_message('debug', 'Kode booking yang dibuat: ' . $kdbooking);
 
-            // Periksa secara manual apakah kdbooking sudah ada di database
+
             $existingBooking = $this->bookingModel->find($kdbooking);
             if ($existingBooking) {
                 $this->db->transRollback();
@@ -220,7 +220,7 @@ class BookingNewController extends BaseController
                 ]);
             }
 
-            // Validasi data
+
             if (
                 empty($data['idpelanggan']) || empty($data['tanggal_booking']) ||
                 empty($data['jamstart']) || empty($data['idkaryawan'])
@@ -232,7 +232,7 @@ class BookingNewController extends BaseController
                 ]);
             }
 
-            // Validasi paket yang dipilih
+
             if (empty($data['selected_pakets'])) {
                 $this->db->transRollback();
                 return $this->response->setStatusCode(400)->setJSON([
@@ -241,7 +241,7 @@ class BookingNewController extends BaseController
                 ]);
             }
 
-            // Decode paket yang dipilih
+
             $selectedPakets = json_decode($data['selected_pakets'], true);
             if (empty($selectedPakets)) {
                 $this->db->transRollback();
@@ -253,7 +253,7 @@ class BookingNewController extends BaseController
 
             log_message('debug', 'Paket yang dipilih: ' . json_encode($selectedPakets));
 
-            // Hitung total harga dan durasi
+
             $totalHarga = 0;
             $totalDurasi = 0;
             foreach ($selectedPakets as $paket) {
@@ -263,7 +263,7 @@ class BookingNewController extends BaseController
 
             log_message('debug', 'Total harga: ' . $totalHarga . ', Total durasi: ' . $totalDurasi);
 
-            // Siapkan data booking
+
             $bookingData = [
                 'kdbooking' => $kdbooking,
                 'idpelanggan' => $data['idpelanggan'],
@@ -278,7 +278,7 @@ class BookingNewController extends BaseController
 
             log_message('debug', 'Data booking yang akan disimpan: ' . json_encode($bookingData));
 
-            // Insert data booking
+
             $result = $this->bookingModel->insert($bookingData);
             log_message('debug', 'Hasil insert booking: ' . ($result ? 'Berhasil' : 'Gagal'));
 
@@ -291,7 +291,7 @@ class BookingNewController extends BaseController
                 ]);
             }
 
-            // Insert detail booking untuk setiap paket
+
             $detailBookingModel = new \App\Models\DetailBookingModel();
             foreach ($selectedPakets as $paket) {
                 $detailId = $detailBookingModel->generateDetailId();
@@ -323,18 +323,18 @@ class BookingNewController extends BaseController
                 }
             }
 
-            // Jika ada pembayaran, insert data pembayaran
+
             if (!empty($data['jenispembayaran'])) {
                 $pembayaranModel = new \App\Models\PembayaranModel();
 
-                // Generate kode pembayaran
+
                 $kdpembayaran = 'PAY-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
                 log_message('debug', 'Kode pembayaran yang dibuat: ' . $kdpembayaran);
 
-                // Hitung jumlah bayar berdasarkan jenis pembayaran
+
                 $jumlahBayar = $data['jumlahbayar'] ?? ($data['jenispembayaran'] == 'DP' ? $totalHarga / 2 : $totalHarga);
 
-                // Siapkan data pembayaran
+
                 $pembayaranData = [
                     'fakturbooking' => $kdbooking,
                     'total_bayar' => $jumlahBayar,
@@ -346,7 +346,7 @@ class BookingNewController extends BaseController
 
                 log_message('debug', 'Data pembayaran yang akan disimpan: ' . json_encode($pembayaranData));
 
-                // Insert data pembayaran
+
                 $paymentResult = $pembayaranModel->insert($pembayaranData);
                 log_message('debug', 'Hasil insert pembayaran: ' . ($paymentResult ? 'Berhasil' : 'Gagal'));
 
@@ -359,14 +359,14 @@ class BookingNewController extends BaseController
                     ]);
                 }
 
-                // Update status booking jika pembayaran lunas
+
                 if ($data['jenispembayaran'] == 'Lunas') {
                     $updateResult = $this->bookingModel->update($kdbooking, ['status' => 'confirmed']);
                     log_message('debug', 'Hasil update status booking: ' . ($updateResult ? 'Berhasil' : 'Gagal'));
                 }
             }
 
-            // Buat notifikasi untuk admin
+
             $notificationModel = new \App\Models\NotificationModel();
             $notificationData = [
                 'title' => 'Booking Baru',
@@ -402,7 +402,7 @@ class BookingNewController extends BaseController
 
     public function show($id = null)
     {
-        // Periksa dan perbarui status booking yang expired
+
         $this->checkExpiredBookings();
 
         if (empty($id)) {
@@ -427,10 +427,10 @@ class BookingNewController extends BaseController
         $keyword = $this->request->getGet('search');
 
         if (empty($keyword)) {
-            // Jika tidak ada keyword, ambil 20 pelanggan terbaru
+
             $pelanggan = $this->pelangganModel->orderBy('created_at', 'DESC')->findAll(20);
         } else {
-            // Jika ada keyword, cari berdasarkan nama atau nomor HP
+
             $pelanggan = $this->pelangganModel->like('nama_lengkap', $keyword)
                 ->orLike('no_hp', $keyword)
                 ->findAll(10);
@@ -497,7 +497,7 @@ class BookingNewController extends BaseController
             ]);
         }
 
-        // Dapatkan semua booking pada tanggal tersebut
+
         $bookedSlots = $this->db->table('detail_booking db')
             ->select('db.jamstart as jam, COUNT(*) as total_booking')
             ->join('booking b', 'b.kdbooking = db.kdbooking')
@@ -507,7 +507,7 @@ class BookingNewController extends BaseController
             ->get()
             ->getResultArray();
 
-        // Tambahkan label untuk slot yang sudah dibooking
+
         foreach ($bookedSlots as &$slot) {
             if ($slot['total_booking'] > 0) {
                 $slot['label'] = 'Booked';
@@ -535,7 +535,7 @@ class BookingNewController extends BaseController
             ]);
         }
 
-        // Hitung jumlah karyawan aktif
+
         $totalKaryawan = $this->karyawanModel->where('status', 'aktif')->countAllResults();
 
         if ($totalKaryawan == 0) {
@@ -547,8 +547,8 @@ class BookingNewController extends BaseController
             ]);
         }
 
-        // Ambil data dari detail_booking berdasarkan tanggal
-        // Dan hitung jumlah booking per jamstart
+
+
         $bookingsPerSlot = $this->db->table('detail_booking')
             ->select('jamstart, COUNT(*) as total_bookings')
             ->where('tgl', $date)
@@ -557,22 +557,22 @@ class BookingNewController extends BaseController
             ->get()
             ->getResultArray();
 
-        // Slot dengan status
+
         $slotStatus = [];
 
-        // Kumpulkan semua slot waktu yang sudah terisi penuh
+
         $fullBookedSlots = [];
         foreach ($bookingsPerSlot as $slot) {
             $time = substr($slot['jamstart'], 0, 5); // Format jam:menit
             $bookingCount = (int)$slot['total_bookings'];
 
-            // Jika jumlah booking sama dengan atau melebihi jumlah karyawan
-            // maka slot tersebut sudah penuh
+
+
             if ($bookingCount >= $totalKaryawan) {
                 $fullBookedSlots[] = $time;
             }
 
-            // Simpan status untuk setiap slot waktu
+
             $slotStatus[] = [
                 'time' => $time,
                 'booked' => $bookingCount,
@@ -599,7 +599,7 @@ class BookingNewController extends BaseController
             ]);
         }
 
-        // Validasi data
+
         $rules = [
             'nama_lengkap' => 'required|min_length[3]',
             'no_hp' => 'required|min_length[10]|is_unique[pelanggan.no_hp]',
@@ -614,7 +614,7 @@ class BookingNewController extends BaseController
             ]);
         }
 
-        // Persiapkan data
+
         $data = [
             'nama_lengkap' => $this->request->getPost('nama_lengkap'),
             'no_hp' => $this->request->getPost('no_hp'),
@@ -623,7 +623,7 @@ class BookingNewController extends BaseController
             'created_at' => date('Y-m-d H:i:s')
         ];
 
-        // Simpan data
+
         try {
             $this->pelangganModel->insert($data);
             $insertId = $this->pelangganModel->getInsertID();
@@ -671,7 +671,7 @@ class BookingNewController extends BaseController
         }
 
         try {
-            // Ambil data booking
+
             $booking = $this->bookingModel->find($kdbooking);
 
             if (!$booking) {
@@ -681,7 +681,7 @@ class BookingNewController extends BaseController
                 ]);
             }
 
-            // Hitung sisa pembayaran
+
             $total = $booking['total'];
             $jumlahbayar = $booking['jumlahbayar'];
             $sisa = $total - $jumlahbayar;
@@ -723,7 +723,7 @@ class BookingNewController extends BaseController
             ]);
         }
 
-        // Validasi status
+
         $validStatus = ['pending', 'confirmed', 'completed', 'cancelled', 'no-show', 'rejected'];
         if (!in_array($status, $validStatus)) {
             return $this->response->setJSON([
@@ -735,32 +735,32 @@ class BookingNewController extends BaseController
         $this->db->transBegin();
 
         try {
-            // Ambil data booking terlebih dahulu
+
             $booking = $this->bookingModel->find($kdbooking);
             if (!$booking) {
                 throw new \Exception('Booking tidak ditemukan');
             }
 
-            // Update status booking
+
             $this->bookingModel->update($kdbooking, ['status' => $status]);
 
-            // Jika status dibatalkan, update juga status detail booking
+
             if ($status == 'cancelled') {
                 $this->detailBookingModel->where('kdbooking', $kdbooking)->set(['status' => '4'])->update();
             }
 
-            // Jika status ditolak, update juga status detail booking
+
             if ($status == 'rejected') {
                 $this->detailBookingModel->where('kdbooking', $kdbooking)->set(['status' => '5'])->update();
             }
 
-            // Update status pembayaran jika diminta atau status booking menjadi completed
+
             if ($updatePayment == 'true' || $status == 'completed') {
-                // Cek pembayaran yang sudah ada
+
                 $existingPayments = $this->pembayaranModel->where('fakturbooking', $kdbooking)->findAll();
 
                 if ($status == 'completed') {
-                    // Jika status selesai, update semua pembayaran menjadi paid menggunakan metode baru
+
                     log_message('debug', 'Updating all payments for booking ' . $kdbooking . ' to paid');
                     $updateAllStatus = $this->pembayaranModel->updateStatusByBookingCode($kdbooking, 'paid');
                     if (!$updateAllStatus) {
@@ -768,25 +768,25 @@ class BookingNewController extends BaseController
                         throw new \Exception('Gagal memperbarui status pembayaran');
                     }
 
-                    // Update booking untuk menandai sudah lunas
+
                     $this->bookingModel->update($kdbooking, [
                         'jenispembayaran' => 'Lunas',
-                        // Jika jumlah bayar kurang dari total, update menjadi total (pelunasan otomatis)
+
                         'jumlahbayar' => ($booking['jumlahbayar'] < $booking['total']) ? $booking['total'] : $booking['jumlahbayar']
                     ]);
 
-                    // Jika belum ada riwayat pembayaran pelunasan, buat pembayaran pelunasan otomatis
+
                     if ($booking['jumlahbayar'] < $booking['total']) {
                         $sisaPembayaran = $booking['total'] - $booking['jumlahbayar'];
 
-                        // Cek apakah sudah ada pembayaran pelunasan untuk booking ini
+
                         $existingPelunasan = $this->pembayaranModel->where('fakturbooking', $kdbooking)
                             ->where('jenis', 'Pelunasan')
                             ->countAllResults();
 
-                        // Hanya tambahkan pembayaran pelunasan jika belum ada
+
                         if ($existingPelunasan == 0) {
-                            // Buat riwayat pembayaran pelunasan
+
                             $pelunasanData = [
                                 'fakturbooking' => $kdbooking,
                                 'total_bayar' => $sisaPembayaran,
@@ -800,7 +800,7 @@ class BookingNewController extends BaseController
                         }
                     }
                 } else if ($status == 'cancelled' || $status == 'rejected') {
-                    // Jika status dibatalkan/ditolak, update status pembayaran menjadi cancelled menggunakan metode baru
+
                     log_message('debug', 'Updating all payments for booking ' . $kdbooking . ' to cancelled');
                     $updateAllStatus = $this->pembayaranModel->updateStatusByBookingCode($kdbooking, 'cancelled');
                     if (!$updateAllStatus) {
@@ -810,9 +810,9 @@ class BookingNewController extends BaseController
                 }
             }
 
-            // Jika status selesai dan ada request pelunasan manual (dari form)
+
             if ($status == 'completed' && $this->request->getPost('pelunasan')) {
-                // Ambil data pembayaran dari request
+
                 $jumlahPembayaran = (float) $this->request->getPost('jumlah_pembayaran');
                 $metodePembayaran = $this->request->getPost('metode_pembayaran');
 
@@ -820,20 +820,20 @@ class BookingNewController extends BaseController
                     throw new \Exception('Jumlah pembayaran harus lebih dari 0');
                 }
 
-                // Validasi metode pembayaran
+
                 $validMetode = ['cash', 'transfer', 'qris'];
                 if (!in_array($metodePembayaran, $validMetode)) {
                     throw new \Exception('Metode pembayaran tidak valid');
                 }
 
-                // Cek apakah sudah ada pembayaran pelunasan untuk booking ini
+
                 $existingPelunasan = $this->pembayaranModel->where('fakturbooking', $kdbooking)
                     ->where('jenis', 'Pelunasan')
                     ->countAllResults();
 
-                // Hanya tambahkan pembayaran pelunasan jika belum ada
+
                 if ($existingPelunasan == 0) {
-                    // Tambahkan data pembayaran baru
+
                     $pembayaranData = [
                         'fakturbooking' => $kdbooking,
                         'total_bayar' => $jumlahPembayaran,
@@ -845,7 +845,7 @@ class BookingNewController extends BaseController
 
                     $this->pembayaranModel->insert($pembayaranData);
 
-                    // Update jumlah pembayaran di booking
+
                     $totalPembayaran = $booking['jumlahbayar'] + $jumlahPembayaran;
                     $this->bookingModel->update($kdbooking, [
                         'jumlahbayar' => $totalPembayaran,
@@ -912,7 +912,7 @@ class BookingNewController extends BaseController
             $data = $this->request->getPost();
             $kdbooking = $data['kdbooking'];
 
-            // Cek apakah booking ada
+
             $existingBooking = $this->bookingModel->find($kdbooking);
             if (!$existingBooking) {
                 return $this->response->setStatusCode(404)->setJSON([
@@ -921,7 +921,7 @@ class BookingNewController extends BaseController
                 ]);
             }
 
-            // Validasi data booking
+
             $bookingData = [
                 'kdbooking' => $kdbooking,
                 'idpelanggan' => $data['idpelanggan'],
@@ -933,10 +933,10 @@ class BookingNewController extends BaseController
                 'idkaryawan' => $data['idkaryawan'] ?? null,
             ];
 
-            // Pastikan validasi kdbooking mengabaikan data yang sedang diupdate
+
             $this->bookingModel->skipValidation(true);
 
-            // Update data booking
+
             if (!$this->bookingModel->update($kdbooking, $bookingData)) {
                 $this->db->transRollback();
                 return $this->response->setStatusCode(400)->setJSON([
@@ -946,11 +946,11 @@ class BookingNewController extends BaseController
                 ]);
             }
 
-            // Hapus detail booking lama
+
             if (isset($data['update_details']) && $data['update_details'] == 'yes') {
-                // Validasi data paket terlebih dahulu
+
                 if (empty($data['kdpaket'])) {
-                    // Coba cari dari detail booking yang sudah ada
+
                     $existingDetails = $this->detailBookingModel->getDetailsByBookingCode($kdbooking);
                     if (!empty($existingDetails) && isset($existingDetails[0]['kdpaket'])) {
                         $data['kdpaket'] = $existingDetails[0]['kdpaket'];
@@ -990,7 +990,7 @@ class BookingNewController extends BaseController
 
                 $this->db->table('detail_booking')->where('kdbooking', $kdbooking)->delete();
 
-                // Dapatkan data paket
+
                 $paketModel = new PaketModel();
                 $paket = $paketModel->find($data['kdpaket']);
 
@@ -1002,7 +1002,7 @@ class BookingNewController extends BaseController
                     ]);
                 }
 
-                // Buat detail booking baru
+
                 $detailData = [
                     'iddetail' => $this->detailBookingModel->generateDetailId(),
                     'tgl' => $data['tanggal_booking'],
@@ -1017,14 +1017,14 @@ class BookingNewController extends BaseController
                     'idkaryawan' => $data['idkaryawan'] ?? null,
                 ];
 
-                // Pastikan validasi iddetail dilewati karena ini adalah ID baru
+
                 $this->detailBookingModel->skipValidation(true);
 
-                // Debug log untuk melihat data yang akan diinsert
+
                 log_message('debug', 'Detail booking data: ' . json_encode($detailData));
 
                 if (!$this->detailBookingModel->insert($detailData)) {
-                    // Debug log untuk melihat error
+
                     log_message('error', 'Error inserting detail booking: ' . json_encode($this->detailBookingModel->errors()));
 
                     $this->db->transRollback();
@@ -1037,9 +1037,9 @@ class BookingNewController extends BaseController
                 }
             }
 
-            // Update pembayaran jika ada
+
             if (isset($data['update_payment']) && $data['update_payment'] == 'yes') {
-                // Validasi data pembayaran terlebih dahulu
+
                 if (empty($data['jenispembayaran'])) {
                     $this->db->transRollback();
                     return $this->response->setStatusCode(400)->setJSON([
@@ -1128,7 +1128,7 @@ class BookingNewController extends BaseController
         }
 
         try {
-            // Ambil data booking dan semua informasi terkait
+
             $booking = $this->bookingModel->getBookingWithPelanggan($kdbooking);
             if (!$booking) {
                 return $this->response->setJSON([
@@ -1137,13 +1137,13 @@ class BookingNewController extends BaseController
                 ]);
             }
 
-            // Ambil detail booking
+
             $details = $this->detailBookingModel->getDetailsByBookingCode($kdbooking);
 
-            // Ambil data pembayaran
+
             $pembayaran = $this->pembayaranModel->getPembayaranByBookingCode($kdbooking);
 
-            // Hasilkan konten faktur HTML
+
             $invoiceHtml = $this->generateInvoiceHTML($booking, $details, $pembayaran);
 
             return $this->response->setJSON([
@@ -1168,7 +1168,7 @@ class BookingNewController extends BaseController
      */
     private function generateInvoiceHTML($booking, $details, $pembayaran)
     {
-        // Siapkan status teks
+
         $statusMap = [
             'pending' => 'Menunggu Konfirmasi',
             'confirmed' => 'Terkonfirmasi',
@@ -1376,7 +1376,7 @@ class BookingNewController extends BaseController
         return ob_get_clean();
     }
 
-    // Metode untuk mengecek slot waktu yang tersedia
+
     public function checkAvailableTimeSlots()
     {
         $tanggal = $this->request->getPost('tanggal');
@@ -1389,23 +1389,23 @@ class BookingNewController extends BaseController
             ]);
         }
 
-        // Jam operasional (default: 09:00 - 21:00)
+
         $jamBuka = '09:00';
         $jamTutup = '21:00';
 
-        // Konversi jam ke menit untuk perhitungan
+
         list($bukajam, $bukamenit) = explode(':', $jamBuka);
         list($tutupjam, $tutupmenit) = explode(':', $jamTutup);
 
         $bukaInMinutes = ($bukajam * 60) + $bukamenit;
         $tutupInMinutes = ($tutupjam * 60) + $tutupmenit;
 
-        // Hitung jumlah karyawan aktif
+
         $karyawanModel = new \App\Models\KaryawanModel();
         $totalKaryawan = $karyawanModel->where('status', 'aktif')->countAllResults();
 
-        // Ambil semua booking pada tanggal tersebut melalui detail_booking
-        // Perbaikan: Hanya pilih kolom yang ada dalam GROUP BY atau gunakan fungsi agregat
+
+
         $bookings = $this->db->table('detail_booking db')
             ->select('db.jamstart, COUNT(db.jamstart) as total_bookings')
             ->join('booking b', 'b.kdbooking = db.kdbooking')
@@ -1415,10 +1415,10 @@ class BookingNewController extends BaseController
             ->get()
             ->getResultArray();
 
-        // Buat array untuk menyimpan status setiap slot waktu
+
         $slots = [];
 
-        // Inisialisasi semua slot waktu sebagai tersedia
+
         for ($time = $bukaInMinutes; $time < $tutupInMinutes; $time += 60) {
             $hour = floor($time / 60);
             $minute = $time % 60;
@@ -1426,51 +1426,51 @@ class BookingNewController extends BaseController
             $slots[$timeSlot] = 'available';
         }
 
-        // Periksa apakah tanggal adalah hari ini
+
         $isToday = date('Y-m-d') === $tanggal;
         $currentHour = (int)date('H');
         $currentMinute = (int)date('i');
         $currentTimeInMinutes = ($currentHour * 60) + $currentMinute;
 
-        // Jika tanggal adalah hari ini, tandai slot waktu yang sudah lewat sebagai tidak tersedia
+
         if ($isToday) {
             foreach ($slots as $timeSlot => $status) {
                 list($slotHour, $slotMinute) = explode(':', $timeSlot);
                 $slotTimeInMinutes = ((int)$slotHour * 60) + (int)$slotMinute;
 
-                // Jika waktu slot sudah lewat (tambahkan buffer 5 menit)
+
                 if ($slotTimeInMinutes <= $currentTimeInMinutes + 5) {
                     $slots[$timeSlot] = 'booked';
                 }
             }
         }
 
-        // Buat array untuk menyimpan jumlah booking per slot waktu
+
         $bookingsPerSlot = [];
         foreach ($bookings as $booking) {
             $bookingsPerSlot[$booking['jamstart']] = (int)$booking['total_bookings'];
         }
 
-        // Tandai slot waktu berdasarkan jumlah booking
+
         foreach ($bookingsPerSlot as $time => $count) {
-            // Jika jumlah booking sama dengan atau melebihi jumlah karyawan
+
             if ($count >= $totalKaryawan) {
                 $slots[$time] = 'booked';
             } else if ($count > 0) {
-                // Jika ada booking tapi masih ada karyawan yang tersedia
+
                 $slots[$time] = 'partial';
             }
         }
 
-        // Periksa apakah slot waktu cukup untuk durasi yang diminta
+
         if ($durasi > 60) {
-            // Untuk durasi lebih dari 1 jam, periksa apakah ada slot berurutan yang cukup
+
             for ($time = $bukaInMinutes; $time <= $tutupInMinutes - $durasi; $time += 60) {
                 $hour = floor($time / 60);
                 $minute = $time % 60;
                 $timeSlot = sprintf('%02d:%02d', $hour, $minute);
 
-                // Periksa apakah slot waktu ini dan slot-slot berikutnya tersedia
+
                 $isAvailable = true;
                 for ($i = 0; $i < $durasi; $i += 60) {
                     $checkHour = floor(($time + $i) / 60);
@@ -1482,14 +1482,14 @@ class BookingNewController extends BaseController
                         break;
                     }
 
-                    // Jika melebihi jam tutup
+
                     if ($time + $i >= $tutupInMinutes) {
                         $isAvailable = false;
                         break;
                     }
                 }
 
-                // Jika tidak tersedia, tandai sebagai disabled
+
                 if (!$isAvailable && $slots[$timeSlot] === 'available') {
                     $slots[$timeSlot] = 'disabled';
                 }
@@ -1505,7 +1505,7 @@ class BookingNewController extends BaseController
         ]);
     }
 
-    // Metode untuk mengecek karyawan yang tersedia
+
     public function checkAvailableKaryawan()
     {
         $tanggal = $this->request->getPost('tanggal');
@@ -1519,7 +1519,7 @@ class BookingNewController extends BaseController
             ]);
         }
 
-        // Ambil semua karyawan aktif
+
         $karyawanModel = new \App\Models\KaryawanModel();
         $allKaryawan = $karyawanModel->where('status', 'aktif')->findAll();
 
@@ -1531,7 +1531,7 @@ class BookingNewController extends BaseController
             ]);
         }
 
-        // Ambil semua booking pada tanggal dan jam tersebut
+
         $bookings = $this->db->table('detail_booking db')
             ->select('b.idkaryawan')
             ->join('booking b', 'b.kdbooking = db.kdbooking')
@@ -1541,7 +1541,7 @@ class BookingNewController extends BaseController
             ->get()
             ->getResultArray();
 
-        // Kumpulkan ID karyawan yang sudah dibooking pada jam tersebut
+
         $bookedKaryawanIds = [];
         foreach ($bookings as $booking) {
             if (!empty($booking['idkaryawan'])) {
@@ -1549,7 +1549,7 @@ class BookingNewController extends BaseController
             }
         }
 
-        // Filter karyawan yang tersedia (tidak sedang dibooking)
+
         $availableKaryawan = [];
         foreach ($allKaryawan as $karyawan) {
             if (!in_array($karyawan['idkaryawan'], $bookedKaryawanIds)) {

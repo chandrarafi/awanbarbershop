@@ -1,16 +1,16 @@
 <?= $this->extend('templates/main') ?>
 
 <?= $this->section('content') ?>
-<div class="py-16">
+<div class="py-12 sm:py-16">
     <div class="max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div class="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-                <h1 class="text-3xl font-bold gradient-text">Detail Booking</h1>
-                <p class="text-white mt-2">Kode Booking: <?= $booking['kdbooking'] ?></p>
+                <h1 class="text-2xl sm:text-3xl font-bold gradient-text">Detail Booking</h1>
+                <p class="text-white mt-2 text-sm sm:text-base">Kode Booking: <?= $booking['kdbooking'] ?></p>
             </div>
-            <div class="flex gap-2">
-                <a href="<?= site_url('customer/booking') ?>" class="btn-secondary px-6 py-3 rounded-full inline-flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <a href="<?= site_url('customer/booking') ?>" class="btn-secondary px-4 sm:px-6 py-2 sm:py-3 rounded-full inline-flex items-center justify-center text-sm sm:text-base">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
                     <span>Kembali</span>
@@ -22,18 +22,20 @@
 
                 if ($needsPayment && !$isExpired && $booking['status'] !== 'expired'):
                 ?>
-                    <a href="<?= site_url('customer/booking/payment/' . $booking['kdbooking']) ?>" class="btn-primary px-6 py-3 rounded-full inline-flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <a href="<?= site_url('customer/booking/payment/' . $booking['kdbooking']) ?>" class="btn-primary px-4 sm:px-6 py-2 sm:py-3 rounded-full inline-flex items-center justify-center text-sm sm:text-base">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
                         </svg>
-                        <span>Lanjutkan Pembayaran</span>
+                        <span class="hidden sm:inline">Lanjutkan Pembayaran</span>
+                        <span class="sm:hidden">Bayar</span>
                     </a>
                 <?php endif; ?>
-                <button id="btnPrint" class="btn-primary px-6 py-3 rounded-full inline-flex items-center" onclick="printFaktur()">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="btnPrint" class="btn-primary px-4 sm:px-6 py-2 sm:py-3 rounded-full inline-flex items-center justify-center text-sm sm:text-base" onclick="printFaktur()">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                     </svg>
-                    <span>Cetak Faktur</span>
+                    <span class="hidden sm:inline">Cetak Faktur</span>
+                    <span class="sm:hidden">Cetak</span>
                 </button>
             </div>
         </div>
@@ -56,25 +58,25 @@
         <?php endif; ?>
 
         <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div class="p-6">
+            <div class="p-4 sm:p-6">
                 <div id="printArea">
                     <!-- Faktur untuk dicetak -->
                     <div id="fakturPrint">
                         <!-- Header -->
-                        <div class="flex flex-wrap justify-between items-center pb-6 border-b">
-                            <div class="flex items-center mb-4 md:mb-0">
-                                <div class="mr-4">
-                                    <img src="<?= base_url('assets/images/logo.png') ?>" alt="Logo" class="h-16">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 sm:pb-6 border-b gap-4">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center w-full sm:w-auto">
+                                <div class="mr-0 sm:mr-4 mb-2 sm:mb-0">
+                                    <img src="<?= base_url('assets/images/logo.png') ?>" alt="Logo" class="h-12 sm:h-16">
                                 </div>
                                 <div>
-                                    <h2 class="text-xl font-bold text-black">Awan Barbershop</h2>
-                                    <p class="text-sm text-gray-700">Jl. Dr. Moh. Hatta No.3kel, RT.01, Cupak Tangah, Kec. Pauh, Kota Padang, Sumatera Barat 25127</p>
-                                    <p class="text-sm text-gray-700">Telp: (021) 123-4567</p>
+                                    <h2 class="text-lg sm:text-xl font-bold text-black">Awan Barbershop</h2>
+                                    <p class="text-xs sm:text-sm text-gray-700">Jl. Dr. Moh. Hatta No.3kel, RT.01, Cupak Tangah, Kec. Pauh, Kota Padang, Sumatera Barat 25127</p>
+                                    <p class="text-xs sm:text-sm text-gray-700">Telp: (021) 123-4567</p>
                                 </div>
                             </div>
-                            <div class="text-right">
-                                <h3 class="text-xl font-bold text-gray-800">INVOICE #<?= $booking['kdbooking'] ?></h3>
-                                <p class="text-sm text-gray-700">
+                            <div class="text-left sm:text-right w-full sm:w-auto">
+                                <h3 class="text-lg sm:text-xl font-bold text-gray-800">INVOICE #<?= $booking['kdbooking'] ?></h3>
+                                <p class="text-xs sm:text-sm text-gray-700">
                                     Tanggal Invoice: <?= date('d F Y') ?><br>
                                     Tanggal Booking: <?= date('d F Y', strtotime($booking['tanggal_booking'])) ?>
                                 </p>
@@ -136,20 +138,20 @@
                         <!-- Content -->
                         <div class="py-6">
                             <!-- Customer & Booking Info -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                                 <div>
-                                    <h4 class="text-sm uppercase text-gray-600 font-medium mb-2">Informasi Pelanggan</h4>
-                                    <p class="font-medium text-gray-800"><?= $booking['nama_lengkap'] ?></p>
-                                    <p class="text-gray-700"><?= $booking['no_hp'] ?></p>
-                                    <p class="text-gray-700"><?= $booking['email'] ?? '-' ?></p>
-                                    <p class="text-gray-700"><?= $booking['alamat'] ?? '-' ?></p>
+                                    <h4 class="text-xs sm:text-sm uppercase text-gray-600 font-medium mb-2">Informasi Pelanggan</h4>
+                                    <p class="font-medium text-gray-800 text-sm sm:text-base"><?= $booking['nama_lengkap'] ?></p>
+                                    <p class="text-gray-700 text-sm sm:text-base"><?= $booking['no_hp'] ?></p>
+                                    <p class="text-gray-700 text-sm sm:text-base"><?= $booking['email'] ?? '-' ?></p>
+                                    <p class="text-gray-700 text-sm sm:text-base"><?= $booking['alamat'] ?? '-' ?></p>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm uppercase text-gray-600 font-medium mb-2">Informasi Booking</h4>
-                                    <p class="text-gray-700"><span class="font-medium text-gray-800">Tanggal:</span> <?= date('d F Y', strtotime($booking['tanggal_booking'])) ?></p>
+                                    <h4 class="text-xs sm:text-sm uppercase text-gray-600 font-medium mb-2">Informasi Booking</h4>
+                                    <p class="text-gray-700 text-sm sm:text-base"><span class="font-medium text-gray-800">Tanggal:</span> <?= date('d F Y', strtotime($booking['tanggal_booking'])) ?></p>
                                     <?php if (!empty($details) && isset($details[0])): ?>
-                                        <p class="text-gray-700"><span class="font-medium text-gray-800">Waktu:</span> <?= $details[0]['jamstart'] ?> - <?= $details[0]['jamend'] ?></p>
-                                        <p class="text-gray-700"><span class="font-medium text-gray-800">Karyawan:</span> <?= $details[0]['idkaryawan'] ? ($details[0]['nama_karyawan'] ?? 'Unknown') : 'Belum ditentukan' ?></p>
+                                        <p class="text-gray-700 text-sm sm:text-base"><span class="font-medium text-gray-800">Waktu:</span> <?= $details[0]['jamstart'] ?> - <?= $details[0]['jamend'] ?></p>
+                                        <p class="text-gray-700 text-sm sm:text-base"><span class="font-medium text-gray-800">Karyawan:</span> <?= $details[0]['idkaryawan'] ? ($details[0]['nama_karyawan'] ?? 'Unknown') : 'Belum ditentukan' ?></p>
                                     <?php endif; ?>
 
                                     <!-- Status Pembayaran -->
@@ -235,47 +237,52 @@
                             </div>
 
                             <!-- Services -->
-                            <div class="mb-8">
-                                <h4 class="text-sm uppercase text-gray-600 font-medium mb-2">Detail Layanan</h4>
+                            <div class="mb-6 sm:mb-8">
+                                <h4 class="text-xs sm:text-sm uppercase text-gray-600 font-medium mb-2">Detail Layanan</h4>
                                 <div class="bg-gray-50 rounded-lg overflow-hidden">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead>
-                                            <tr class="bg-gray-100">
-                                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-700 uppercase">Layanan</th>
-                                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-700 uppercase">Deskripsi</th>
-                                                <th class="py-3 px-4 text-right text-xs font-medium text-gray-700 uppercase">Harga</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200">
-                                            <?php if (!empty($details)): ?>
-                                                <?php foreach ($details as $detail): ?>
-                                                    <tr>
-                                                        <td class="py-3 px-4 text-gray-800"><?= $detail['nama_paket'] ?></td>
-                                                        <td class="py-3 px-4 text-gray-700"><?= $detail['deskripsi'] ?></td>
-                                                        <td class="py-3 px-4 text-right text-gray-800">Rp <?= number_format($detail['harga'], 0, ',', '.') ?></td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            <?php else: ?>
-                                                <tr>
-                                                    <td colspan="3" class="py-4 px-4 text-center text-gray-600">Tidak ada data layanan</td>
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead>
+                                                <tr class="bg-gray-100">
+                                                    <th class="py-2 sm:py-3 px-2 sm:px-4 text-left text-xs font-medium text-gray-700 uppercase">Layanan</th>
+                                                    <th class="py-2 sm:py-3 px-2 sm:px-4 text-left text-xs font-medium text-gray-700 uppercase hidden sm:table-cell">Deskripsi</th>
+                                                    <th class="py-2 sm:py-3 px-2 sm:px-4 text-right text-xs font-medium text-gray-700 uppercase">Harga</th>
                                                 </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                        <tfoot>
-                                            <tr class="bg-gray-50">
-                                                <th colspan="2" class="py-3 px-4 text-right font-medium text-gray-800">Total</th>
-                                                <th class="py-3 px-4 text-right font-medium text-gray-800">Rp <?= number_format($booking['total'] ?? 0, 0, ',', '.') ?></th>
-                                            </tr>
-                                            <tr class="bg-gray-50">
-                                                <th colspan="2" class="py-3 px-4 text-right font-medium text-gray-800">Dibayar</th>
-                                                <th class="py-3 px-4 text-right font-medium text-green-700">Rp <?= number_format($booking['jumlahbayar'] ?? 0, 0, ',', '.') ?></th>
-                                            </tr>
-                                            <tr class="bg-gray-50">
-                                                <th colspan="2" class="py-3 px-4 text-right font-medium text-gray-800">Sisa</th>
-                                                <th class="py-3 px-4 text-right font-medium <?= (($booking['total'] ?? 0) - ($booking['jumlahbayar'] ?? 0) > 0) ? 'text-red-700' : 'text-green-700' ?>">Rp <?= number_format(($booking['total'] ?? 0) - ($booking['jumlahbayar'] ?? 0), 0, ',', '.') ?></th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-200">
+                                                <?php if (!empty($details)): ?>
+                                                    <?php foreach ($details as $detail): ?>
+                                                        <tr>
+                                                            <td class="py-2 sm:py-3 px-2 sm:px-4 text-gray-800 text-sm sm:text-base"><?= $detail['nama_paket'] ?></td>
+                                                            <td class="py-2 sm:py-3 px-2 sm:px-4 text-gray-700 text-sm sm:text-base hidden sm:table-cell"><?= $detail['deskripsi'] ?></td>
+                                                            <td class="py-2 sm:py-3 px-2 sm:px-4 text-right text-gray-800 text-sm sm:text-base">Rp <?= number_format($detail['harga'], 0, ',', '.') ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <tr>
+                                                        <td colspan="3" class="py-4 px-4 text-center text-gray-600">Tidak ada data layanan</td>
+                                                    </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                            <tfoot>
+                                                <tr class="bg-gray-50">
+                                                    <th colspan="2" class="py-2 sm:py-3 px-2 sm:px-4 text-right font-medium text-gray-800 text-sm sm:text-base hidden sm:table-cell">Total</th>
+                                                    <th class="py-2 sm:py-3 px-2 sm:px-4 text-right font-medium text-gray-800 text-sm sm:text-base sm:hidden">Total</th>
+                                                    <th class="py-2 sm:py-3 px-2 sm:px-4 text-right font-medium text-gray-800 text-sm sm:text-base">Rp <?= number_format($booking['total'] ?? 0, 0, ',', '.') ?></th>
+                                                </tr>
+                                                <tr class="bg-gray-50">
+                                                    <th colspan="2" class="py-2 sm:py-3 px-2 sm:px-4 text-right font-medium text-gray-800 text-sm sm:text-base hidden sm:table-cell">Dibayar</th>
+                                                    <th class="py-2 sm:py-3 px-2 sm:px-4 text-right font-medium text-gray-800 text-sm sm:text-base sm:hidden">Dibayar</th>
+                                                    <th class="py-2 sm:py-3 px-2 sm:px-4 text-right font-medium text-green-700 text-sm sm:text-base">Rp <?= number_format($booking['jumlahbayar'] ?? 0, 0, ',', '.') ?></th>
+                                                </tr>
+                                                <tr class="bg-gray-50">
+                                                    <th colspan="2" class="py-2 sm:py-3 px-2 sm:px-4 text-right font-medium text-gray-800 text-sm sm:text-base hidden sm:table-cell">Sisa</th>
+                                                    <th class="py-2 sm:py-3 px-2 sm:px-4 text-right font-medium text-gray-800 text-sm sm:text-base sm:hidden">Sisa</th>
+                                                    <th class="py-2 sm:py-3 px-2 sm:px-4 text-right font-medium <?= (($booking['total'] ?? 0) - ($booking['jumlahbayar'] ?? 0) > 0) ? 'text-red-700' : 'text-green-700' ?> text-sm sm:text-base">Rp <?= number_format(($booking['total'] ?? 0) - ($booking['jumlahbayar'] ?? 0), 0, ',', '.') ?></th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
 

@@ -14,7 +14,7 @@ class PaketModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = ['idpaket', 'namapaket', 'deskripsi', 'harga', 'image', 'durasi'];
 
-    // Dates
+
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
     protected $createdField  = 'created_at';
@@ -89,7 +89,7 @@ class PaketModel extends Model
             ];
         }
 
-        // Validasi ukuran (2MB)
+
         $maxSize = 2 * 1024 * 1024; // 2MB dalam bytes
         if ($file->getSize() > $maxSize) {
             $fileSizeMB = number_format($file->getSize() / (1024 * 1024), 2);
@@ -99,7 +99,7 @@ class PaketModel extends Model
             ];
         }
 
-        // Validasi tipe file
+
         $validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
         if (!in_array($file->getMimeType(), $validTypes)) {
             return [
@@ -172,12 +172,12 @@ class PaketModel extends Model
 
     public function save($data): bool
     {
-        // Jika ini adalah update, modifikasi aturan is_unique
+
         if (!empty($data['idpaket'])) {
             $this->validationRules['idpaket']['rules'] = 'required|max_length[10]|is_unique[paket.idpaket,idpaket,' . $data['idpaket'] . ']';
         }
 
-        // Hapus validasi gambar untuk proses awal penyimpanan
+
         if (empty($data['image'])) {
             unset($this->validationRules['gambar']);
         }

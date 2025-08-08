@@ -12,38 +12,115 @@
 
  <script>
      $(document).ready(function() {
-         // Konfigurasi dropdown notifikasi
-         var notificationDropdownEl = document.getElementById('notificationDropdown');
-         if (notificationDropdownEl) {
-             var notificationDropdown = new bootstrap.Dropdown(notificationDropdownEl, {
-                 popperConfig: {
-                     strategy: 'fixed',
-                     modifiers: [{
-                         name: 'preventOverflow',
-                         options: {
-                             padding: 10,
-                             boundary: 'viewport'
-                         }
-                     }]
+         // Konfigurasi dropdown notifikasi dengan responsivitas
+         function initNotificationDropdown() {
+             var notificationDropdownEl = document.getElementById('notificationDropdown');
+             if (notificationDropdownEl) {
+                 var notificationDropdown = new bootstrap.Dropdown(notificationDropdownEl, {
+                     popperConfig: {
+                         strategy: 'fixed',
+                         modifiers: [{
+                             name: 'preventOverflow',
+                             options: {
+                                 padding: $(window).width() < 480 ? 5 : 10,
+                                 boundary: 'viewport'
+                             }
+                         }, {
+                             name: 'offset',
+                             options: {
+                                 offset: [0, 8]
+                             }
+                         }]
+                     }
+                 });
+
+                 // Adjust dropdown width on mobile
+                 $(notificationDropdownEl).on('shown.bs.dropdown', function() {
+                     const dropdown = $(this).next('.dropdown-menu');
+                     if ($(window).width() < 480) {
+                         dropdown.css({
+                             'width': '300px',
+                             'max-width': 'calc(100vw - 20px)'
+                         });
+                     }
+                 });
+             }
+         }
+
+         // Initialize notification dropdown
+         initNotificationDropdown();
+
+         // Mobile navigation handling
+         function initMobileNavigation() {
+             const sidebar = $('#sidebar');
+             const overlay = $('#sidebarOverlay');
+             const toggler = $('#navbarToggler');
+
+             // Toggle sidebar on mobile
+             toggler.on('click', function(e) {
+                 e.preventDefault();
+                 e.stopPropagation();
+
+                 if ($(window).width() < 992) {
+                     sidebar.toggleClass('show');
+                     overlay.toggleClass('show');
+
+                     // Prevent body scroll when sidebar is open
+                     if (sidebar.hasClass('show')) {
+                         $('body').addClass('overflow-hidden');
+                     } else {
+                         $('body').removeClass('overflow-hidden');
+                     }
+                 }
+             });
+
+             // Close sidebar when clicking overlay
+             overlay.on('click', function() {
+                 sidebar.removeClass('show');
+                 overlay.removeClass('show');
+                 $('body').removeClass('overflow-hidden');
+             });
+
+             // Close sidebar when clicking outside (for tablet/desktop)
+             $(document).on('click', function(e) {
+                 const windowWidth = $(window).width();
+
+                 if (windowWidth >= 768 && windowWidth < 992) {
+                     if (!$(e.target).closest('#sidebar').length &&
+                         !$(e.target).closest('#navbarToggler').length &&
+                         sidebar.hasClass('show')) {
+                         sidebar.removeClass('show');
+                         overlay.removeClass('show');
+                         $('body').removeClass('overflow-hidden');
+                     }
+                 }
+             });
+
+             // Handle window resize
+             $(window).on('resize', function() {
+                 const windowWidth = $(this).width();
+
+                 if (windowWidth >= 992) {
+                     sidebar.removeClass('show');
+                     overlay.removeClass('show');
+                     $('body').removeClass('overflow-hidden');
+                 }
+             });
+
+             // Close sidebar when clicking nav links on mobile
+             sidebar.find('.nav-link').on('click', function() {
+                 if ($(window).width() < 768) {
+                     setTimeout(function() {
+                         sidebar.removeClass('show');
+                         overlay.removeClass('show');
+                         $('body').removeClass('overflow-hidden');
+                     }, 150);
                  }
              });
          }
 
-         // Toggle sidebar on mobile
-         $('#navbarToggler').on('click', function() {
-             $('#sidebar').toggleClass('show');
-         });
-
-         // Close sidebar when clicking outside
-         $(document).on('click', function(e) {
-             if ($(window).width() < 768) {
-                 if (!$(e.target).closest('#sidebar').length &&
-                     !$(e.target).closest('#navbarToggler').length &&
-                     $('#sidebar').hasClass('show')) {
-                     $('#sidebar').removeClass('show');
-                 }
-             }
-         });
+         // Initialize mobile navigation
+         initMobileNavigation();
 
          // Logout functionality
          function handleLogout() {
