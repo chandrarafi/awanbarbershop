@@ -735,16 +735,34 @@ class BookingNewController extends BaseController
         $this->db->transBegin();
 
         try {
-
-            $booking = $this->bookingModel->find($kdbooking);
+            // Load the booking with pelanggan data
+            $booking = $this->bookingModel->getBookingWithPelanggan($kdbooking);
             if (!$booking) {
                 throw new \Exception('Booking tidak ditemukan');
             }
 
+            // Get booking details for email
+            $details = $this->detailBookingModel->getDetailsByBookingCode($kdbooking);
+            $tanggal = !empty($details) ? $details[0]['tgl'] : $booking['tanggal_booking'];
+            $jam = !empty($details) ? $details[0]['jamstart'] : '-';
 
+            // Update the status
             $this->bookingModel->update($kdbooking, ['status' => $status]);
 
+            // Send email for confirmed or rejected status
+            if (($status == 'confirmed' || $status == 'rejected') && !empty($booking['email'])) {
+                helper('email');
+                send_booking_status_email(
+                    $booking['email'],
+                    $booking['nama_lengkap'],
+                    $kdbooking,
+                    $status,
+                    $tanggal,
+                    $jam
+                );
+            }
 
+            // Update detail booking status for cancelled bookings
             if ($status == 'cancelled') {
                 $this->detailBookingModel->where('kdbooking', $kdbooking)->set(['status' => '4'])->update();
             }

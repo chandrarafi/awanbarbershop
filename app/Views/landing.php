@@ -223,7 +223,7 @@
                 <div class="absolute inset-0 bg-gradient-to-r from-[#E74C3C] to-[#F1C40F] rounded-2xl transform rotate-1"></div>
                 <iframe
                     class="w-full h-64 sm:h-80 lg:h-96 rounded-2xl relative transform -rotate-1 transition-transform hover:rotate-0 duration-300"
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.6664463317476!2d106.82496851476882!3d-6.175392395527934!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f5d2e764b12d%3A0x3d2ad6e1e0e9bcc8!2sMonumen%20Nasional!5e0!3m2!1sid!2sid!4v1647831234567!5m2!1sid!2sid"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.292503681792!2d100.42455489999999!3d-0.9302143!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2fd4b9ba771810a1%3A0x5360eeef57155078!2sAWAN%20barbershop!5e0!3m2!1sid!2sid!4v1756983295959!5m2!1sid!2sid"
                     style="border:0;"
                     allowfullscreen=""
                     loading="lazy">
