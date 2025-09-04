@@ -1380,8 +1380,9 @@ class BookingNewController extends BaseController
                     <div class="mb-4">
                         <h6>Catatan:</h6>
                         <p>1. Harap datang 10 menit sebelum waktu yang dijadwalkan.</p>
-                        <p>2. Pembatalan harus dilakukan minimal 2 jam sebelum jadwal.</p>
-                        <p>3. Faktur ini sebagai bukti sah pembayaran.</p>
+                        <p>2. Jika tidak datang maka dp akan hangus.</p>
+                        <p>3. Pelanggan tidak dapat membatalkan booking.</p>
+                        <p>4. Sisa pembayaran dilakukan setelah layanan selesai.</p>
                     </div>
                 </div>
                 <div class="col-md-4 text-end">
