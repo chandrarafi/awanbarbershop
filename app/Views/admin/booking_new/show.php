@@ -82,6 +82,85 @@
         color: #fff;
     }
 
+    /* Animation keyframes */
+    @keyframes statusChange {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        50% {
+            transform: scale(1.2);
+            opacity: 0.7;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 20px, 0);
+        }
+
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+    @keyframes shake {
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-5px);
+        }
+
+        75% {
+            transform: translateX(5px);
+        }
+    }
+
+    /* Status change animation classes */
+    .animate-status-change {
+        animation: statusChange 0.5s ease-in-out;
+    }
+
+    .animate-fade-in {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .animate-shake {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    /* Success notification */
+    .status-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 4px;
+        color: white;
+        font-weight: 500;
+        z-index: 9999;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s ease-in-out;
+    }
+
+    .status-notification.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     .detail-table th {
         width: 35%;
         font-weight: 600;
@@ -582,6 +661,15 @@
                 type: 'POST',
                 data: data,
                 dataType: 'json',
+                beforeSend: function() {
+                    Swal.fire({
+                        title: 'Memperbarui status...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                },
                 success: function(response) {
                     if (response.status === 'success') {
                         Swal.fire({
