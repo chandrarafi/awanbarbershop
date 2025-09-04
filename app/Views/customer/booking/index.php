@@ -20,7 +20,6 @@
         <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8">
             <?php if (empty($bookings)) : ?>
                 <div id="empty-state" class="text-center py-8 sm:py-10">
-                    <img src="<?= base_url('assets/images/imgnotfound.jpg') ?>" alt="Belum ada booking" class="w-40 h-40 sm:w-60 sm:h-60 mx-auto mb-4 opacity-75 object-cover rounded-lg">
                     <h3 class="text-lg sm:text-xl font-semibold text-gray-800">Belum Ada Riwayat Booking</h3>
                     <p class="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base px-4 sm:px-0">Anda belum memiliki riwayat booking. Silakan buat booking baru untuk memulai.</p>
                     <a href="<?= site_url('customer/booking/create') ?>" class="btn-primary px-4 sm:px-6 py-2 sm:py-3 rounded-full inline-flex items-center text-sm sm:text-base">
