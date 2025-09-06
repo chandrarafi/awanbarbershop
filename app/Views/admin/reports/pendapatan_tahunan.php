@@ -480,8 +480,9 @@
                 } else {
                     for (var i = 0; i < paginatedData.length; i++) {
                         var item = paginatedData[i] || {};
+                        var rowNumber = startIndex + i + 1; // Hitung nomor urut berdasarkan pagination
                         var row = '<tr>' +
-                            '<td>' + (item.no || '') + '</td>' +
+                            '<td>' + rowNumber + '</td>' +
                             '<td>' + (item.bulan || '') + '</td>' +
                             '<td>' + (item.total_formatted || '') + '</td>' +
                             '</tr>';

@@ -251,27 +251,6 @@
                             $('#ringkasanCard').show();
                             $('#btnPrint').show();
 
-                            // Initialize DataTable
-                            dataTable = $('#dataTable').DataTable({
-                                "order": [
-                                    [1, 'asc']
-                                ],
-                                "pageLength": 25,
-                                "language": {
-                                    "lengthMenu": "Tampilkan _MENU_ data per halaman",
-                                    "zeroRecords": "Tidak ada data yang ditemukan",
-                                    "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
-                                    "infoEmpty": "Tidak ada data yang tersedia",
-                                    "infoFiltered": "(difilter dari _MAX_ total data)",
-                                    "search": "Cari:",
-                                    "paginate": {
-                                        "first": "Pertama",
-                                        "last": "Terakhir",
-                                        "next": "Selanjutnya",
-                                        "previous": "Sebelumnya"
-                                    }
-                                }
-                            });
                         } else {
                             // Show no data message
                             $('#noDataMessage').show();
